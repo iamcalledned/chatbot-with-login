@@ -52,9 +52,10 @@ async def login():
 
 
 async def save_code_verifier(state: str, code_verifier: str):
-    async with db_pool.acquire() as conn:
+    async with app.state.db_pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
+
 
 
 @app.get("/callback")
