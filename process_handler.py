@@ -51,10 +51,12 @@ async def login():
     return RedirectResponse(cognito_login_url)
 
 
-async def save_code_verifier(state: str, code_verifier: str):
+async def get_code_verifier(state: str) -> str:
     async with app.state.db_pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
+            await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
+            result = await cur.fetchone()
+            return result['code_verifier'] if result else None
 
 
 
