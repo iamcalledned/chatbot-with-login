@@ -50,6 +50,12 @@ async def login():
     )
     return RedirectResponse(cognito_login_url)
 
+async def save_code_verifier(state: str, code_verifier: str):
+    async with app.state.db_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
+
+
 
 async def get_code_verifier(state: str) -> str:
     async with app.state.db_pool.acquire() as conn:
@@ -77,12 +83,7 @@ async def callback(code: str, state: str):
     else:
         raise HTTPException(status_code=400, detail="Error exchanging code for tokens")
 
-async def get_code_verifier(state: str) -> str:
-    async with db_pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
-            result = await cur.fetchone()
-            return result['code_verifier'] if result else None
+
 
 async def exchange_code_for_token(code, code_verifier):
     token_url = f"{Config.COGNITO_DOMAIN}/oauth2/token"
