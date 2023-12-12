@@ -4,9 +4,31 @@ import httpx
 import os
 import base64
 import hashlib
+import aiomysql
+import asyncio
 from config import Config  # Import the Config class from your config module
 
 app = FastAPI()
+
+# Initialize the connection pool
+async def create_pool():
+    return await aiomysql.create_pool(
+        host=Config.DB_HOST, port=Config.DB_PORT,
+        user=Config.DB_USER, password=Config.DB_PASSWORD,
+        db=Config.DB_NAME, charset='utf8', 
+        cursorclass=aiomysql.DictCursor, autocommit=True
+    )
+
+loop = asyncio.get_event_loop()
+db_pool = loop.run_until_complete(create_pool())
+
+
+async def generate_code_verifier_and_challenge():
+    code_verifier = base64.urlsafe_b64encode(os.urandom(40)).decode('utf-8')
+    code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).digest()
+    code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
+    return code_verifier, code_challenge
+
 
 async def generate_code_verifier_and_challenge():
     code_verifier = base64.urlsafe_b64encode(os.urandom(40)).decode('utf-8')
@@ -19,8 +41,7 @@ async def login():
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
     state = os.urandom(24).hex()  # Generate a random state value
 
-    # TODO: Securely store the code_verifier indexed by the state
-    # e.g., save_to_secure_storage(state, code_verifier)
+    await save_code_verifier(state, code_verifier)
 
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
@@ -29,13 +50,22 @@ async def login():
     )
     return RedirectResponse(cognito_login_url)
 
+
+async def save_code_verifier(state: str, code_verifier: str):
+    async with db_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
+
+
 @app.get("/callback")
 async def callback(code: str, state: str):
     if not code:
         raise HTTPException(status_code=400, detail="Code parameter is missing")
 
-    # TODO: Retrieve the code_verifier using the state
-    # e.g., code_verifier = retrieve_from_secure_storage(state)
+    # Retrieve the code_verifier using the state
+    code_verifier = await get_code_verifier(state)
+    if not code_verifier:
+        raise HTTPException(status_code=400, detail="Invalid state or code_verifier missing")
 
     tokens = await exchange_code_for_token(code, code_verifier)
     if tokens:
@@ -43,6 +73,13 @@ async def callback(code: str, state: str):
         return {"message": "Login successful"}
     else:
         raise HTTPException(status_code=400, detail="Error exchanging code for tokens")
+
+async def get_code_verifier(state: str) -> str:
+    async with db_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
+            result = await cur.fetchone()
+            return result['code_verifier'] if result else None
 
 async def exchange_code_for_token(code, code_verifier):
     token_url = f"{Config.COGNITO_DOMAIN}/oauth2/token"
@@ -60,6 +97,8 @@ async def exchange_code_for_token(code, code_verifier):
         return response.json()
     else:
         return None
+
+# ... (rest of your FastAPI application)
 
 if __name__ == "__main__":
     import uvicorn
