@@ -4,7 +4,7 @@ import httpx
 import os
 import base64
 import hashlib
-import config  # Your AWS Cognito and other configuration settings
+from config import Config  # Import Config class
 
 app = FastAPI()
 
@@ -20,8 +20,8 @@ async def login():
     state = os.urandom(24).hex()  # Generate a random state value
 
     cognito_login_url = (
-        f"{config.COGNITO_DOMAIN}/login?response_type=code&client_id={config.COGNITO_APP_CLIENT_ID}"
-        f"&redirect_uri={config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
+        f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
+        f"&redirect_uri={Config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
         f"&code_challenge_method=S256"
     )
     return RedirectResponse(cognito_login_url)
