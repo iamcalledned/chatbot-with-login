@@ -79,7 +79,7 @@ async def callback(code: str, state: str):
     tokens = await exchange_code_for_token(code, code_verifier)
     if tokens:
         # Process tokens (e.g., store them in session or database)
-        return RedirectResponse("/chat.html")
+        window.location.href = '/chat.html'
     else:
         raise HTTPException(status_code=400, detail="Error exchanging code for tokens")
 
