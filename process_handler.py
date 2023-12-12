@@ -41,7 +41,7 @@ async def login():
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
     state = os.urandom(24).hex()  # Generate a random state value
 
-    await save_code_verifier(state, code_verifier)
+    await save_code_verifier(state, code_verifier)  # Corrected function name
 
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
