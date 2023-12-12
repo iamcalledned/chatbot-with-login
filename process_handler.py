@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 import httpx
 import os
 import base64
 import hashlib
-from config import Config  # Import Config class
+from config import Config  # Import the Config class from your config module
 
 app = FastAPI()
 
@@ -19,6 +19,9 @@ async def login():
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
     state = os.urandom(24).hex()  # Generate a random state value
 
+    # TODO: Securely store the code_verifier indexed by the state
+    # e.g., save_to_secure_storage(state, code_verifier)
+
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
         f"&redirect_uri={Config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
@@ -31,8 +34,10 @@ async def callback(code: str, state: str):
     if not code:
         raise HTTPException(status_code=400, detail="Code parameter is missing")
 
-    # Exchange code for token
-    tokens = await exchange_code_for_token(code, session.get('code_verifier'))
+    # TODO: Retrieve the code_verifier using the state
+    # e.g., code_verifier = retrieve_from_secure_storage(state)
+
+    tokens = await exchange_code_for_token(code, code_verifier)
     if tokens:
         # Process tokens (e.g., store them in session or database)
         return {"message": "Login successful"}
@@ -40,14 +45,20 @@ async def callback(code: str, state: str):
         raise HTTPException(status_code=400, detail="Error exchanging code for tokens")
 
 async def exchange_code_for_token(code, code_verifier):
+    token_url = f"{Config.COGNITO_DOMAIN}/oauth2/token"
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {
+        'grant_type': 'authorization_code',
+        'client_id': Config.COGNITO_APP_CLIENT_ID,
+        'code': code,
+        'redirect_uri': Config.REDIRECT_URI,
+        'code_verifier': code_verifier
+    }
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            # Your existing token exchange logic here
-        )
+        response = await client.post(token_url, headers=headers, data=data)
     if response.status_code == 200:
         return response.json()
     else:
-        # Handle error
         return None
 
 if __name__ == "__main__":
