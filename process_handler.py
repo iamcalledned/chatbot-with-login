@@ -19,9 +19,9 @@ async def create_pool():
         cursorclass=aiomysql.DictCursor, autocommit=True
     )
 
-loop = asyncio.get_event_loop()
-db_pool = loop.run_until_complete(create_pool())
-
+@app.on_event("startup")
+async def startup():
+    app.state.db_pool = await create_pool()
 
 async def generate_code_verifier_and_challenge():
     code_verifier = base64.urlsafe_b64encode(os.urandom(40)).decode('utf-8')
