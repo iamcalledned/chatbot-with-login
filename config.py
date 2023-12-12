@@ -20,3 +20,8 @@ class Config:
     DB_PATH = os.getenv('DB_PATH')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     LOG_PATH = os.getenv('LOG_PATH')
+    DB_HOST = os.getenv('DB_HOST')
+    DB_PORT = int(os.getenv('DB_PORT', 3306))  # Default MySQL port is 3306
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_NAME = os.getenv('DB_NAME')
