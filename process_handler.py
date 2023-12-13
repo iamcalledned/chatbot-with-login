@@ -55,7 +55,19 @@ async def generate_code_verifier_and_challenge():
 @app.get("/login")
 async def login(request: Request):
     print("start of login")
-    print("request", Request)
+    # Print client information
+    client_host = request.client.host
+    client_port = request.client.port
+    print(f"Client host: {client_host}, Client port: {client_port}")
+
+    # Print headers
+    headers = dict(request.headers)
+    print(f"Headers: {headers}")
+
+    # Print query parameters
+    query_params = dict(request.query_params)
+    print(f"Query parameters: {query_params}")
+    
     # Getting the client's IP address
     client_ip = request.client.host
     print(f"Client IP: {client_ip}")
