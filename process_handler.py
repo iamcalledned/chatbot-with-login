@@ -8,16 +8,9 @@ import aiomysql
 import asyncio
 from config import Config  # Import the Config class from your config module
 
+
 app = FastAPI()
 
-# Initialize the connection pool
-async def create_pool():
-    return await aiomysql.create_pool(
-        host=Config.DB_HOST, port=Config.DB_PORT,
-        user=Config.DB_USER, password=Config.DB_PASSWORD,
-        db=Config.DB_NAME, charset='utf8', 
-        cursorclass=aiomysql.DictCursor, autocommit=True
-    )
 
 @app.on_event("startup")
 async def startup():
@@ -36,6 +29,14 @@ async def generate_code_verifier_and_challenge():
     code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
     return code_verifier, code_challenge
 
+################################################################## 
+######!!!!       Routes                !!!!!######################
+##################################################################
+
+################################################################## 
+######!!!!     Start login endpoint    !!!!!######################
+##################################################################
+
 @app.get("/login")
 async def login():
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
@@ -50,21 +51,13 @@ async def login():
     )
     return RedirectResponse(cognito_login_url)
 
-async def save_code_verifier(state: str, code_verifier: str):
-    async with app.state.db_pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
+################################################################## 
+######!!!!     End login endpoint      !!!!!######################
+##################################################################
 
-
-
-async def get_code_verifier(state: str) -> str:
-    async with app.state.db_pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
-            result = await cur.fetchone()
-            return result['code_verifier'] if result else None
-
-
+################################################################## 
+######!!!!     Start callback  endpoint!!!!!######################
+##################################################################
 
 @app.get("/callback")
 async def callback(code: str, state: str):
@@ -76,15 +69,74 @@ async def callback(code: str, state: str):
     if not code_verifier:
         raise HTTPException(status_code=400, detail="Invalid state or code_verifier missing")
 
+    
     tokens = await exchange_code_for_token(code, code_verifier)
     if tokens:
-        # Process tokens (e.g., store them in session or database)
-       return RedirectResponse("/chat.html")
+        id_token = tokens['id_token']
+        decoded_token = validate_token(id_token)
+
+        # Retrieve session data
+        session = await session_manager.get_session(request)
+
+        # Store user information in session
+        session['email'] = decoded_token.get('email', 'unknown')
+        session['username'] = decoded_token.get('cognito:username', 'unknown')
+        session['name'] = decoded_token.get('name', 'unknown')
+
+        # Save user information to MySQL
+        mysql_connection = pymysql.connect(
+            host=Config.DB_HOST,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD,
+            db=Config.DB_NAME,
+            charset='utf8',
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=True
+        )
+
+        with mysql_connection.cursor() as cursor:
+            # Create a SQL statement to insert user information into the MySQL table
+            sql = "INSERT INTO login (username, email, name, session_id) VALUES (%s, %s, %s, %s)"
+            values = (session['username'], session['email'], session['name'], session['session_id'])
+            cursor.execute(sql, values)
+            print("User information saved to MySQL")
+
+        # Close the MySQL connection
+        mysql_connection.close()
+
+        # Redirect to the 'chat' route
+        response.headers['location'] = '/chat.html'
+        response.status_code = 302
     else:
-        raise HTTPException(status_code=400, detail="Error exchanging code for tokens")
+        return 'Error during token exchange.', 400
+    return f"Token validation error: {str(e)}", 400
+
+    
+
+##################################################################
+######!!!!     End callback endpoint   !!!!!######################
+##################################################################
+
+##################################################################
+######!!!!     Start Functions           !!!!!####################
+##################################################################
+
+# Save the code_verifier and state in the database
+async def save_code_verifier(state: str, code_verifier: str):
+    async with app.state.db_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
 
 
+# Retrieve the code_verifier using the state
+async def get_code_verifier(state: str) -> str:
+    async with app.state.db_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
+            result = await cur.fetchone()
+            return result['code_verifier'] if result else None
 
+# exhange code for token
 async def exchange_code_for_token(code, code_verifier):
     token_url = f"{Config.COGNITO_DOMAIN}/oauth2/token"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -102,7 +154,17 @@ async def exchange_code_for_token(code, code_verifier):
     else:
         return None
 
-# ... (rest of your FastAPI application)
+# Initialize the connection pool
+async def create_pool():
+    return await aiomysql.create_pool(
+        host=Config.DB_HOST, port=Config.DB_PORT,
+        user=Config.DB_USER, password=Config.DB_PASSWORD,
+        db=Config.DB_NAME, charset='utf8', 
+        cursorclass=aiomysql.DictCursor, autocommit=True
+    )
+
+##################################################################
+
 
 if __name__ == "__main__":
     import uvicorn
