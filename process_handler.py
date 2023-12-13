@@ -55,7 +55,7 @@ async def generate_code_verifier_and_challenge():
 @app.get("/login")
 async def login(request: Request):
     print("start of login")
-    print("request", request)
+    print("request", Request)
     # Getting the client's IP address
     client_ip = request.client.host
     print(f"Client IP: {client_ip}")
