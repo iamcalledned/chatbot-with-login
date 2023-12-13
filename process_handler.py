@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import RedirectResponse
 import httpx
 import os
@@ -13,8 +13,12 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from jwt.algorithms import RSAAlgorithm
+from fastapi.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
+
+# Define session middleware
+app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 
 
 @app.on_event("startup")
@@ -65,7 +69,7 @@ async def login():
 ##################################################################
 
 @app.get("/callback")
-async def callback(code: str, state: str):
+async def Callback(request: Request, code: str, state: str, session: Session = Depends(get_session)):
     if not code:
         raise HTTPException(status_code=400, detail="Code parameter is missing")
 
@@ -81,7 +85,7 @@ async def callback(code: str, state: str):
         decoded_token = await validate_token(id_token)
 
         # Retrieve session data
-        session = await session_manager.get_session(request)
+        #session = await session_manager.get_session(request)
 
         # Store user information in session
         session['email'] = decoded_token.get('email', 'unknown')
@@ -190,6 +194,10 @@ async def validate_token(id_token):
     )
     return decoded_token
 
+######   Sessions
+
+def get_session(request: Request):
+    return request.session
 
 ##################################################################
 
