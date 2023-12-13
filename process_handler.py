@@ -19,6 +19,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from fastapi.responses import JSONResponse
+from datetime import datetime
+
 
 app = FastAPI()
 
@@ -55,6 +57,10 @@ async def generate_code_verifier_and_challenge():
 @app.get("/login")
 async def login(request: Request):
     print("start of login")
+    #set login timestemp
+    now = datetime.datetime.now()
+    # Convert to a timestamp (seconds since the Unix Epoch)
+    login_timestamp = now
 
     # Getting the client's IP address
     client_ip = request.client.host
@@ -69,7 +75,7 @@ async def login(request: Request):
     state = os.urandom(24).hex()  # Generate a random state value
     print("state: ", state)
     
-    await save_code_verifier(state, code_verifier, client_ip)  # Corrected function name
+    await save_code_verifier(state, code_verifier, client_ip, login_timestamp)  # Corrected function name
 
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
@@ -209,10 +215,10 @@ async def get_session_data(request: Request):
 ##################################################################
 
 # Save the code_verifier and state in the database
-async def save_code_verifier(state: str, code_verifier: str, client_ip: str):
+async def save_code_verifier(state: str, code_verifier: str, client_ip: str, login_timestamp ):
     async with app.state.db_pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO verifier_store (state, code_verifier, client_ip) VALUES (%s, %s, %s)", (state, code_verifier, client_ip))
+            await cur.execute("INSERT INTO verifier_store (state, code_verifier, client_ip, login_timestamp) VALUES (%s, %s, %s, %s)", (state, code_verifier, client_ip, login_timestamp))
 
 
 # Retrieve the code_verifier using the state
