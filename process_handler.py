@@ -174,18 +174,18 @@ async def get_session_data(request: Request):
     print("at /get_session_data")
     # Retrieve session data
     session_id = request.session.get('session_id')
-    nonce = request.session.get('nonce')
-    user_info = request.session.get('user_info')  # Adjust as per your actual session keys
-
+    
     # If session_id is not available, return an error
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not found in session data")
 
-    print("user info from get session data", user_info)
-
+    
     # Retrieve additional data from the database using the session_id
     db_data = await get_data_from_db(session_id, app.state.db_pool)
     print("db_data", db_data)
+    state = db_data['state']
+    user_info = db_data
+
 
     # You can merge the user_info with db_data if needed
     # user_info.update(db_data)  # Uncomment this line if you want to merge
@@ -193,7 +193,7 @@ async def get_session_data(request: Request):
     # Return the combined data
     return JSONResponse(content={
         "sessionId": session_id,
-        "nonce": nonce,
+        "nonce": state,
         "userInfo": user_info  # or db_data if you have merged them
     })
 
