@@ -170,6 +170,7 @@ async def create_pool():
 # validate token
 async def validate_token(id_token):
     COGNITO_USER_POOL_ID = Config.COGNITO_USER_POOL_ID
+    COGNITO_APP_CLIENT_ID = Config.COGNITO_APP_CLIENT_ID
     jwks_url = f"https://cognito-idp.us-east-1.amazonaws.com/{COGNITO_USER_POOL_ID}/.well-known/jwks.json"
     #jwks_response = requests.get(jwks_url)
     with httpx.Client() as client:
