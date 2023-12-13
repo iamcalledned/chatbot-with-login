@@ -13,12 +13,16 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from jwt.algorithms import RSAAlgorithm
-from fastapi.middleware.sessions import SessionMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
+
 
 app = FastAPI()
 
 # Define session middleware
 app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
+
 
 
 @app.on_event("startup")
@@ -69,7 +73,7 @@ async def login():
 ##################################################################
 
 @app.get("/callback")
-async def Callback(request: Request, code: str, state: str, session: Session = Depends(get_session)):
+async def callback(request: Request, code: str, state: str):
     if not code:
         raise HTTPException(status_code=400, detail="Code parameter is missing")
 
@@ -85,7 +89,7 @@ async def Callback(request: Request, code: str, state: str, session: Session = D
         decoded_token = await validate_token(id_token)
 
         # Retrieve session data
-        #session = await session_manager.get_session(request)
+        session = request.session
 
         # Store user information in session
         session['email'] = decoded_token.get('email', 'unknown')
@@ -114,11 +118,10 @@ async def Callback(request: Request, code: str, state: str, session: Session = D
         mysql_connection.close()
 
         # Redirect to the 'chat' route
-        response.headers['location'] = '/chat.html'
-        response.status_code = 302
+        return RedirectResponse(url='/chat.html', status_code=302)
     else:
         return 'Error during token exchange.', 400
-    return f"Token validation error: {str(e)}", 400
+    
 
     
 
