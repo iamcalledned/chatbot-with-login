@@ -55,31 +55,21 @@ async def generate_code_verifier_and_challenge():
 @app.get("/login")
 async def login(request: Request):
     print("start of login")
-    # Print client information
-    client_host = request.client.host
-    client_port = request.client.port
-    print(f"Client host: {client_host}, Client port: {client_port}")
 
-    # Print headers
-    headers = dict(request.headers)
-    print(f"Headers: {headers}")
-
-    # Print query parameters
-    query_params = dict(request.query_params)
-    print(f"Query parameters: {query_params}")
-    
     # Getting the client's IP address
     client_ip = request.client.host
     print(f"Client IP: {client_ip}")
     
+    #get code_verifier and code_challenge
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
     print("code_verifier: ", code_verifier)
     print("code_challenge: ", code_challenge)
 
+    # generate a state code to link things later
     state = os.urandom(24).hex()  # Generate a random state value
     print("state: ", state)
     
-    await save_code_verifier(state, code_verifier)  # Corrected function name
+    await save_code_verifier(state, code_verifier, client_ip)  # Corrected function name
 
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
@@ -214,10 +204,10 @@ async def get_session_data(request: Request):
 ##################################################################
 
 # Save the code_verifier and state in the database
-async def save_code_verifier(state: str, code_verifier: str):
+async def save_code_verifier(state: str, code_verifier: str, client_ip: str):
     async with app.state.db_pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO verifier_store (state, code_verifier) VALUES (%s, %s)", (state, code_verifier))
+            await cur.execute("INSERT INTO verifier_store (state, code_verifier, client_ip) VALUES (%s, %s, %s)", (state, code_verifier, client_ip))
 
 
 # Retrieve the code_verifier using the state
