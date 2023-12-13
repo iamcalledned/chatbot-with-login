@@ -18,7 +18,7 @@ from jwt.algorithms import RSAAlgorithm
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
-
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -54,6 +54,7 @@ async def generate_code_verifier_and_challenge():
 
 @app.get("/login")
 async def login():
+    print("start of login")
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
     state = os.urandom(24).hex()  # Generate a random state value
 
@@ -64,6 +65,7 @@ async def login():
         f"&redirect_uri={Config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
         f"&code_challenge_method=S256"
     )
+    print("redirecting out of login")
     return RedirectResponse(cognito_login_url)
 
 ################################################################## 
@@ -75,7 +77,16 @@ async def login():
 ##################################################################
 
 @app.get("/callback")
+
 async def callback(request: Request, code: str, state: str):
+    print("start of callback")
+     # Extract query parameters
+    query_params = request.query_params
+    code = query_params.get('code')
+    state = query_params.get('state')
+    print("code: ", code)
+    print("state: ", state)
+    
     if not code:
         raise HTTPException(status_code=400, detail="Code parameter is missing")
 
@@ -99,8 +110,7 @@ async def callback(request: Request, code: str, state: str):
         session['name'] = decoded_token.get('name', 'unknown')
         session['session_id'] = decoded_token.get('session_id', 'unknown')
         
-        session_id = session['session_id']
-        user_info = session['username']
+
 
         
 
@@ -135,11 +145,48 @@ async def callback(request: Request, code: str, state: str):
         return 'Error during token exchange.', 400
     
 
-    
-
 ##################################################################
 ######!!!!     End callback endpoint   !!!!!######################
 ##################################################################
+
+
+##################################################################
+######!!!!     start get ssession endpoint!!######################
+##################################################################
+
+@app.get("/get_session_data")
+async def get_session_data(request: Request):
+    print("at /get_session_data")
+    # Retrieve session data
+    session_id = request.session.get('session_id')
+    nonce = request.session.get('nonce')
+    user_info = request.session.get('user_info')  # Adjust as per your actual session keys
+
+    # If session_id is not available, return an error
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID not found in session data")
+
+    print("user info from get session data", user_info)
+
+    # Retrieve additional data from the database using the session_id
+    db_data = await get_data_from_db(session_id, app.state.db_pool)
+
+    # You can merge the user_info with db_data if needed
+    # user_info.update(db_data)  # Uncomment this line if you want to merge
+
+    # Return the combined data
+    return JSONResponse(content={
+        "sessionId": session_id,
+        "nonce": nonce,
+        "userInfo": user_info  # or db_data if you have merged them
+    })
+
+
+##################################################################
+######!!!!     end get ssession endpoint  !!######################
+##################################################################
+
+
 
 ##################################################################
 ######!!!!     Start Functions           !!!!!####################
@@ -174,7 +221,9 @@ async def exchange_code_for_token(code, code_verifier):
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, headers=headers, data=data)
     if response.status_code == 200:
+        print("response.json()", response.json())  
         return response.json()
+        
     else:
         return None
 

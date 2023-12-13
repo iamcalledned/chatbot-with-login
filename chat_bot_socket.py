@@ -36,6 +36,7 @@ logging.basicConfig(
 # Initialize Redis client
 redis_client = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, db=0)
 
+
 # get user info by session_id
 async def get_user_info_by_session_id(session_id, db_pool):
     """
