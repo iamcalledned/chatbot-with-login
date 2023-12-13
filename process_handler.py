@@ -120,6 +120,7 @@ async def callback(request: Request, code: str, state: str):
         session['username'] = decoded_token.get('cognito:username', 'unknown')
         session['name'] = decoded_token.get('name', 'unknown')
         session['session_id'] = os.urandom(24).hex()  # Generate a random state value
+        print("session_id: ", session['session_id'])
         print("session: ", session)
         
         
