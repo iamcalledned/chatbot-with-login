@@ -142,8 +142,8 @@ async def callback(request: Request, code: str, state: str):
 
         with mysql_connection.cursor() as cursor:
             # Create a SQL statement to insert user information into the MySQL table
-            sql = "INSERT INTO login (username, email, name, session_id, ip_address ) VALUES (%s, %s, %s, %s, %s)"
-            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip)
+            sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
+            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
             cursor.execute(sql, values)
             print("User information saved to MySQL")
 
@@ -185,6 +185,7 @@ async def get_session_data(request: Request):
 
     # Retrieve additional data from the database using the session_id
     db_data = await get_data_from_db(session_id, app.state.db_pool)
+    print("db_data", db_data)
 
     # You can merge the user_info with db_data if needed
     # user_info.update(db_data)  # Uncomment this line if you want to merge
@@ -280,7 +281,13 @@ def get_session(request: Request):
 
 ##################################################################
 
-
+async def get_data_from_db(session_id, db_pool):
+    async with db_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
+            result = await cur.fetchone()
+            return result if result else {}
+##################################################################
 
 if __name__ == "__main__":
     import uvicorn
