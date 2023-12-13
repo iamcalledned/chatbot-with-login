@@ -120,6 +120,7 @@ async def callback(request: Request, code: str, state: str):
         session['username'] = decoded_token.get('cognito:username', 'unknown')
         session['name'] = decoded_token.get('name', 'unknown')
         session['session_id'] = decoded_token.get('session_id', 'unknown')
+        print("state:", decoded_token.get('state', 'unknown'))
         
 
 
