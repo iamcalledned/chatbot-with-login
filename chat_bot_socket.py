@@ -93,6 +93,7 @@ async def chatbot_handler(websocket, path):
         initial_data = await websocket.recv()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
+        print("session_id", session_id)
         print("in tring session")
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
