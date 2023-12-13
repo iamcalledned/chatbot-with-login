@@ -89,7 +89,7 @@ async def message_listener(redis_client, channel):
 async def chatbot_handler(websocket, path):
     logging.info(f"New WebSocket connection from {websocket.remote_address}")
     print(f"New WebSocket connection from {websocket.remote_address}")
-    try:
+    try:    
         initial_data = await websocket.recv()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
