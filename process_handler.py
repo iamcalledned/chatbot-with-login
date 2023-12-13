@@ -184,7 +184,7 @@ async def get_session_data(request: Request):
     db_data = await get_data_from_db(session_id, app.state.db_pool)
     print("db_data", db_data)
     state = db_data['state']
-    user_info = db_data
+    user_info = dict(db_data)
 
 
     # You can merge the user_info with db_data if needed
