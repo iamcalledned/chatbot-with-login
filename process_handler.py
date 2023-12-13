@@ -9,7 +9,8 @@ import asyncio
 from config import Config  # Import the Config class from your config module
 import jwt 
 import json
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 app = FastAPI()
@@ -169,24 +170,31 @@ async def create_pool():
 async def validate_token(id_token):
     COGNITO_USER_POOL_ID = Config.COGNITO_USER_POOL_ID
     jwks_url = f"https://cognito-idp.us-east-1.amazonaws.com/{COGNITO_USER_POOL_ID}/.well-known/jwks.json"
-    #jwks_response = requests.get(jwks_url)
+
+    # Use httpx to make a synchronous GET request
     with httpx.Client() as client:
         jwks_response = client.get(jwks_url)
+    
     jwks = jwks_response.json()
-
+    
     headers = jwt.get_unverified_header(id_token)
     kid = headers['kid']
     key = [k for k in jwks['keys'] if k['kid'] == kid][0]
-    pem = RSAAlgorithm.from_jwk(json.dumps(key))
-
+    
+    pem = key['x5c'][0]
+    pem = "-----BEGIN CERTIFICATE-----\n" + pem + "\n-----END CERTIFICATE-----"
+    
+    public_key_pem = pem.encode('utf-8')
+    
+    public_key = serialization.load_pem_public_key(public_key_pem, backend=default_backend())
+    
     decoded_token = jwt.decode(
         id_token,
-        pem,
+        public_key,
         algorithms=['RS256'],
         audience=COGNITO_APP_CLIENT_ID
     )
     return decoded_token
-
 
 ##################################################################
 
