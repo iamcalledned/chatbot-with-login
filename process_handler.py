@@ -178,8 +178,12 @@ async def validate_token(id_token):
     headers = jwt.get_unverified_header(id_token)
     kid = headers['kid']
     key = [k for k in jwks['keys'] if k['kid'] == kid][0]
+    print("key lenght", len(key['n']))
+    print("key", key)
+    if len(key['n']) % 4 != 0:
+        raise ValueError('Invalid key, length not multiple of 4')
     pem = serialization.load_pem_public_key(
-        base64.b64decode(key['n']),
+        base64.b64decode(key['n']),  
         backend=default_backend())
 
     decoded_token = jwt.decode(
