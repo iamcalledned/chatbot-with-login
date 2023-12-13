@@ -1,11 +1,9 @@
 // websocket.js
 
 // Function to initialize WebSocket connection
-function initializeWebSocket(sessionId, userId) {
+function initializeWebSocket(sessionId) {
     var socket = new WebSocket('wss://www.whattogrill.com:8055');
     socket.onopen = function() {
-        console.log('WebSocket connected!', userId);
-        // Send session_id when the WebSocket connection is established
         socket.send(JSON.stringify({ session_id: sessionId }));
         // Store session_id in local storage
         localStorage.setItem('session_id', sessionId);

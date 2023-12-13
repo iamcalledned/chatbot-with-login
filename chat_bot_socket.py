@@ -18,6 +18,9 @@ from uuid import uuid4
 from datetime import datetime, timezone
 from openai_utils_generate_answer import generate_answer
 from config import Config
+import pymysql
+import aiomysql
+
 
 
 # Other imports as necessary
@@ -32,6 +35,27 @@ logging.basicConfig(
 )
 # Initialize Redis client
 redis_client = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, db=0)
+
+# get user info by session_id
+async def get_user_info_by_session_id(session_id, db_pool):
+    """
+    Asynchronously retrieve user information from the database using the session_id.
+    """
+    async with db_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
+            result = await cur.fetchone()
+            return result
+
+# Async function to create a connection pool
+async def create_db_pool():
+    return await aiomysql.create_pool(
+        host=Config.DB_HOST, port=Config.DB_PORT,
+        user=Config.DB_USER, password=Config.DB_PASSWORD,
+        db=Config.DB_NAME, charset='utf8', 
+        cursorclass=aiomysql.DictCursor, autocommit=True
+    )
+
 
 # Dictionary to store user_id: websocket mapping
 connections = {}
@@ -64,9 +88,8 @@ async def chatbot_handler(websocket, path):
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
         if session_id:
-            user_info = redis_client.get(session_id)
+            user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
             if user_info:
-                user_info = json.loads(user_info.decode('utf-8'))
                 userID = user_info['username']
                 connections[userID] = websocket
             else:
@@ -75,7 +98,7 @@ async def chatbot_handler(websocket, path):
         else:
             await websocket.send(json.dumps({'error': 'Session ID required'}))
             return
-
+        
         while True:
             data = await websocket.recv()
             try:
@@ -107,6 +130,10 @@ if __name__ == '__main__':
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_context.load_cert_chain('/home/ubuntu/whattogrill-backend/bot/fullchain.pem', '/home/ubuntu/whattogrill-backend/bot/privkey.pem')
 
+    db_pool = asyncio.get_event_loop().run_until_complete(create_db_pool())
+    app_state = type('obj', (object,), {'db_pool': db_pool})
+
+
     start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
 
     logging.info('Starting WebSocket server...')
@@ -114,3 +141,4 @@ if __name__ == '__main__':
     asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
+    

@@ -46,6 +46,10 @@
                 <button id="send-button">Send</button>
             </div>
         </div>
+        <script>
+            // Set the sessionId as a global variable that can be accessed by other JavaScript modules
+            window.sessionId = "{{ sessionId }}";
+        </script>
         <!-- Include Socket.IO -->
         <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
         <!-- Include jQuery -->

@@ -1,3 +1,4 @@
+#process_handler.py
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import RedirectResponse
 import httpx
@@ -97,6 +98,11 @@ async def callback(request: Request, code: str, state: str):
         session['username'] = decoded_token.get('cognito:username', 'unknown')
         session['name'] = decoded_token.get('name', 'unknown')
         session['session_id'] = decoded_token.get('session_id', 'unknown')
+        
+        session_id = session['session_id']
+        user_info = session['username']
+
+        
 
         # Save user information to MySQL
         mysql_connection = pymysql.connect(
