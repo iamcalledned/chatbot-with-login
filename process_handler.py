@@ -119,8 +119,12 @@ async def callback(request: Request, code: str, state: str):
         # Close the MySQL connection
         mysql_connection.close()
 
-        # Redirect to the 'chat' route
-        return RedirectResponse(url='/chat.html', status_code=302)
+           # Prepare the URL with query parameters
+        chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
+        redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
+
+        # Redirect the user to the chatbot interface with query parameters
+        return RedirectResponse(url=redirect_url, status_code=302)
     else:
         return 'Error during token exchange.', 400
     
