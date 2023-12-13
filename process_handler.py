@@ -53,11 +53,20 @@ async def generate_code_verifier_and_challenge():
 ##################################################################
 
 @app.get("/login")
-async def login():
+async def login(request: Request):
     print("start of login")
+    print("request", request)
+    # Getting the client's IP address
+    client_ip = request.client.host
+    print(f"Client IP: {client_ip}")
+    
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
-    state = os.urandom(24).hex()  # Generate a random state value
+    print("code_verifier: ", code_verifier)
+    print("code_challenge: ", code_challenge)
 
+    state = os.urandom(24).hex()  # Generate a random state value
+    print("state: ", state)
+    
     await save_code_verifier(state, code_verifier)  # Corrected function name
 
     cognito_login_url = (
