@@ -73,7 +73,7 @@ async def callback(code: str, state: str):
     tokens = await exchange_code_for_token(code, code_verifier)
     if tokens:
         id_token = tokens['id_token']
-        decoded_token = validate_token(id_token)
+        decoded_token = await validate_token(id_token)
 
         # Retrieve session data
         session = await session_manager.get_session(request)
@@ -162,8 +162,28 @@ async def create_pool():
         db=Config.DB_NAME, charset='utf8', 
         cursorclass=aiomysql.DictCursor, autocommit=True
     )
+# validate token
+async def validate_token(id_token):
+    jwks_url = f"https://cognito-idp.us-east-1.amazonaws.com/{COGNITO_USER_POOL_ID}/.well-known/jwks.json"
+    jwks_response = requests.get(jwks_url)
+    jwks = jwks_response.json()
+
+    headers = jwt.get_unverified_header(id_token)
+    kid = headers['kid']
+    key = [k for k in jwks['keys'] if k['kid'] == kid][0]
+    pem = RSAAlgorithm.from_jwk(json.dumps(key))
+
+    decoded_token = jwt.decode(
+        id_token,
+        pem,
+        algorithms=['RS256'],
+        audience=COGNITO_APP_CLIENT_ID
+    )
+    return decoded_token
+
 
 ##################################################################
+
 
 
 if __name__ == "__main__":
