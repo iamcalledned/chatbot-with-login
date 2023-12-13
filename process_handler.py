@@ -178,7 +178,9 @@ async def validate_token(id_token):
     headers = jwt.get_unverified_header(id_token)
     kid = headers['kid']
     key = [k for k in jwks['keys'] if k['kid'] == kid][0]
-    pem = RSAAlgorithm.from_jwk(json.dumps(key))
+    pem = serialization.load_pem_public_key(
+        base64.b64decode(key['n']),
+        backend=default_backend())
 
     decoded_token = jwt.decode(
         id_token,
