@@ -60,7 +60,7 @@ async def login(request: Request):
     #set login timestemp
     now = datetime.datetime.now()
     # Convert to a timestamp (seconds since the Unix Epoch)
-    login_timestamp = now
+    login_timestamp = now.timestamp()
 
     # Getting the client's IP address
     client_ip = request.client.host
