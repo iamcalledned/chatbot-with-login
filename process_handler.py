@@ -189,7 +189,8 @@ async def get_session_data(request: Request):
     db_data = await get_data_from_db(session_id, app.state.db_pool)
     print("db_data", db_data)
     state = db_data['state']
-    user_info = dict(db_data)
+    username = db_data.get('username')
+    
 
 
     # You can merge the user_info with db_data if needed
@@ -199,7 +200,7 @@ async def get_session_data(request: Request):
     return JSONResponse(content={
         "sessionId": session_id,
         "nonce": state,
-        "userInfo": user_info  # or db_data if you have merged them
+        "userInfo": username  # or db_data if you have merged them
     })
 
 
