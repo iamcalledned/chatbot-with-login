@@ -95,6 +95,7 @@ async def callback(request: Request, code: str, state: str):
     query_params = request.query_params
     code = query_params.get('code')
     state = query_params.get('state')
+    client_ip = request.client.host
     print("code: ", code)
     print("state: ", state)
     
@@ -141,8 +142,8 @@ async def callback(request: Request, code: str, state: str):
 
         with mysql_connection.cursor() as cursor:
             # Create a SQL statement to insert user information into the MySQL table
-            sql = "INSERT INTO login (username, email, name, session_id) VALUES (%s, %s, %s, %s)"
-            values = (session['username'], session['email'], session['name'], session['session_id'])
+            sql = "INSERT INTO login (username, email, name, session_id, ip_address ) VALUES (%s, %s, %s, %s, %s)"
+            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip)
             cursor.execute(sql, values)
             print("User information saved to MySQL")
 
