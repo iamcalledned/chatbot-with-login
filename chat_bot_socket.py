@@ -38,7 +38,8 @@ redis_client = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, db=0)
 
 
 # get user info by session_id
-async def get_user_info_by_session_id(session_id, db_pool):
+async def get_user_info_by_sesion_id(session_id, db_pool):
+    print("")
     """
     Asynchronously retrieve user information from the database using the session_id.
     """
@@ -63,6 +64,7 @@ connections = {}
 
 #add function to send direct message to users via websocket
 async def send_direct_message(user_id, message):
+    print(f"Sending message to user {user_id}: {message}")
     if user_id in connections:
         await connections[user_id].send(message)
     else:
@@ -70,6 +72,8 @@ async def send_direct_message(user_id, message):
 
 #add message listener
 async def message_listener(redis_client, channel):
+    print("message listener")
+    
     pubsub = redis_client.pubsub()
     await pubsub.subscribe(channel)
     while True:
@@ -84,10 +88,12 @@ async def message_listener(redis_client, channel):
 
 async def chatbot_handler(websocket, path):
     logging.info(f"New WebSocket connection from {websocket.remote_address}")
+    print(f"New WebSocket connection from {websocket.remote_address}")
     try:
         initial_data = await websocket.recv()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
+        print("in tring session")
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
             if user_info:
@@ -120,6 +126,7 @@ async def chatbot_handler(websocket, path):
             logging.info(f"Processed message from {user_ip}")
     except websockets.exceptions.ConnectionClosed as e:
         logging.error(f"Connection closed with exception: {e}")
+        print(f"Connection closed with exception: {e}")
         if userID in connections:
             del connections[userID]
     except Exception as e:
