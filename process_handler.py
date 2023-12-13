@@ -197,6 +197,12 @@ async def get_session_data(request: Request):
     # user_info.update(db_data)  # Uncomment this line if you want to merge
 
     # Return the combined data
+    print("returning JSONResponse", JSONResponse(content={
+        "sessionId": session_id,
+        "nonce": state,
+        "userInfo": username  # or db_data if you have merged them
+    }))
+
     return JSONResponse(content={
         "sessionId": session_id,
         "nonce": state,
