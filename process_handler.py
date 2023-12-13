@@ -19,7 +19,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from fastapi.responses import JSONResponse
-from datetime import datetime
+import datetime
 
 
 app = FastAPI()
