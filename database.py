@@ -15,10 +15,10 @@ DB_CONFIG = {
     "db": Config.DB_NAME,
 }
 
-pool = None
 
-async def create_pool(pool):
-    
+
+async def create_pool():
+    global pool    
     try:
         pool = await aiomysql.create_pool(**DB_CONFIG)
         if pool:
