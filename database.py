@@ -1,149 +1,133 @@
-#database.py
-import sys
 import os
-# Get the directory of the current script
-current_script_path = os.path.dirname(os.path.abspath(__file__))
-# Set the path to the parent directory (one folder up)
-parent_directory = os.path.dirname(current_script_path)
-# Add the config directory to sys.path
-sys.path.append(os.path.join(parent_directory, 'config'))
-sys.path.append(os.path.join(parent_directory, 'bot'))
-import sqlite3
-from sqlite3 import Error
+import asyncio
+import aiomysql
 import datetime
+import uuid
 from config import Config
 
+# Define the DB_CONFIG directly here or use a separate configuration file
+DB_CONFIG = {
+    "host": Config.MYSQL_HOST,
+    "port": Config.MYSQL_PORT,
+    "user": Config.MYSQL_USER,
+    "password": Config.MYSQL_PASSWORD,
+    "db": Config.MYSQL_DB,
+}
 
-# Define the DB_PATH directly here or use a separate configuration file
-DB_PATH = Config.DB_PATH
+async def create_pool():
+    return await aiomysql.create_pool(**DB_CONFIG)
 
-def create_connection(db_file=DB_PATH):
-    print("db path", DB_PATH, db_file)
-    try:
-        conn = sqlite3.connect(db_file)
-        #print('Connection to db successful!!')
-    except Error as e:
-        print(e)
-        return None
-    return conn
+async def create_tables(pool):
+    """Create tables"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            create_users_table = """CREATE TABLE IF NOT EXISTS users (
+                UserID INT AUTO_INCREMENT PRIMARY KEY,
+                Username VARCHAR(255) UNIQUE NOT NULL
+            );"""
 
+            create_threads_table = """CREATE TABLE IF NOT EXISTS threads (
+                ThreadID VARCHAR(36) PRIMARY KEY,
+                UserID INT NOT NULL,
+                IsActive BOOLEAN NOT NULL,
+                CreatedTime DATETIME NOT NULL,
+                FOREIGN KEY (UserID) REFERENCES users (UserID)
+            );"""
 
-def create_tables(conn):
-    """ Create tables """
-    create_users_table = """CREATE TABLE IF NOT EXISTS users (
-                                UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                Username TEXT UNIQUE NOT NULL
-                            );"""
+            create_conversations_table = """CREATE TABLE IF NOT EXISTS conversations (
+                ConversationID INT AUTO_INCREMENT PRIMARY KEY,
+                UserID INT NOT NULL,
+                ThreadID VARCHAR(36) NOT NULL,
+                RunID VARCHAR(36) NOT NULL,
+                Message TEXT NOT NULL,
+                Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                MessageType VARCHAR(255) NOT NULL,
+                IPAddress VARCHAR(255),
+                Status VARCHAR(255) DEFAULT 'active',
+                FOREIGN KEY (UserID) REFERENCES users (UserID),
+                FOREIGN KEY (ThreadID) REFERENCES threads (ThreadID)
+            );"""
 
-    create_threads_table = """CREATE TABLE IF NOT EXISTS threads (
-                                  ThreadID TEXT PRIMARY KEY,
-                                  UserID INTEGER NOT NULL,
-                                  IsActive BOOLEAN NOT NULL,
-                                  CreatedTime TEXT NOT NULL,
-                                  FOREIGN KEY (UserID) REFERENCES users (UserID)
-                              );"""
-    create_converations_table = """CREATE TABLE IF NOT EXISTS conversations (
-                                   ConversationID INTEGER PRIMARY KEY AUTOINCREMENT,    
-                                   UserID INTEGER NOT NULL,
-                                   ThreadID TEXT NOT NULL,
-                                   RunID TEXT NOT NULL,  -- New column for RunID
-                                   Message TEXT NOT NULL,
-                                   Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                   MessageType TEXT NOT NULL,
-                                   IPAddress TEXT,
-                                   Status TEXT DEFAULT 'active',
-                                   FOREIGN KEY (UserID) REFERENCES users (UserID),
-                                   FOREIGN KEY (ThreadID) REFERENCES threads (ThreadID)
-                                );"""
+            await cur.execute(create_users_table)
+            await cur.execute(create_threads_table)
+            await cur.execute(create_conversations_table)
 
-    try:
-        c = conn.cursor()
-        c.execute(create_users_table)
-        c.execute(create_threads_table)
-        c.execute(create_converations_table)
-    except Error as e:
-        print(e)
-
-def insert_user(conn, username):
+async def insert_user(pool, username):
     """Insert a new user into the users table or return existing user ID"""
-    # Check if user already exists
-    sql_check = '''SELECT UserID FROM users WHERE Username = ?'''
-    cur = conn.cursor()
-    cur.execute(sql_check, (username,))
-    existing_user = cur.fetchone()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # Check if user already exists
+            sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
+            await cur.execute(sql_check, (username,))
+            existing_user = await cur.fetchone()
 
-    if existing_user:
-        print("Existing user", existing_user)
-        return existing_user[0]  # Return the existing user's ID
+            if existing_user:
+                return existing_user[0]  # Return the existing user's ID
 
-    # Insert new user if not existing
-    sql_insert = '''INSERT INTO users(Username) VALUES(?)'''
-    cur.execute(sql_insert, (username,))
-    conn.commit()
-    userID=cur.lastrowid # return the userID
-    return userID  # Return the new user's ID
+            # Insert new user if not existing
+            sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
+            await cur.execute(sql_insert, (username,))
+            await conn.commit()
+            return cur.lastrowid  # Return the new user's ID
 
+async def insert_thread(pool, thread_id, user_id, is_active, created_time):
+    """Insert a new thread into the threads table"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''INSERT INTO threads(ThreadID, UserID, IsActive, CreatedTime)
+                     VALUES(%s, %s, %s, %s)'''
+            await cur.execute(sql, (thread_id, user_id, is_active, created_time))
+            await conn.commit()
 
+async def get_active_thread_for_user(pool, user_id):
+    """Fetch the active thread for a given user"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''SELECT ThreadID FROM threads WHERE UserID = %s'''
+            await cur.execute(sql, (user_id,))
+            return await cur.fetchone()
 
-def insert_thread(conn, thread_id, user_id, is_active, created_time):
-    """ Insert a new thread into the threads table """
-    sql = '''INSERT INTO threads(ThreadID, UserID, IsActive, CreatedTime)
-             VALUES(?,?,?,?)'''
-    cur = conn.cursor()
-    cur.execute(sql, (thread_id, user_id, is_active, created_time))
-    conn.commit()
-    print("inserted tread:")
+async def deactivate_thread(pool, thread_id):
+    """Mark a thread as inactive"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''UPDATE threads SET IsActive = 0 WHERE ThreadID = %s'''
+            await cur.execute(sql, (thread_id,))
+            await conn.commit()
 
-def get_active_thread_for_user(conn, user_id):
-    print("looking for active thread for user:",user_id)
-    """ Fetch the active thread for a given user """
-    sql = '''SELECT ThreadID FROM threads 
-             WHERE UserID = ? '''
-    cur = conn.cursor()
-    cur.execute(sql, (user_id,))
-    return cur.fetchone()
+async def insert_conversation(pool, user_id, thread_id, run_id, message, message_type, ip_address):
+    """Insert a new conversation record into the conversations table"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''INSERT INTO conversations(UserID, ThreadID, RunID, Message, MessageType, IPAddress)
+                     VALUES(%s, %s, %s, %s, %s, %s)'''
+            await cur.execute(sql, (user_id, thread_id, run_id, message, message_type, ip_address))
+            await conn.commit()
 
-def deactivate_thread(conn, thread_id):
-    """ Mark a thread as inactive """
-    sql = '''UPDATE threads SET IsActive = 0 WHERE ThreadID = ?'''
-    cur = conn.cursor()
-    cur.execute(sql, (thread_id,))
-    conn.commit()
+async def get_conversations_by_run(pool, run_id):
+    """Fetch all conversations for a given RunID"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''SELECT * FROM conversations WHERE RunID = %s'''
+            await cur.execute(sql, (run_id,))
+            return await cur.fetchall()
 
-def insert_conversation(conn, user_id, thread_id, run_id, message, message_type, ip_address):
-    """ Insert a new conversation record into the conversations table """
-    sql = '''INSERT INTO conversations(UserID, ThreadID, RunID, Message, MessageType, IPAddress)
-             VALUES(?,?,?,?,?,?)'''
-    cur = conn.cursor()
-    cur.execute(sql, (user_id, thread_id, run_id, message, message_type, ip_address))
-    conn.commit()
+async def update_conversation_status(pool, conversation_id, new_status):
+    """Update the status of a conversation"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''UPDATE conversations SET Status = %s WHERE ConversationID = %s'''
+            await cur.execute(sql, (new_status, conversation_id))
+            await conn.commit()
 
-def get_conversations_by_run(conn, run_id):
-    """ Fetch all conversations for a given RunID """
-    sql = '''SELECT * FROM conversations WHERE RunID = ?'''
-    cur = conn.cursor()
-    cur.execute(sql, (run_id,))
-    return cur.fetchall()
-
-def update_conversation_status(conn, conversation_id, new_status):
-    """ Update the status of a conversation """
-    sql = '''UPDATE conversations SET Status = ? WHERE ConversationID = ?'''
-    cur = conn.cursor()
-    cur.execute(sql, (new_status, conversation_id))
-    conn.commit()
-
-def start_new_run(conn, user_id, thread_id):
-    """ Start a new run and return its RunID """
-    # Generate a new RunID, e.g., using uuid
+async def start_new_run(pool, user_id, thread_id):
+    """Start a new run and return its RunID"""
     run_id = str(uuid.uuid4())
     current_time = datetime.datetime.now().isoformat()
-    # Insert a record to signify the start of a new run (optional)
-    insert_thread(conn, thread_id, user_id, True, current_time, run_id)
+    await insert_thread(pool, thread_id, user_id, True, current_time)
     return run_id
 
-def end_run(conn, run_id):
-    """ Mark a run as completed """
+async def end_run(pool, run_id):
+    """Mark a run as completed"""
     # Logic to mark a run as completed, e.g., updating a runs table or updating conversation statuses
     pass
-
-

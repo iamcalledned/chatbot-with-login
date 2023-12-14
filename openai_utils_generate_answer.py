@@ -18,6 +18,7 @@ import datetime
 import logging
 import asyncio
 from config import Config
+from database import create_connection, get_active_thread_for_user, insert_user, insert_thread, insert_conversation
 
 
 # Other imports as necessary
@@ -37,7 +38,8 @@ openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
 async def generate_answer(userID, message, user_ip, uuid):
-    conn = database.create_connection()
+    # Use your new database module to create a connection
+    conn = create_connection()
     if conn is None:
         return "Error: Failed to connect to the database."
 
