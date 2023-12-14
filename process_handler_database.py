@@ -85,6 +85,26 @@ async def save_user_info_to_mysql(pool, session, client_ip, state):
             await cursor.execute(sql, values)
             
             await conn.commit()
+            print("User information saved to login table")
+
+async def save_user_info_to_userdata(pool, session, client_ip, state):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            sql_check = "SELECT username FROM user_data WHERE username = %s"
+            await cursor.execute(sql_check, (session['username']))
+            username = await cursor.fetchone()
+            
+            if username:
+            # If the user exists, update the last_login_date
+                sql_update = "UPDATE user_data SET last_login_date = NOW() WHERE username = %s"
+                print("updating username")
+                await cursor.execute(sql_update, (username['username'],))
+            else:
+                sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
+                values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
+                print("inserted new user")
+                await cursor.execute(sql, values)
+            await conn.commit()
             print("User information saved to MySQL")
 
 async def create_tables(pool):
@@ -118,9 +138,19 @@ async def create_tables(pool):
                 FOREIGN KEY (ThreadID) REFERENCES threads (ThreadID)
             );"""
 
+            create_user_table = """CREATE TABLE IF NOT EXISTS user_data (
+                                user_id INT AUTO_INCREMENT PRIMARY KEY,
+                                username VARCHAR(255) UNIQUE NOT NULL,
+                                email VARCHAR(255),
+                                name VARCHAR(255),
+                                setup_date DATETIME,
+                                last_login_date DATETIME
+                                );"""
+            
             await cur.execute(create_users_table)
             await cur.execute(create_threads_table)
             await cur.execute(create_conversations_table)
+            await cur.execute(create_user_table)
 
 async def insert_user(pool, username):
     """Insert a new user into the users table or return existing user ID"""
