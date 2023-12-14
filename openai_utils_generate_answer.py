@@ -59,7 +59,7 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
 
         print("Active thread:", active_thread)
         if active_thread:
-            thread_id_n = active_thread  # Use .get() method to safely access the key
+            thread_id_n = active_thread['ThreadID']  # Use .get() method to safely access the key
             if thread_id_n:
                 print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
                 if await is_thread_valid(thread_id_n):
