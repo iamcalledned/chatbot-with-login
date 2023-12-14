@@ -7,11 +7,11 @@ from config import Config
 
 # Define the DB_CONFIG directly here or use a separate configuration file
 DB_CONFIG = {
-    "host": Config.MYSQL_HOST,
-    "port": Config.MYSQL_PORT,
-    "user": Config.MYSQL_USER,
-    "password": Config.MYSQL_PASSWORD,
-    "db": Config.MYSQL_DB,
+    "host": Config.DB_HOST,
+    "port": Config.DB_PORT,
+    "user": Config.DB_USER,
+    "password": Config.DB_PASSWORD,
+    "db": Config.DB_NAME,
 }
 
 async def create_pool():
