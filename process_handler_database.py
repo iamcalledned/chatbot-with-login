@@ -97,7 +97,7 @@ async def save_user_info_to_userdata(pool, session, client_ip, state):
             if username:
             # If the user exists, update the last_login_date
                 sql_update = "UPDATE user_data SET last_login_date = NOW() WHERE username = %s"
-                print("updating username")
+                print("updating last login date")
                 await cursor.execute(sql_update, (username['username'],))
             else:
                 

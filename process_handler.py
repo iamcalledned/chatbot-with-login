@@ -149,7 +149,6 @@ async def get_session_data(request: Request):
     
     # Retrieve additional data from the database using the session_id
     db_data = await get_data_from_db(session_id, app.state.pool)
-    print("db_data", db_data)
     state = db_data['state']
     username = db_data.get('username')
     
@@ -158,13 +157,7 @@ async def get_session_data(request: Request):
     # You can merge the user_info with db_data if needed
     # user_info.update(db_data)  # Uncomment this line if you want to merge
 
-    # Return the combined data
-    print("returning JSONResponse", JSONResponse(content={
-        "sessionId": session_id,
-        "nonce": state,
-        "userInfo": username  # or db_data if you have merged them
-    }))
-
+    
     return JSONResponse(content={
         "sessionId": session_id,
         "nonce": state,
@@ -194,7 +187,6 @@ async def exchange_code_for_token(code, code_verifier):
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, headers=headers, data=data)
     if response.status_code == 200:
-        print("response.json()", response.json())  
         return response.json()
         
     else:
