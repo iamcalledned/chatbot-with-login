@@ -56,7 +56,7 @@ async def login(request: Request):
     state = os.urandom(24).hex()  # Generate a random state value
     print("state: ", state)
     
-    await save_code_verifier(state, code_verifier, client_ip, login_timestamp)  # Corrected function name
+    await save_code_verifier(app.state.pool, state, code_verifier, client_ip, login_timestamp)  # Corrected function name
 
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
@@ -90,7 +90,7 @@ async def callback(request: Request, code: str, state: str):
         raise HTTPException(status_code=400, detail="Code parameter is missing")
 
     # Retrieve the code_verifier using the state
-    code_verifier = await get_code_verifier(state)
+    code_verifier = await get_code_verifier(app.state.pool,state)
     if not code_verifier:
         raise HTTPException(status_code=400, detail="Invalid state or code_verifier missing")
 

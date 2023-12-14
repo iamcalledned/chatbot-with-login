@@ -30,14 +30,14 @@ async def create_db_pool():
 
 
 # Save the code_verifier and state in the database
-async def save_code_verifier(state: str, code_verifier: str, client_ip: str, login_timestamp ):
-    async with app.state.pool.acquire() as conn:
+async def save_code_verifier(pool, state: str, code_verifier: str, client_ip: str, login_timestamp ):
+    async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute("INSERT INTO verifier_store (state, code_verifier, client_ip, login_timestamp) VALUES (%s, %s, %s, %s)", (state, code_verifier, client_ip, login_timestamp))
 
 # Retrieve the code_verifier using the state
-async def get_code_verifier(state: str) -> str:
-    async with app.state.pool.acquire() as conn:
+async def get_code_verifier(pool, state: str) -> str:
+    async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
             result = await cur.fetchone()
