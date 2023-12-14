@@ -55,6 +55,7 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
         print("Database user_id for userID:", userID, "is", user_id)
 
         active_thread = await get_active_thread_for_user(pool, user_id)
+        print("Active thread:", active_thread)
         if active_thread:
             thread_id_n = active_thread[0]
             print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
