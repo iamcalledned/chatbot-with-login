@@ -7,6 +7,8 @@ from config import Config
 import pymysql
 import base64
 import hashlib
+from jwt.algorithms import RSAAlgorithm
+
 
 
 # Define the DB_CONFIG directly here or use a separate configuration file
