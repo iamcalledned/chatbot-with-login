@@ -125,11 +125,10 @@ async def main():
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_context.load_cert_chain('/home/ubuntu/whattogrill-backend/bot/fullchain.pem', '/home/ubuntu/whattogrill-backend/bot/privkey.pem')
 
-    start_server = websockets.serve(lambda ws, path: chatbot_handler(ws, path, db_pool), server_address, server_port, ssl=ssl_context)
-
-    print('Starting WebSocket server...')
-    await start_server
-    print('WebSocket server started')
+    async with websockets.serve(lambda ws, path: chatbot_handler(ws, path, db_pool), server_address, server_port, ssl=ssl_context):
+        print('Starting WebSocket server...')
+        await asyncio.Event().wait()
+        print('WebSocket server started')
 
 if __name__ == '__main__':
     asyncio.run(main())
