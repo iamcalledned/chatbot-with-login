@@ -43,7 +43,7 @@ async def generate_answer(userID, message, user_ip, uuid):
     pool = await create_pool()  # Create the connection pool
     if pool is None:
         return "Error: Failed to connect to the database."
-
+    print("trying to aquire popl")
     async with pool.acquire() as conn:  # Acquire a connection from the pool
         user_id = await insert_user(conn, userID)
         print("Database user_id for userID:", userID, "is", user_id)
