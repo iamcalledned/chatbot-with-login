@@ -10,7 +10,7 @@ from openai_utils_generate_answer import generate_answer
 from config import Config
 
 # Importing database functions from database.py
-from database import create_db_pool, get_user_info_by_session_id
+from chat_bot_database import create_db_pool, get_user_info_by_session_id
 
 # Other imports as necessary
 OPENAI_API_KEY = Config.OPENAI_API_KEY
@@ -21,6 +21,7 @@ logging.basicConfig(
     level=print,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+
 
 # Initialize Redis client
 # Make sure you have imported the necessary Redis client library
@@ -55,6 +56,10 @@ connections = {}
 
 # Chatbot handler
 import traceback  # Import traceback for detailed error logging
+
+# Async function to create a connection pool
+async def create_pool():
+    return await create_db_pool()
 
 async def chatbot_handler(websocket, path):
     userID = None  # Initialize userID to None
@@ -110,18 +115,21 @@ async def chatbot_handler(websocket, path):
         print(f"WebSocket disconnected for user {userID}")
 
 # Main function
-if __name__ == '__main__':
+# Main function
+async def main():
+    db_pool = await create_pool()
+    print("created pool in main")
+
     server_address = '172.31.91.113'
     server_port = 8055
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_context.load_cert_chain('/home/ubuntu/whattogrill-backend/bot/fullchain.pem', '/home/ubuntu/whattogrill-backend/bot/privkey.pem')
 
-    db_pool = asyncio.get_event_loop().run_until_complete(create_db_pool())
-    app_state = type('obj', (object,), {'db_pool': db_pool})
-
-    start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
+    start_server = websockets.serve(lambda ws, path: chatbot_handler(ws, path, db_pool), server_address, server_port, ssl=ssl_context)
 
     print('Starting WebSocket server...')
-    #asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
+    await start_server
+    print('WebSocket server started')
+
+if __name__ == '__main__':
+    asyncio.run(main())
