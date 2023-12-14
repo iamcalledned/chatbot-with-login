@@ -34,6 +34,7 @@ logging.basicConfig(
 )
 
 # Initialize OpenAI client
+
 openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
