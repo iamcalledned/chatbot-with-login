@@ -63,19 +63,19 @@ import traceback  # Import traceback for detailed error logging
 async def chatbot_handler(websocket, path):
     userID = None  # Initialize userID to None
     try:
-        print(f"New WebSocket connection from {websocket.remote_address}")
+        print(f"New WebSocket connection request from {websocket.remote_address}")
         initial_data = await websocket.recv()
-        print(f"Received initial data: {initial_data}")  # Log the received data
+        #print(f"Received initial data: {initial_data}")  # Log the received data
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
 
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app_state.pool)
-            print(f"User info retrieved: {user_info}")  # Log user info
+            #print(f"User info retrieved: {user_info}")  # Log user info
             if user_info:
                 userID = user_info['username']
                 connections[userID] = websocket
-                print(f"User {userID} connected with WebSocket")  # Log successful connection
+                print(f"User {userID} connected with WebSocket from {websocket.remote_address}")  # Log successful connection
             else:
                 print(f"Invalid session ID: {session_id}")  # Log invalid session
                 await websocket.send(json.dumps({'error': 'Invalid session'}))
