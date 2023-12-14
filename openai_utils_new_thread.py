@@ -36,6 +36,7 @@ async def is_thread_valid(thread_id):
         # Add your logic here based on how OpenAI's response indicates a valid thread.
         # This might depend on the response structure. For example:
         # return 'status' in my_thread and my_thread.status == 'active'
+        print("my thread", my_thread)
         return True  # Assuming the thread is valid if no exception occurred
     except Exception as e:
         print(f"Error checking thread validity: {e}")
