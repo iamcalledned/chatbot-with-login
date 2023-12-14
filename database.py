@@ -19,8 +19,11 @@ pool = None
 
 async def create_pool():
     global pool
-    pool = await aiomysql.create_pool(**DB_CONFIG)
-    
+    try:
+        pool = await aiomysql.create_pool(**DB_CONFIG)
+        print("Database pool created successfully.")
+    except Exception as e:
+        print(f"Error creating database pool: {str(e)}")
 
 async def create_connection():
     try:
