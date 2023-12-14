@@ -84,15 +84,16 @@ async def insert_user(pool, username):
             await cur.execute(sql_check, (username,))
             existing_user = await cur.fetchone()
             print("existing user", existing_user)
-            
+
             if existing_user:
-                return existing_user[0]  # Return the existing user's ID
+                return existing_user['UserID']  # Return the existing user's ID
 
             # Insert new user if not existing
             sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
             await cur.execute(sql_insert, (username,))
             await conn.commit()
             return cur.lastrowid  # Return the new user's ID
+
 
 
 async def insert_thread(pool, thread_id, user_id, is_active, created_time):
