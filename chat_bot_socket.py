@@ -122,7 +122,6 @@ if __name__ == '__main__':
     start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
 
     print('Starting WebSocket server...')
-    print('Starting WebSocket server...')
     #asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
