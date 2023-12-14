@@ -39,14 +39,14 @@ client = OpenAI()
 
 async def generate_answer(userID, message, user_ip, uuid):
     # Use your new database module to create a connection
-    conn = create_connection()
+    conn = await create_connection()
     if conn is None:
         return "Error: Failed to connect to the database."
 
-    user_id = insert_user(conn, userID)
+    user_id = await insert_user(conn, userID)
     print("Database user_id for userID:", userID, "is", user_id)
 
-    active_thread = get_active_thread_for_user(conn, user_id)
+    active_thread = await get_active_thread_for_user(conn, user_id)
     if active_thread:
         thread_id_n = active_thread[0]
         print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
