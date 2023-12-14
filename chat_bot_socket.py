@@ -127,8 +127,7 @@ async def main():
 
     async with websockets.serve(lambda ws, path: chatbot_handler(ws, path, db_pool), server_address, server_port, ssl=ssl_context):
         print('Starting WebSocket server...')
-        await asyncio.Event().wait()
-        print('WebSocket server started')
+    
 
 if __name__ == '__main__':
     asyncio.run(main())
