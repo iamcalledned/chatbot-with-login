@@ -29,7 +29,7 @@ async def startup():
 
 # FastAPI WebSocket route
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, session_id: str = None):
+async def chatbot_handler(websocket: WebSocket, session_id: str = None):
     await websocket.accept()
     userID = None
     try:
