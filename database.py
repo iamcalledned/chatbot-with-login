@@ -17,16 +17,16 @@ DB_CONFIG = {
 
 pool = None
 
-async def create_pool():
-    global pool    
-    try:
-        pool = await aiomysql.create_pool(**DB_CONFIG)
-        if pool:
-            print("Database pool created successfully.")
-        else:
-            print("Error: Failed to create database pool.")
-    except Exception as e:
-        print(f"Error creating database pool: {str(e)}")
+async def create_db_pool():
+    global pool
+    return await aiomysql.create_pool(
+        host=Config.DB_HOST, port=Config.DB_PORT,
+        user=Config.DB_USER, password=Config.DB_PASSWORD,
+        db=Config.DB_NAME, charset='utf8', 
+        cursorclass=aiomysql.DictCursor, autocommit=True
+    )
+
+
 
 
 async def create_connection():
