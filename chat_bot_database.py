@@ -5,6 +5,13 @@ import datetime
 import uuid
 from config import Config
 import pymysql
+import base64
+import hashlib
+import jwt
+from jwt.algorithms import RSAAlgorithm
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 # Define the DB_CONFIG directly here or use a separate configuration file
 DB_CONFIG = {
@@ -18,17 +25,15 @@ DB_CONFIG = {
 pool = None
 
 async def create_db_pool():
-    global pool
-    pool = await aiomysql.create_pool(
+    return await aiomysql.create_pool(
         host=Config.DB_HOST, port=Config.DB_PORT,
         user=Config.DB_USER, password=Config.DB_PASSWORD,
-        db=Config.DB_NAME, charset='utf8', 
+        db=Config.DB_NAME, charset='utf8',
         cursorclass=aiomysql.DictCursor, autocommit=True
     )
-    return pool
 
-async def get_user_info_by_session_id(session_id, db_pool):
-    async with db_pool.acquire() as conn:
+async def get_user_info_by_session_id(session_id, pool):
+    async with pool.acquire() as conn:
         async with conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
             result = await cur.fetchone()
@@ -78,9 +83,10 @@ async def insert_user(pool, username):
             sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
             await cur.execute(sql_check, (username,))
             existing_user = await cur.fetchone()
-
+            print("existing user", existing_user)
             if existing_user:
                 return existing_user[0]  # Return the existing user's ID
+
 
             # Insert new user if not existing
             sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
