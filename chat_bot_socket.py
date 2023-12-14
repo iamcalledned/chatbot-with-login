@@ -69,7 +69,7 @@ async def chatbot_handler(websocket, path):
         session_id = initial_data.get('session_id', '')
 
         if session_id:
-            user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
+            user_info = await get_user_info_by_session_id(session_id, app_state.pool)
             print(f"User info retrieved: {user_info}")  # Log user info
             if user_info:
                 userID = user_info['username']
@@ -96,7 +96,7 @@ async def chatbot_handler(websocket, path):
             message = data.get('message', '')
             user_ip = websocket.remote_address[0]
 
-            response_text = await generate_answer(app_state.db_pool, userID, message, user_ip, uuid)
+            response_text = await generate_answer(app_state.pool, userID, message, user_ip, uuid)
             response = {'response': response_text}
             await websocket.send(json.dumps(response))
 
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_context.load_cert_chain('/home/ubuntu/whattogrill-backend/bot/fullchain.pem', '/home/ubuntu/whattogrill-backend/bot/privkey.pem')
 
-    db_pool = asyncio.get_event_loop().run_until_complete(create_db_pool())
+    pool = asyncio.get_event_loop().run_until_complete(create_db_pool())
     print("created db pool")
-    app_state = type('obj', (object,), {'db_pool': db_pool})
+    app_state = type('obj', (object,), {'pool': pool})
 
     start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
 
