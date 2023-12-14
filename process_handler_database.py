@@ -50,6 +50,15 @@ async def get_code_verifier(pool, state: str) -> str:
             await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
             result = await cur.fetchone()
             return result['code_verifier'] if result else None
+        
+# delete the code verifier
+async def delete_code_verifier(pool, state: str) -> str:
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("delete FROM verifier_store WHERE state = %s", (state,))
+            print("code verifier deleted")
+            
+            
 
 #gnerate code and challenge code
 async def generate_code_verifier_and_challenge():

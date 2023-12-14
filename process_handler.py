@@ -14,7 +14,7 @@ import time
 import pymysql
 
 from config import Config
-from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_mysql, save_user_info_to_userdata
+from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_mysql, save_user_info_to_userdata, delete_code_verifier
 import jwt
 from jwt.algorithms import RSAAlgorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -97,6 +97,8 @@ async def callback(request: Request, code: str, state: str):
     if not code_verifier:
         raise HTTPException(status_code=400, detail="Invalid state or code_verifier missing")
 
+    #delete the code verifier since we don't really need it anymore and it's risky
+    await delete_code_verifier(app.state.pool, state)
     
     tokens = await exchange_code_for_token(code, code_verifier)
     if tokens:
