@@ -18,7 +18,7 @@ import datetime
 import logging
 import asyncio
 from config import Config
-from database import create_connection, get_active_thread_for_user, insert_user, insert_thread, insert_conversation
+from database import create_pool, get_active_thread_for_user, insert_user, insert_thread, insert_conversation
 
 
 # Other imports as necessary
