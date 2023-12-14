@@ -39,7 +39,7 @@ redis_client = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, db=0)
 
 # get user info by session_id
 async def get_user_info_by_session_id(session_id, db_pool):
-    print("")
+    print("session_id", session_id)
     """
     Asynchronously retrieve user information from the database using the session_id.
     """
@@ -47,6 +47,7 @@ async def get_user_info_by_session_id(session_id, db_pool):
         async with conn.cursor(aiomysql.DictCursor) as cur:
             await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
             result = await cur.fetchone()
+            print("result", result)
             return result
 
 # Async function to create a connection pool
