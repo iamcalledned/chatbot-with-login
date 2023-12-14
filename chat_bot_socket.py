@@ -20,6 +20,7 @@ from openai_utils_generate_answer import generate_answer
 from config import Config
 import pymysql
 import aiomysql
+import database
 
 
 
@@ -121,7 +122,7 @@ async def chatbot_handler(websocket, path):
             message = data.get('message', '')
             user_ip = websocket.remote_address[0]
 
-            response_text = await generate_answer(userID, message, user_ip, uuid)
+            response_text = await generate_answer(app_state.db_pool, userID, message, user_ip, uuid)
             response = {'response': response_text}
             await websocket.send(json.dumps(response))
 
@@ -150,6 +151,7 @@ if __name__ == '__main__':
 
     logging.info('Starting WebSocket server...')
     print('Starting WebSocket server...')
+    asyncio.get_event_loop().run_until_complete(create_pool())
     asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()

@@ -19,32 +19,12 @@ pool = None
 
 async def create_pool():
     global pool
-    return await aiomysql.create_pool(
+    pool = await aiomysql.create_pool(
         host=Config.DB_HOST, port=Config.DB_PORT,
         user=Config.DB_USER, password=Config.DB_PASSWORD,
         db=Config.DB_NAME, charset='utf8', 
         cursorclass=aiomysql.DictCursor, autocommit=True
     )
-
-
-
-
-async def create_connection():
-    try:
-        # Create a MySQL connection using the configuration from your Config class
-        connection = pymysql.connect(
-            host=Config.DB_HOST,
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-            db=Config.DB_NAME,
-            charset='utf8',
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=True
-        )
-        return connection
-    except Exception as e:
-        print("Error creating MySQL connection:", str(e))
-        return None
 
 
 

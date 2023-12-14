@@ -19,7 +19,7 @@ import logging
 import asyncio
 import aiomysql 
 from config import Config
-from database import create_pool, get_active_thread_for_user, insert_user, insert_thread, insert_conversation, pool
+
 
 
 # Other imports as necessary
@@ -39,7 +39,7 @@ openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-async def generate_answer(userID, message, user_ip, uuid):
+async def generate_answer(db_pool, userID, message, user_ip, uuid):  # Add db_pool parameter
     print("pool in gen answer")
     # Use your new database module to create a connection
     print("in generate answer")
