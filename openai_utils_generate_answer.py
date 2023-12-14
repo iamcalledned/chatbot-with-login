@@ -42,6 +42,7 @@ async def generate_answer(userID, message, user_ip, uuid):
     # Use your new database module to create a connection
     print("in generate answer")
     pool = await create_pool()  # Create the connection pool
+    print("pool in genanswer", pool)
     if pool is None:
         return "Error: Failed to connect to the database."
     print("trying to aquire popl")
