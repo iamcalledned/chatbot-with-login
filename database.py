@@ -25,7 +25,14 @@ async def create_pool():
         db=Config.DB_NAME, charset='utf8', 
         cursorclass=aiomysql.DictCursor, autocommit=True
     )
+    return pool
 
+async def get_user_info_by_session_id(session_id, db_pool):
+    async with db_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
+            result = await cur.fetchone()
+            return result
 
 
 async def create_tables(pool):
