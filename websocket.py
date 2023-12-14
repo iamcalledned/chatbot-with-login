@@ -25,6 +25,7 @@ logging.basicConfig(
 connections = {}
 
 # Async function to create a connection pool
+@app.websocket("/ws")
 async def chatbot_handler(websocket: WebSocket):
     userID = None  # Initialize userID to None
     try:
