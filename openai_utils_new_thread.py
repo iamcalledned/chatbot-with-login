@@ -32,7 +32,9 @@ async def create_thread_in_openai():
 async def is_thread_valid(thread_id):
     print("tring to find thread for:", thread_id)
     try:
+        print("trying....")
         my_thread = openai_client.beta.threads.retrieve(thread_id)
+        
         # Add your logic here based on how OpenAI's response indicates a valid thread.
         # This might depend on the response structure. For example:
         # return 'status' in my_thread and my_thread.status == 'active'
