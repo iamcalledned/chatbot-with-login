@@ -53,19 +53,16 @@ async def login(request: Request):
 
     # Getting the client's IP address
     client_ip = request.client.host
-    print(f"Client IP: {client_ip}")
-    
+        
     #get code_verifier and code_challenge
     code_verifier, code_challenge = await generate_code_verifier_and_challenge()
-    print("code_verifier: ", code_verifier)
-    print("code_challenge: ", code_challenge)
-
+    
     # generate a state code to link things later
     state = os.urandom(24).hex()  # Generate a random state value
-    print("state: ", state)
+    
     
     await save_code_verifier(app.state.pool, state, code_verifier, client_ip, login_timestamp)  # Corrected function name
-    print("saved code verifier")
+    
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
         f"&redirect_uri={Config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
@@ -91,8 +88,6 @@ async def callback(request: Request, code: str, state: str):
     code = query_params.get('code')
     state = query_params.get('state')
     client_ip = request.client.host
-    print("code: ", code)
-    print("state: ", state)
     
     if not code:
         raise HTTPException(status_code=400, detail="Code parameter is missing")
@@ -116,16 +111,13 @@ async def callback(request: Request, code: str, state: str):
         session['username'] = decoded_token.get('cognito:username', 'unknown')
         session['name'] = decoded_token.get('name', 'unknown')
         session['session_id'] = os.urandom(24).hex()  # Generate a random state value
-        print("session_id: ", session['session_id'])
-        print("session: ", session)
-        
-        
+    
         await save_user_info_to_mysql(app.state.pool, session, client_ip, state)
         await save_user_info_to_userdata(app.state.pool, session, client_ip, state)
 
         
         
-           # Prepare the URL with query parameters
+        # Prepare the URL with query parameters
         chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
         redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
 
