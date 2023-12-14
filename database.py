@@ -15,11 +15,11 @@ DB_CONFIG = {
     "db": Config.DB_NAME,
 }
 
-conn = None
+pool = None
 
 async def create_pool():
-    print("hit create pool in database.py")
-    return await aiomysql.create_pool(**DB_CONFIG)
+    global pool
+    pool = await aiomysql.create_pool(**DB_CONFIG)
     
 
 async def create_connection():
