@@ -39,9 +39,9 @@ openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_pool parameter
+async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool parameter
     # Use your new database module to create a connection
-    if db_pool is None:
+    if pool is None:
         return "Error: Failed to connect to the database."
     print("in generate answer")
     pool = await create_db_pool()  # Create the connection pool
@@ -51,7 +51,7 @@ async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_poo
     
     print("trying to aquire popl")
     async with pool.acquire() as conn:  # Acquire a connection from the pool
-        user_id = await insert_user(db_pool, userID)
+        user_id = await insert_user(pool, userID)
         print("Database user_id for userID:", userID, "is", user_id)
 
         active_thread = await get_active_thread_for_user(pool, user_id)
