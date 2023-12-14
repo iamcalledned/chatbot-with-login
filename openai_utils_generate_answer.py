@@ -40,6 +40,8 @@ openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
 async def generate_answer(userID, message, user_ip, uuid):
+    global pool
+    print("pool in gen answer")
     # Use your new database module to create a connection
     print("in generate answer")
     pool = await create_pool()  # Create the connection pool
