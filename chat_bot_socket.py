@@ -56,16 +56,25 @@ async def message_listener(redis_client, channel):
 # Chatbot handler
 async def chatbot_handler(websocket, path):
     logging.info(f"New WebSocket connection from {websocket.remote_address}")
+    print(f"New WebSocket connection from {websocket.remote_address}")
     try:    
         initial_data = await websocket.recv()
+        print("initial_data", initial_data)
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
         if session_id:
+            print("in session ID")
             user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
-            if user_info:     
+            print("user info", user_info)
+            if user_info:
+                print("in user info")    
                 userID = user_info['username']
+                print("user ID", userID)
                 connections[userID] = websocket
+                print("connections", connections)
             else:
+                print("in else")    
+                print(f"Invalid session ID: {session_id}")
                 await websocket.send(json.dumps({'error': 'Invalid session'}))
                 return
         else:
@@ -110,6 +119,7 @@ if __name__ == '__main__':
     start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
 
     logging.info('Starting WebSocket server...')
+    print('Starting WebSocket server...')
     asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
