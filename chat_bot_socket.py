@@ -54,33 +54,32 @@ connections = {}
 #        await asyncio.sleep(0.01)  # Prevent busy waiting
 
 # Chatbot handler
+import traceback  # Import traceback for detailed error logging
+
 async def chatbot_handler(websocket, path):
-    logging.info(f"New WebSocket connection from {websocket.remote_address}")
-    print(f"New WebSocket connection from {websocket.remote_address}")
-    try:    
+    userID = None  # Initialize userID to None
+    try:
+        logging.info(f"New WebSocket connection from {websocket.remote_address}")
         initial_data = await websocket.recv()
-        print("initial_data", initial_data)
+        logging.debug(f"Received initial data: {initial_data}")  # Log the received data
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
+
         if session_id:
-            print("in session ID")
             user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
-            print("user info", user_info)
+            logging.debug(f"User info retrieved: {user_info}")  # Log user info
             if user_info:
-                print("in user info")    
                 userID = user_info['username']
-                print("user ID", userID)
                 connections[userID] = websocket
-                print("connections", connections)
+                logging.debug(f"User {userID} connected with WebSocket")  # Log successful connection
             else:
-                print("in else")    
-                print(f"Invalid session ID: {session_id}")
+                logging.warning(f"Invalid session ID: {session_id}")  # Log invalid session
                 await websocket.send(json.dumps({'error': 'Invalid session'}))
                 return
         else:
             await websocket.send(json.dumps({'error': 'Session ID required'}))
             return
-        
+
         while True:
             data = await websocket.recv()
             try:
@@ -98,13 +97,17 @@ async def chatbot_handler(websocket, path):
             response = {'response': response_text}
             await websocket.send(json.dumps(response))
 
-            logging.info(f"Processed message from {user_ip}")
+            logging.info(f"Processed message from user {userID} at IP {user_ip}")
     except websockets.exceptions.ConnectionClosed as e:
-        logging.error(f"Connection closed with exception: {e}")
+        logging.error(f"WebSocket connection closed with exception for user {userID}: {e}. Reason: {e.reason}. Code: {e.code}")
         if userID in connections:
             del connections[userID]
     except Exception as e:
-        logging.error(f"Unhandled exception: {e}")
+        logging.error(f"Unhandled exception in chatbot_handler for user {userID}: {e}")
+        logging.error("Exception Traceback: " + traceback.format_exc())
+    finally:
+        # Log when a WebSocket disconnects
+        logging.info(f"WebSocket disconnected for user {userID}")
 
 # Main function
 if __name__ == '__main__':
