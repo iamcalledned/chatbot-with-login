@@ -12,6 +12,11 @@ import datetime
 
 from config import Config
 from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db
+import jwt
+from jwt.algorithms import RSAAlgorithm
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 
 app = FastAPI()
