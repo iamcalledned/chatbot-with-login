@@ -15,7 +15,7 @@ DB_CONFIG = {
     "db": Config.DB_NAME,
 }
 
-
+pool = None
 
 async def create_pool():
     global pool    
