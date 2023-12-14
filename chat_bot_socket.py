@@ -18,7 +18,7 @@ OPENAI_API_KEY = Config.OPENAI_API_KEY
 log_file_path = '/home/ubuntu/whattogrill-backend/logs/chat_bot_logs.txt'
 logging.basicConfig(
     filename=log_file_path,
-    level=logging.DEBUG,
+    level=print,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
@@ -59,21 +59,21 @@ import traceback  # Import traceback for detailed error logging
 async def chatbot_handler(websocket, path):
     userID = None  # Initialize userID to None
     try:
-        logging.info(f"New WebSocket connection from {websocket.remote_address}")
+        print(f"New WebSocket connection from {websocket.remote_address}")
         initial_data = await websocket.recv()
-        logging.debug(f"Received initial data: {initial_data}")  # Log the received data
+        print(f"Received initial data: {initial_data}")  # Log the received data
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
 
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
-            logging.debug(f"User info retrieved: {user_info}")  # Log user info
+            print(f"User info retrieved: {user_info}")  # Log user info
             if user_info:
                 userID = user_info['username']
                 connections[userID] = websocket
-                logging.debug(f"User {userID} connected with WebSocket")  # Log successful connection
+                print(f"User {userID} connected with WebSocket")  # Log successful connection
             else:
-                logging.warning(f"Invalid session ID: {session_id}")  # Log invalid session
+                print(f"Invalid session ID: {session_id}")  # Log invalid session
                 await websocket.send(json.dumps({'error': 'Invalid session'}))
                 return
         else:
@@ -85,7 +85,7 @@ async def chatbot_handler(websocket, path):
             try:
                 data = json.loads(data)
             except json.JSONDecodeError:
-                logging.warning(f"Received malformed data from {websocket.remote_address}")
+                print(f"Received malformed data from {websocket.remote_address}")
                 continue
 
             userID = user_info.get('username', '')
@@ -97,17 +97,17 @@ async def chatbot_handler(websocket, path):
             response = {'response': response_text}
             await websocket.send(json.dumps(response))
 
-            logging.info(f"Processed message from user {userID} at IP {user_ip}")
+            print(f"Processed message from user {userID} at IP {user_ip}")
     except websockets.exceptions.ConnectionClosed as e:
-        logging.error(f"WebSocket connection closed with exception for user {userID}: {e}. Reason: {e.reason}. Code: {e.code}")
+        print(f"WebSocket connection closed with exception for user {userID}: {e}. Reason: {e.reason}. Code: {e.code}")
         if userID in connections:
             del connections[userID]
     except Exception as e:
-        logging.error(f"Unhandled exception in chatbot_handler for user {userID}: {e}")
-        logging.error("Exception Traceback: " + traceback.format_exc())
+        print(f"Unhandled exception in chatbot_handler for user {userID}: {e}")
+        print("Exception Traceback: " + traceback.format_exc())
     finally:
         # Log when a WebSocket disconnects
-        logging.info(f"WebSocket disconnected for user {userID}")
+        print(f"WebSocket disconnected for user {userID}")
 
 # Main function
 if __name__ == '__main__':
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
 
-    logging.info('Starting WebSocket server...')
+    print('Starting WebSocket server...')
     print('Starting WebSocket server...')
     #asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
