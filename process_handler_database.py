@@ -82,7 +82,9 @@ async def save_user_info_to_mysql(pool, session, client_ip, state):
         async with conn.cursor() as cursor:
             sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
             values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
-            cursor.execute(sql, values)
+            await cursor.execute(sql, values)
+            
+            await conn.commit()
             print("User information saved to MySQL")
 
 async def create_tables(pool):
