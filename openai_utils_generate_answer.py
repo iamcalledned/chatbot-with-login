@@ -51,7 +51,7 @@ async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_poo
     
     print("trying to aquire popl")
     async with pool.acquire() as conn:  # Acquire a connection from the pool
-        user_id = await insert_user(conn, userID)
+        user_id = await insert_user(db_pool, userID)
         print("Database user_id for userID:", userID, "is", user_id)
 
         active_thread = await get_active_thread_for_user(conn, user_id)
