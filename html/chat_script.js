@@ -9,23 +9,20 @@ function hideTypingIndicator() {
 
 // Function to fetch session data
 function fetchSessionData() {
-$.getJSON('/get_session_data', function(data) {
-    initializeWebSocket(data.sessionId, data.nonce, data.userInfo);
-    console.log('Session data:', data);
-}).fail(function(jqXHR, textStatus, errorThrown) {
-    console.error('Error fetching session data:', textStatus, errorThrown);
-});
+    $.getJSON('/get_session_data', function(data) {
+        console.log('Session data:', data);
+        // Call initializeWebSocket here with the retrieved session_id
+        initializeWebSocket(data.sessionId);
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error fetching session data:', textStatus, errorThrown);
+    });
 }
 
 // Function to initialize WebSocket connection
-function initializeWebSocket(sessionId, userId) {
+function initializeWebSocket(sessionId) {
     var socket = new WebSocket('wss://www.whattogrill.com:8055');
     socket.onopen = function() {
-        console.log('WebSocket connected!', userId);
-        // Send session_id and user_id when the WebSocket connection is established
-        socket.send(JSON.stringify({ session_id: sessionId}));
-        // Store session_id in local storage
-        localStorage.setItem('session_id', sessionId);
+        console.log('WebSocket connected!');
         // Send session_id when the WebSocket connection is established
         socket.send(JSON.stringify({ session_id: sessionId }));
         // Store session_id in local storage
@@ -63,20 +60,19 @@ function initializeWebSocket(sessionId, userId) {
     
     // Reconnect after 5 seconds
     setTimeout(function() {
-        initializeWebSocket(sessionId, userId); // Pass sessionId and userId here
+        initializeWebSocket(sessionId); // Pass sessionId and userId here
     }, 5000);
+
+    };
 
     function sendMessage() {
         var message = $('#message-input').val();
         if (message.trim().length > 0) {
             if (socket.readyState === WebSocket.OPEN) {
+                // Send message in the correct format
                 socket.send(JSON.stringify({'message': message}));
                 $('#message-input').val('');
-                $('#messages').append($('<div class="message user">').text('You: ' + message));
-                showTypingIndicator();
-                $('#messages').scrollTop($('#messages')[0].scrollHeight);
-            } else {
-                console.error('WebSocket is not open. ReadyState:', socket.readyState);
+                // ... rest of the sendMessage function ...
             }
         }
     }
@@ -101,9 +97,7 @@ function initializeWebSocket(sessionId, userId) {
 
 // Use the document ready function to initialize WebSocket connection
 $(document).ready(function() {
-    fetchSessionData();
-    initializeWebSocket();
-
+    fetchSessionData(); // This will call initializeWebSocket after fetching session data
 
 
 // Function to show the overlay with dynamic content

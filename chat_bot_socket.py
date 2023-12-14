@@ -38,7 +38,7 @@ redis_client = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, db=0)
 
 
 # get user info by session_id
-async def get_user_info_by_sesion_id(session_id, db_pool):
+async def get_user_info_by_session_id(session_id, db_pool):
     print("")
     """
     Asynchronously retrieve user information from the database using the session_id.
@@ -97,7 +97,7 @@ async def chatbot_handler(websocket, path):
         print("in tring session")
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app_state.db_pool)
-            if user_info:
+            if user_info:     
                 userID = user_info['username']
                 connections[userID] = websocket
             else:
@@ -132,6 +132,8 @@ async def chatbot_handler(websocket, path):
             del connections[userID]
     except Exception as e:
         logging.error(f"Unhandled exception: {e}")
+
+
 
 if __name__ == '__main__':
     server_address = '172.31.91.113'
