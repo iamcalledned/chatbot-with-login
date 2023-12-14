@@ -51,6 +51,7 @@ function sendMessage() {
         if (socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({'message': message}));
             $('#message-input').val('');
+            $('#messages').append($('<div class="message user">').text('You: ' + message));
             showTypingIndicator();
             $('#messages').scrollTop($('#messages')[0].scrollHeight);
         } else {
