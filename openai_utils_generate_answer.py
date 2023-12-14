@@ -56,18 +56,21 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
 
         active_thread = await get_active_thread_for_user(pool, user_id)
         print("Active thread:", active_thread)
-        if active_thread:
-            
-            thread_id_n = active_thread[0]
-            print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
 
-            if await is_thread_valid(thread_id_n):
-                print("Thread is valid. Continuing with Thread ID:", thread_id_n)
+        print("Active thread:", active_thread)
+        if active_thread:
+            thread_id_n = active_thread.get(0)  # Use .get() method to safely access the key
+            if thread_id_n:
+                print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
+                if await is_thread_valid(thread_id_n):
+                    print("Thread is valid. Continuing with Thread ID:", thread_id_n)
+                else:
+                    print("Thread is no longer valid. Creating a new thread.")
+                    thread_id_n = await create_thread_in_openai()
+                    current_time = datetime.datetime.now().isoformat()
+                    await insert_thread(pool, thread_id_n, user_id, True, current_time)
             else:
-                print("Thread is no longer valid. Creating a new thread.")
-                thread_id_n = await create_thread_in_openai()
-                current_time = datetime.datetime.now().isoformat()
-                await insert_thread(pool, thread_id_n, user_id, True, current_time)
+                print("Key 0 is not present in active_thread.")
         else:
             print("No active thread found for userID:", userID, "Creating a new thread.")
             thread_id_n = await create_thread_in_openai()
