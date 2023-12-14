@@ -54,7 +54,7 @@ async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_poo
         user_id = await insert_user(db_pool, userID)
         print("Database user_id for userID:", userID, "is", user_id)
 
-        active_thread = await get_active_thread_for_user(conn, user_id)
+        active_thread = await get_active_thread_for_user(pool, user_id)
         if active_thread:
             thread_id_n = active_thread[0]
             print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
@@ -65,12 +65,12 @@ async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_poo
                 print("Thread is no longer valid. Creating a new thread.")
                 thread_id_n = await create_thread_in_openai()
                 current_time = datetime.datetime.now().isoformat()
-                await insert_thread(conn, thread_id_n, user_id, True, current_time)
+                await insert_thread(pool, thread_id_n, user_id, True, current_time)
         else:
             print("No active thread found for userID:", userID, "Creating a new thread.")
             thread_id_n = await create_thread_in_openai()
             current_time = datetime.datetime.now().isoformat()
-            await insert_thread(conn, thread_id_n, user_id, True, current_time)
+            await insert_thread(pool, thread_id_n, user_id, True, current_time)
 
         if thread_id_n:
             response_text = await send_message(thread_id_n, message)
@@ -85,7 +85,7 @@ async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_poo
 
             if run is not None:
                 # Now we have a run ID, we can log the user's message
-                await insert_conversation(conn, user_id, thread_id_n, run.id, message, 'user', user_ip)  # Replace 'user_ip' with actual IP if available
+                await insert_conversation(pool, user_id, thread_id_n, run.id, message, 'user', user_ip)  # Replace 'user_ip' with actual IP if available
 
                 while True:
                     run = client.beta.threads.runs.retrieve(
@@ -109,7 +109,7 @@ async def generate_answer(db_pool,userID, message, user_ip, uuid):  # Add db_poo
                 print("messages sent")
 
                 # Log OpenAI's response
-                await insert_conversation(conn, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
+                await insert_conversation(pool, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
                 print("saved conversations for user:", user_id)
             else:
                 print("Failed to create a run object in OpenAI.")
