@@ -18,6 +18,7 @@ DB_CONFIG = {
 conn = None
 
 async def create_pool():
+    print("hit create pool in database.py")
     return await aiomysql.create_pool(**DB_CONFIG)
 
 async def create_connection():
