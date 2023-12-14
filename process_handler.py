@@ -14,7 +14,7 @@ import time
 import pymysql
 
 from config import Config
-from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db
+from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_mysql
 import jwt
 from jwt.algorithms import RSAAlgorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -65,7 +65,7 @@ async def login(request: Request):
     print("state: ", state)
     
     await save_code_verifier(app.state.pool, state, code_verifier, client_ip, login_timestamp)  # Corrected function name
-
+    print("saved code verifier")
     cognito_login_url = (
         f"{Config.COGNITO_DOMAIN}/login?response_type=code&client_id={Config.COGNITO_APP_CLIENT_ID}"
         f"&redirect_uri={Config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
@@ -120,31 +120,10 @@ async def callback(request: Request, code: str, state: str):
         print("session: ", session)
         
         
-
+        await save_user_info_to_mysql(app.state.pool, session, client_ip, state)
 
         
-
-        # Save user information to MySQL
-        mysql_connection = pymysql.connect(
-            host=Config.DB_HOST,
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-            db=Config.DB_NAME,
-            charset='utf8',
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=True
-        )
-
-        with mysql_connection.cursor() as cursor:
-            # Create a SQL statement to insert user information into the MySQL table
-            sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
-            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
-            cursor.execute(sql, values)
-            print("User information saved to MySQL")
-
-        # Close the MySQL connection
-        mysql_connection.close()
-
+        
            # Prepare the URL with query parameters
         chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
         redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"

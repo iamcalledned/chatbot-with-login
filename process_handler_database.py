@@ -1,3 +1,4 @@
+#process_handler_database.py
 import os
 import asyncio
 import aiomysql
@@ -68,14 +69,6 @@ async def get_data_from_db(session_id, pool):
 
 
 
-
-
-
-
-
-
-
-
 async def get_user_info_by_session_id(session_id, pool):
     async with pool.acquire() as conn:
         async with conn.cursor(aiomysql.DictCursor) as cur:
@@ -83,6 +76,14 @@ async def get_user_info_by_session_id(session_id, pool):
             result = await cur.fetchone()
             return result
 
+
+async def save_user_info_to_mysql(pool, session, client_ip, state):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
+            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
+            cursor.execute(sql, values)
+            print("User information saved to MySQL")
 
 async def create_tables(pool):
     """Create tables"""
@@ -137,64 +138,3 @@ async def insert_user(pool, username):
             await conn.commit()
             return cur.lastrowid  # Return the new user's ID
 
-async def insert_thread(pool, thread_id, user_id, is_active, created_time):
-    """Insert a new thread into the threads table"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            sql = '''INSERT INTO threads(ThreadID, UserID, IsActive, CreatedTime)
-                     VALUES(%s, %s, %s, %s)'''
-            await cur.execute(sql, (thread_id, user_id, is_active, created_time))
-            await conn.commit()
-
-async def get_active_thread_for_user(pool, user_id):
-    """Fetch the active thread for a given user"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            sql = '''SELECT ThreadID FROM threads WHERE UserID = %s'''
-            await cur.execute(sql, (user_id,))
-            return await cur.fetchone()
-
-async def deactivate_thread(pool, thread_id):
-    """Mark a thread as inactive"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            sql = '''UPDATE threads SET IsActive = 0 WHERE ThreadID = %s'''
-            await cur.execute(sql, (thread_id,))
-            await conn.commit()
-
-async def insert_conversation(pool, user_id, thread_id, run_id, message, message_type, ip_address):
-    """Insert a new conversation record into the conversations table"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            sql = '''INSERT INTO conversations(UserID, ThreadID, RunID, Message, MessageType, IPAddress)
-                     VALUES(%s, %s, %s, %s, %s, %s)'''
-            await cur.execute(sql, (user_id, thread_id, run_id, message, message_type, ip_address))
-            await conn.commit()
-
-async def get_conversations_by_run(pool, run_id):
-    """Fetch all conversations for a given RunID"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            sql = '''SELECT * FROM conversations WHERE RunID = %s'''
-            await cur.execute(sql, (run_id,))
-            return await cur.fetchall()
-
-async def update_conversation_status(pool, conversation_id, new_status):
-    """Update the status of a conversation"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            sql = '''UPDATE conversations SET Status = %s WHERE ConversationID = %s'''
-            await cur.execute(sql, (new_status, conversation_id))
-            await conn.commit()
-
-async def start_new_run(pool, user_id, thread_id):
-    """Start a new run and return its RunID"""
-    run_id = str(uuid.uuid4())
-    current_time = datetime.datetime.now().isoformat()
-    await insert_thread(pool, thread_id, user_id, True, current_time)
-    return run_id
-
-async def end_run(pool, run_id):
-    """Mark a run as completed"""
-    # Logic to mark a run as completed, e.g., updating a runs table or updating conversation statuses
-    pass
