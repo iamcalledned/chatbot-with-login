@@ -13,7 +13,7 @@ from openai_utils_new_thread import create_thread_in_openai, is_thread_valid
 from openai_utils_send_message import send_message
 from openai import OpenAI
 import database  # Importing the database module
-from database import get_active_thread_for_user, insert_user, insert_thread, insert_conversation
+from database import get_active_thread_for_user, insert_user, insert_thread, insert_conversation, create_db_pool
 import datetime
 import logging
 import asyncio
@@ -39,14 +39,14 @@ openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-async def generate_answer(db_pool, userID, message, user_ip, uuid):  # Add db_pool parameter
-    print("pool in gen answer")
+async def generate_answer(userID, message, user_ip, uuid):  # Add db_pool parameter
     # Use your new database module to create a connection
     print("in generate answer")
     pool = await create_db_pool()  # Create the connection pool
     print("pool in genanswer", pool)
     if pool is None:
         return "Error: Failed to connect to the database."
+    
     print("trying to aquire popl")
     async with pool.acquire() as conn:  # Acquire a connection from the pool
         user_id = await insert_user(conn, userID)
