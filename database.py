@@ -4,6 +4,7 @@ import aiomysql
 import datetime
 import uuid
 from config import Config
+import pymysql
 
 # Define the DB_CONFIG directly here or use a separate configuration file
 DB_CONFIG = {
@@ -13,6 +14,25 @@ DB_CONFIG = {
     "password": Config.DB_PASSWORD,
     "db": Config.DB_NAME,
 }
+
+conn = None
+
+async def create_connection():
+    try:
+        # Create a MySQL connection using the configuration from your Config class
+        connection = pymysql.connect(
+            host=Config.DB_HOST,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD,
+            db=Config.DB_NAME,
+            charset='utf8',
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=True
+        )
+        return connection
+    except Exception as e:
+        print("Error creating MySQL connection:", str(e))
+        return None
 
 async def create_pool():
     return await aiomysql.create_pool(**DB_CONFIG)
