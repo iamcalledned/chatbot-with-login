@@ -24,38 +24,9 @@ logging.basicConfig(
 )
 
 
-# Initialize Redis client
-# Make sure you have imported the necessary Redis client library
-import redis
-redis_client = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, db=0)
-
 # Dictionary to store user_id: websocket mapping
 connections = {}
 
-# Function to send direct message to users via websocket
-#async def send_direct_message(user_id, message):
-#    print(f"Sending message to user {user_id}: {message}")
-#    if user_id in connections:
-#        await connections[user_id].send(message)
-#    else:
-#        print(f"User {user_id} not connected")
-
-# Message listener
-#async def message_listener(redis_client, channel):
-#    print("message listener")
-#    
-#    pubsub = redis_client.pubsub()
-#    await pubsub.subscribe(channel)
-#    while True:
-##        message = await pubsub.get_message(ignore_subscribe_messages=True)
-#        if message:
-#            data = json.loads(message['data'])
-#            user_id = data['user_id']
-#            msg = data['message']
-##            await send_direct_message(user_id, msg)
-#        await asyncio.sleep(0.01)  # Prevent busy waiting
-
-# Chatbot handler
 import traceback  # Import traceback for detailed error logging
 
 # Async function to create a connection pool
@@ -128,6 +99,5 @@ if __name__ == '__main__':
     start_server = websockets.serve(chatbot_handler, server_address, server_port, ssl=ssl_context)
 
     print('Starting WebSocket server...')
-    #asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()

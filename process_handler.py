@@ -46,7 +46,6 @@ async def startup():
 
 @app.get("/login")
 async def login(request: Request):
-    print("start of login")
     #set login timestemp
     login_timestamp  = datetime.datetime.now()
 
@@ -68,7 +67,7 @@ async def login(request: Request):
         f"&redirect_uri={Config.REDIRECT_URI}&state={state}&code_challenge={code_challenge}"
         f"&code_challenge_method=S256"
     )
-    print("redirecting out of login")
+    
     return RedirectResponse(cognito_login_url)
 
 ################################################################## 
@@ -82,7 +81,7 @@ async def login(request: Request):
 @app.get("/callback")
 
 async def callback(request: Request, code: str, state: str):
-    print("start of callback")
+    
      # Extract query parameters
     query_params = request.query_params
     code = query_params.get('code')

@@ -83,7 +83,7 @@ async def insert_user(pool, username):
             sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
             await cur.execute(sql_check, (username,))
             existing_user = await cur.fetchone()
-            print("existing user", existing_user)
+            #print("existing user", existing_user)
 
             if existing_user:
                 return existing_user['UserID']  # Return the existing user's ID
@@ -106,9 +106,6 @@ async def insert_thread(pool, thread_id, user_id, is_active, created_time):
             await conn.commit()
 
 async def get_active_thread_for_user(pool, user_id):
-    print("get active thread for user_ID", user_id)
-    """Fetch the active thread for a given user"""
-    print("fetching active thread")
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             sql = '''SELECT ThreadID FROM threads WHERE UserID = %s'''

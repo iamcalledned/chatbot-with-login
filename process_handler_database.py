@@ -56,7 +56,7 @@ async def delete_code_verifier(pool, state: str) -> str:
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute("delete FROM verifier_store WHERE state = %s", (state,))
-            print("code verifier deleted")
+            
             
             
 
@@ -94,7 +94,7 @@ async def save_user_info_to_mysql(pool, session, client_ip, state):
             await cursor.execute(sql, values)
             
             await conn.commit()
-            print("User information saved to login table")
+            print("User information saved to login table", session['username'])
 
 async def save_user_info_to_userdata(pool, session, client_ip, state):
     async with pool.acquire() as conn:
@@ -106,17 +106,17 @@ async def save_user_info_to_userdata(pool, session, client_ip, state):
             if username:
             # If the user exists, update the last_login_date
                 sql_update = "UPDATE user_data SET last_login_date = NOW() WHERE username = %s"
-                print("updating last login date")
+                #print("updating last login date")
                 await cursor.execute(sql_update, (username['username'],))
             else:
                 
                 
                 sql = "INSERT INTO user_data (username, email, name, setup_date, last_login_date) VALUES (%s, %s, %s, NOW(), NOW())"
                 values = (session['username'], session['email'], session['name'],)
-                print("inserted new user")
+                print("inserted new user", session['username'])
                 await cursor.execute(sql, values)
             await conn.commit()
-            print("User information saved to MySQL")
+            
 
 async def create_tables(pool):
     """Create tables"""
