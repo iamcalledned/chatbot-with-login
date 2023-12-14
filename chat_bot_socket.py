@@ -52,7 +52,7 @@ async def get_user_info_by_session_id(session_id, db_pool):
             return result
 
 # Async function to create a connection pool
-async def create_db_pool():
+async def create_pool():
     return await aiomysql.create_pool(
         host=Config.DB_HOST, port=Config.DB_PORT,
         user=Config.DB_USER, password=Config.DB_PASSWORD,
