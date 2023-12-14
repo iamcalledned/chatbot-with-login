@@ -100,7 +100,7 @@ async def save_user_info_to_userdata(pool, session, client_ip, state):
                 print("updating username")
                 await cursor.execute(sql_update, (username['username'],))
             else:
-                sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
+                sql = "INSERT INTO user_data (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
                 values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
                 print("inserted new user")
                 await cursor.execute(sql, values)
