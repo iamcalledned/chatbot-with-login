@@ -52,7 +52,7 @@ async def get_user_info_by_session_id(session_id, db_pool):
             return result
 
 # Async function to create a connection pool
-async def create_pool():
+async def create_db_pool():
     return await aiomysql.create_pool(
         host=Config.DB_HOST, port=Config.DB_PORT,
         user=Config.DB_USER, password=Config.DB_PASSWORD,
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     logging.info('Starting WebSocket server...')
     print('Starting WebSocket server...')
-    asyncio.get_event_loop().run_until_complete(create_pool())
+    asyncio.get_event_loop().run_until_complete(create_db_pool())
     asyncio.get_event_loop().create_task(message_listener(redis_client, 'direct_messages'))
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
