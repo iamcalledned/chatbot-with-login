@@ -15,9 +15,9 @@ function getSessionIdFromUrl() {
 }
 
 function initializeWebSocket(sessionId) {
+    const socketUrl = `wss://www.whattogrill.com/ws?session_id=${sessionId}`;
     if (!socket || socket.readyState === WebSocket.CLOSED) {
-        // Only create a new WebSocket if it doesn't exist or is closed
-        socket = new WebSocket('wss://www.whattogrill.com:8055/ws');
+        socket = new WebSocket(socketUrl);
 
         socket.onopen = function() {
             console.log('WebSocket connected!');

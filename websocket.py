@@ -5,47 +5,58 @@ import ssl
 from uuid import uuid4
 import traceback
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from starlette.endpoints import WebSocketEndpoint
+
 from openai_utils_generate_answer import generate_answer
-from chat_bot_database import create_db_pool, get_user_info_by_session_id
 from config import Config
+from chat_bot_database import create_db_pool, get_user_info_by_session_id
 
 # Initialize FastAPI app
 app = FastAPI()
-
-# Configuration and logging setup
 OPENAI_API_KEY = Config.OPENAI_API_KEY
-log_file_path = '/home/ubuntu/whattogrill-backend/logs/chat_bot_logs.txt'
-logging.basicConfig(filename=log_file_path, level=print, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+connections = {}  # Dictionary to store user_id: websocket mapping
 
-# Dictionary to store user_id: WebSocket mapping
-connections = {}
+# Configure logging
+log_file_path = '/home/ubuntu/whattogrill-backend/logs/chat_bot_logs.txt'
+logging.basicConfig(
+    filename=log_file_path,
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # Async function to create a connection pool
+async def create_pool():
+    return await create_db_pool()
+
+
 @app.on_event("startup")
-async def startup():
-    app.state.pool = await create_db_pool()
+async def startup_event():
+    app.state.pool = await create_pool()
     print("Database pool created")
 
-# FastAPI WebSocket route
+
 @app.websocket("/ws")
-async def chatbot_handler(websocket: WebSocket, session_id: str = None):
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    userID = None
+    user_id = None
+
     try:
-        print(f"New WebSocket connection request from {websocket.client}")
+        initial_data = await websocket.receive_text()
+        initial_data = json.loads(initial_data)
+        session_id = initial_data.get('session_id', '')
+
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app.state.pool)
             if user_info:
-                userID = user_info['username']
-                connections[userID] = websocket
-                print(f"User {userID} connected with WebSocket from {websocket.client}")
+                user_id = user_info['username']
+                connections[user_id] = websocket
+                print(f"User {user_id} connected with WebSocket")
             else:
-                print(f"Invalid session ID: {session_id}")
-                await websocket.send_json({'error': 'Invalid session'})
+                await websocket.send_text(json.dumps({'error': 'Invalid session'}))
                 return
         else:
-            await websocket.send_json({'error': 'Session ID required'})
+            await websocket.send_text(json.dumps({'error': 'Session ID required'}))
             return
 
         while True:
@@ -53,28 +64,26 @@ async def chatbot_handler(websocket: WebSocket, session_id: str = None):
             try:
                 data = json.loads(data)
             except json.JSONDecodeError:
-                print(f"Received malformed data from {websocket.client}")
+                print(f"Received malformed data")
                 continue
 
-            userID = user_info.get('username', '')
+            user_id = user_info.get('username', '')
             uuid = str(uuid4())
             message = data.get('message', '')
-            user_ip = websocket.client.host
+            user_ip = "User IP"  # Placeholder for user IP
 
-            response_text = await generate_answer(app.state.pool, userID, message, user_ip, uuid)
+            response_text = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
             response = {'response': response_text}
-            await websocket.send_json(response)
+            await websocket.send_text(json.dumps(response))
 
-            print(f"Processed message from user {userID} at IP {user_ip}")
+    except WebSocketDisconnect:
+        print(f"WebSocket disconnected for user {user_id}")
+        connections.pop(user_id, None)
     except Exception as e:
-        print(f"Unhandled exception in websocket_endpoint for user {userID}: {e}")
+        print(f"Unhandled exception for user {user_id}: {e}")
         print("Exception Traceback: " + traceback.format_exc())
-    finally:
-        print(f"WebSocket disconnected for user {userID}")
-        if userID in connections:
-            del connections[userID]
 
-# Run the app with Uvicorn
-if __name__ == '__main__':
+# Run with Uvicorn
+if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host='172.31.91.113', port=8055, ssl_keyfile='/home/ubuntu/whattogrill-backend/bot/privkey.pem', ssl_certfile='/home/ubuntu/whattogrill-backend/bot/fullchain.pem')
+    uvicorn.run(app, host="0.0.0.0", port=8000)
