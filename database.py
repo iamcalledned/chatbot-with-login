@@ -17,6 +17,9 @@ DB_CONFIG = {
 
 conn = None
 
+async def create_pool():
+    return await aiomysql.create_pool(**DB_CONFIG)
+
 async def create_connection():
     try:
         # Create a MySQL connection using the configuration from your Config class
@@ -34,8 +37,7 @@ async def create_connection():
         print("Error creating MySQL connection:", str(e))
         return None
 
-async def create_pool():
-    return await aiomysql.create_pool(**DB_CONFIG)
+
 
 async def create_tables(pool):
     """Create tables"""
