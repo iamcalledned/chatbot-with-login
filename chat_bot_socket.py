@@ -93,6 +93,7 @@ async def chatbot_handler(websocket, path):
                 continue
 
             userID = user_info.get('username', '')
+            print("userID from gernerate answer", userID)
             uuid = str(uuid4())
             message = data.get('message', '')
             user_ip = websocket.remote_address[0]
