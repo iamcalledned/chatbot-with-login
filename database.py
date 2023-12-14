@@ -17,7 +17,7 @@ DB_CONFIG = {
 
 pool = None
 
-async def create_pool():
+async def create_db_pool():
     global pool
     pool = await aiomysql.create_pool(
         host=Config.DB_HOST, port=Config.DB_PORT,
