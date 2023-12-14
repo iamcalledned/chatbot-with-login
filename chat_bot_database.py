@@ -85,7 +85,7 @@ async def insert_user(pool, username):
             existing_user = await cur.fetchone()
             print("existing user", existing_user)
             if existing_user:
-                return existing_user[0]  # Return the existing user's ID
+                return existing_user  # Return the existing user's ID
 
 
             # Insert new user if not existing

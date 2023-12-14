@@ -1,4 +1,6 @@
 // Define functions in the global scope
+let socket; // Declare the WebSocket outside of the functions
+
 function showTypingIndicator() {
     $('#typing-container').show();
 }
@@ -13,48 +15,50 @@ function getSessionIdFromUrl() {
 }
 
 function initializeWebSocket(sessionId) {
-    var socket = new WebSocket('wss://www.whattogrill.com:8055');
+    if (!socket || socket.readyState === WebSocket.CLOSED) {
+        // Only create a new WebSocket if it doesn't exist or is closed
+        socket = new WebSocket('wss://www.whattogrill.com:8055');
 
-    socket.onopen = function() {
-        console.log('WebSocket connected!');
-        socket.send(JSON.stringify({ session_id: sessionId }));
-        localStorage.setItem('session_id', sessionId);
-    };
+        socket.onopen = function() {
+            console.log('WebSocket connected!');
+            socket.send(JSON.stringify({ session_id: sessionId }));
+            localStorage.setItem('session_id', sessionId);
+        };
 
-    socket.onmessage = function(event) {
-        var msg = JSON.parse(event.data);
-        hideTypingIndicator();
-        $('#messages').append($('<div class="message bot">').html(msg.response));
-        $('#messages').scrollTop($('#messages')[0].scrollHeight);
-    };
+        socket.onmessage = function(event) {
+            var msg = JSON.parse(event.data);
+            hideTypingIndicator();
+            $('#messages').append($('<div class="message bot">').html(msg.response));
+            $('#messages').scrollTop($('#messages')[0].scrollHeight);
+        };
 
-    socket.onerror = function(error) {
-        console.error('WebSocket Error:', error);
-    };
+        socket.onerror = function(error) {
+            console.error('WebSocket Error:', error);
+        };
 
-    socket.onclose = function(event) {
-        console.log('WebSocket closed:', event);
-        if (!event.wasClean) {
-            console.warn('WebSocket closed unexpectedly.');
-        }
-        setTimeout(function() {
-            initializeWebSocket(sessionId);
-        }, 5000);
-    };
-
-    function sendMessage() {
-        var message = $('#message-input').val();
-        if (message.trim().length > 0) {
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({'message': message}));
-                $('#message-input').val('');
-                showTypingIndicator();
-                $('#messages').scrollTop($('#messages')[0].scrollHeight);
-            } else {
-                console.error('WebSocket is not open. ReadyState:', socket.readyState);
+        socket.onclose = function(event) {
+            console.log('WebSocket closed:', event);
+            if (!event.wasClean) {
+                console.warn('WebSocket closed unexpectedly.');
             }
+            // Don't initialize WebSocket here; it will be initialized only once
+        };
+    }
+}
+function sendMessage() {
+    var message = $('#message-input').val();
+    if (message.trim().length > 0) {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({'message': message}));
+            $('#message-input').val('');
+            showTypingIndicator();
+            $('#messages').scrollTop($('#messages')[0].scrollHeight);
+        } else {
+            console.error('WebSocket is not open. ReadyState:', socket.readyState);
         }
     }
+}
+
 
     $('#send-button').click(sendMessage);
     $('#message-input').keypress(function(e) {
@@ -65,7 +69,7 @@ function initializeWebSocket(sessionId) {
     });
 
     hideTypingIndicator();
-}
+
 
 // Use the document ready function to initialize WebSocket connection
 $(document).ready(function() {
@@ -73,7 +77,7 @@ $(document).ready(function() {
     if (sessionId) {
         initializeWebSocket(sessionId);
     } else {
-        window.location.href = '/login'; // Redirect to login if no session ID
+        window.location.href = '/'; // Redirect to login if no session ID
     }
 });
 
