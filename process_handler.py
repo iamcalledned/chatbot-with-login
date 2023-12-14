@@ -1,25 +1,17 @@
 #process_handler.py
-from fastapi import FastAPI, HTTPException, Request, Depends
-from fastapi.responses import RedirectResponse
-import httpx
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse, JSONResponse
+from starlette.middleware.sessions import SessionMiddleware
+
 import os
 import base64
 import hashlib
-import aiomysql
-import asyncio
-from config import Config  # Import the Config class from your config module
-import jwt 
-import json
-import pymysql
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-from jwt.algorithms import RSAAlgorithm
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request
-from starlette.responses import RedirectResponse
-from fastapi.responses import JSONResponse
+import httpx
+import jwt
 import datetime
+
+from config import Config
+from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db
 
 
 app = FastAPI()
@@ -27,24 +19,14 @@ app = FastAPI()
 # Define session middleware
 app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 
-
+#####!!!!  Startup   !!!!!!################
 
 @app.on_event("startup")
 async def startup():
-    app.state.db_pool = await create_pool()
+    app.state.pool = await create_db_pool()
+    print("Database pool created")
+#####!!!!  Startup   !!!!!!################
 
-async def generate_code_verifier_and_challenge():
-    code_verifier = base64.urlsafe_b64encode(os.urandom(40)).decode('utf-8')
-    code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).digest()
-    code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
-    return code_verifier, code_challenge
-
-
-async def generate_code_verifier_and_challenge():
-    code_verifier = base64.urlsafe_b64encode(os.urandom(40)).decode('utf-8')
-    code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).digest()
-    code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
-    return code_verifier, code_challenge
 
 ################################################################## 
 ######!!!!       Routes                !!!!!######################
@@ -186,7 +168,7 @@ async def get_session_data(request: Request):
 
     
     # Retrieve additional data from the database using the session_id
-    db_data = await get_data_from_db(session_id, app.state.db_pool)
+    db_data = await get_data_from_db(session_id, app.state.pool)
     print("db_data", db_data)
     state = db_data['state']
     username = db_data.get('username')
@@ -214,26 +196,9 @@ async def get_session_data(request: Request):
 ######!!!!     end get ssession endpoint  !!######################
 ##################################################################
 
-
-
 ##################################################################
 ######!!!!     Start Functions           !!!!!####################
 ##################################################################
-
-# Save the code_verifier and state in the database
-async def save_code_verifier(state: str, code_verifier: str, client_ip: str, login_timestamp ):
-    async with app.state.db_pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO verifier_store (state, code_verifier, client_ip, login_timestamp) VALUES (%s, %s, %s, %s)", (state, code_verifier, client_ip, login_timestamp))
-
-
-# Retrieve the code_verifier using the state
-async def get_code_verifier(state: str) -> str:
-    async with app.state.db_pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT code_verifier FROM verifier_store WHERE state = %s", (state,))
-            result = await cur.fetchone()
-            return result['code_verifier'] if result else None
 
 # exhange code for token
 async def exchange_code_for_token(code, code_verifier):
@@ -255,14 +220,6 @@ async def exchange_code_for_token(code, code_verifier):
     else:
         return None
 
-# Initialize the connection pool
-async def create_pool():
-    return await aiomysql.create_pool(
-        host=Config.DB_HOST, port=Config.DB_PORT,
-        user=Config.DB_USER, password=Config.DB_PASSWORD,
-        db=Config.DB_NAME, charset='utf8', 
-        cursorclass=aiomysql.DictCursor, autocommit=True
-    )
 # validate token
 async def validate_token(id_token):
     COGNITO_USER_POOL_ID = Config.COGNITO_USER_POOL_ID
@@ -293,13 +250,6 @@ def get_session(request: Request):
 
 ##################################################################
 
-async def get_data_from_db(session_id, db_pool):
-    async with db_pool.acquire() as conn:
-        async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
-            result = await cur.fetchone()
-            return result if result else {}
-##################################################################
 
 if __name__ == "__main__":
     import uvicorn
