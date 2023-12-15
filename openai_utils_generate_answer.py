@@ -25,15 +25,12 @@ from config import Config
 # Other imports as necessary
 OPENAI_API_KEY = Config.OPENAI_API_KEY
 
-logger = logging.getLogger(__name__)
 
-log_file_path = Config.LOG_PATH
-LOG_FORMAT = 'generate-answer - %(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s'
-
+log_file_path = '/home/ubuntu/whattogrill-backend/logs/generate_answer_logs.txt'
 logging.basicConfig(
     filename=log_file_path,
     level=logging.DEBUG,  # Adjust the log level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    format=LOG_FORMAT
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
 # Initialize OpenAI client
@@ -46,50 +43,50 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
     # Use your new database module to create a connection
     if pool is None:
         return "Error: Failed to connect to the database."
-    logging.info("in generate answer")
+    print("in generate answer")
     pool = await create_db_pool()  # Create the connection pool
-    logging.info("pool in genanswer", pool)
+    print("pool in genanswer", pool)
     if pool is None:
         return "Error: Failed to connect to the database."
     
-    logging.info("trying to aquire popl")
+    print("trying to aquire popl")
     async with pool.acquire() as conn:  # Acquire a connection from the pool
         user_id = await insert_user(pool, userID)
-        logging.info("Database user_id for userID:", userID, "is", user_id)
+        print("Database user_id for userID:", userID, "is", user_id)
 
         active_thread = await get_active_thread_for_user(pool, user_id)
-        logging.info("Active thread:", active_thread)
+        print("Active thread:", active_thread)
 
-        logging.info("Active thread:", active_thread)
+        print("Active thread:", active_thread)
         if active_thread:
             thread_id_n = active_thread['ThreadID']  # Use .get() method to safely access the key
             if thread_id_n:
-                logging.info("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
+                print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
                 if await is_thread_valid(thread_id_n):
-                    logging.info("Thread is valid. Continuing with Thread ID:", thread_id_n)
+                    print("Thread is valid. Continuing with Thread ID:", thread_id_n)
                 else:
-                    logging.info("Thread is no longer valid. Creating a new thread.")
+                    print("Thread is no longer valid. Creating a new thread.")
                     thread_id_n = await create_thread_in_openai()
                     current_time = datetime.datetime.now().isoformat()
                     await insert_thread(pool, thread_id_n, user_id, True, current_time)
             else:
-                logging.info("Key 0 is not present in active_thread.")
+                print("Key 0 is not present in active_thread.")
         else:
-            logging.info("No active thread found for userID:", userID, "Creating a new thread.")
+            print("No active thread found for userID:", userID, "Creating a new thread.")
             thread_id_n = await create_thread_in_openai()
             current_time = datetime.datetime.now().isoformat()
             await insert_thread(pool, thread_id_n, user_id, True, current_time)
 
         if thread_id_n:
             response_text = await send_message(thread_id_n, message)
-            logging.info("created message to send")
+            print("created message to send")
 
             # Create the run on OpenAI
             run = client.beta.threads.runs.create(
                 thread_id=thread_id_n,
                 assistant_id="asst_ODqZJkwekTSZwZT554Sabqm2"
             )
-            logging.info("created run on openAI")
+            print("created run on openAI")
 
             if run is not None:
                 # Now we have a run ID, we can log the user's message
@@ -100,12 +97,12 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                         thread_id=thread_id_n,
                         run_id=run.id
                     )
-                    logging.info("checking status...")
+                    print("checking status...")
                     if run.status == "completed":
-                        logging.info("response received for thread:", thread_id_n, run.id)
+                        print("response received for thread:", thread_id_n, run.id)
                         break
                     elif run.status == "error":
-                        logging.info("Error encountered in run")
+                        print("Error encountered in run")
                         break
 
                     await asyncio.sleep(1)   # Wait for 1 second before the next status check
@@ -114,14 +111,13 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                     thread_id=thread_id_n
                 )
                 message_content = messages.data[0].content[0].text.value
-                logging.info("messages sent")
-                logging.info("message content:", message_content)
+                print("messages sent")
 
                 # Log OpenAI's response
                 await insert_conversation(pool, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
-                logging.info("saved conversations for user:", user_id)
+                print("saved conversations for user:", user_id)
             else:
-                logging.info("Failed to create a run object in OpenAI.")
+                print("Failed to create a run object in OpenAI.")
                 return "Error: Failed to create a run object."
 
             return message_content
