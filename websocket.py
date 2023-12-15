@@ -17,12 +17,13 @@ app = FastAPI()
 OPENAI_API_KEY = Config.OPENAI_API_KEY
 connections = {}  # Dictionary to store user_id: websocket mapping
 
-# Configure logging
-log_file_path = '/home/ubuntu/whattogrill-backend/logs/chat_bot_logs.txt'
+log_file_path = Config.LOG_PATH
+LOG_FORMAT = 'generate-answer - %(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s'
+
 logging.basicConfig(
     filename=log_file_path,
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.DEBUG,  # Adjust the log level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format=LOG_FORMAT
 )
 
 # Async function to create a connection pool
