@@ -1,0 +1,300 @@
+/* Include Roboto font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+/* Reset default margin and padding for the entire document */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Chat container styles */
+#chat-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0; /* Remove margin on mobile */
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100vh;
+}
+
+/* Message container styles */
+#messages {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Message styles */
+
+/* User message styles */
+.message.user {
+    background-color: #007bff; /* User message background color */
+    color: white;
+    align-self: flex-end; /* Aligns the user messages to the right */
+    margin-right: 10px; /* Additional margin for better spacing */
+    border-radius: 20px; /* Rounded corners for user messages */
+    padding: 10px 15px; /* Padding for user messages */
+}
+/* Add bubble tail for user messages */
+.message.user::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border: 15px solid transparent;
+    border-top-color: #DCF8C6;
+    border-bottom: 0;
+    margin-right: -15px;
+    margin-bottom: -15px;
+}
+/* Add bubble tail for bot messages */
+.message.bot::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border: 15px solid transparent;
+    border-top-color: #ffffff;
+    border-bottom: 0;
+    margin-left: -15px;
+    margin-bottom: -15px;
+}
+
+/* Bot message styles */
+.message.bot {
+    background-color: #f1f1f1; /* Bot message background color */
+    color: black;
+    align-self: flex-start; /* Aligns the bot messages to the left */
+    margin-left: 10px; /* Additional margin for better spacing */
+    border-radius: 20px; /* Rounded corners for bot messages */
+    padding: 10px 15px; /* Padding for bot messages */
+}
+/* Typing indicator container styles */
+#typing-container {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+}
+
+/* Typing text styles */
+#typing-text {
+    font-size: 0.8em;
+    color: #555;
+    margin-right: 5px;
+}
+
+/* Typing indicator dot animation */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 2px;
+    background-color: black;
+    border-radius: 50%;
+    animation: slide 1s infinite alternate;
+}
+
+@keyframes slide {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(20px); }
+}
+
+/* Input group styles */
+.input-group {
+    display: flex;
+    padding: 0 10px 10px 10px;
+}
+
+/* Message input styles */
+#message-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 18px;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-right: 10px;
+}
+
+/* Send button styles */
+#send-button {
+    padding: 10px 20px;
+   background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1.6;
+    transition: background-color 0.3s ease;
+}
+
+/* Send button hover effect */
+#send-button:hover {
+    background-color: #0056b3;
+}
+
+/* Media query for smaller screens (e.g., mobile devices) */
+@media (max-width: 768px) {
+    #chat-container {
+        height: 75vh; /* Reduced height for better mobile fit */
+        width: 95%;
+        margin-top: 0; /* Or a smaller value than you currently have */
+        margin: 5px auto 10px auto; /* Smaller top margin, auto horizontal margins, slightly larger bottom margin */
+        display: flex;
+        flex-direction: column; /* Ensures contents are laid out vertically */
+    }
+
+    #messages {
+        flex-grow: 1; /* Allows chat messages to fill available space */
+        overflow-y: auto; /* Ensures scrolling within the messages area */
+        /* Reduce or adjust padding/margin as needed */
+    }
+
+    /* Ensure the chat entry (input group) is always visible */
+    .input-group {
+        margin-bottom: 10px; /* Adjust as needed */
+    }
+}
+/* Chat header styles (if you have a header) */
+.chat-header {
+    display: flex;
+    justify-content: center; /* Center logo horizontally */
+    align-items: center; /* Center logo vertically */
+    padding: 10px; /* Add some padding */
+    background-color: #f5f5f5; /* Set a background color, if desired */
+}
+
+/* Chat logo styles (if you have a logo) */
+.chat-logo {
+    max-height: 50px; /* Limit the size of the logo */
+    width: auto; /* Maintain aspect ratio */
+    /* Add other styling as needed */
+}
+/* Chat header styles */
+.chat-header {
+    position: relative; /* This allows absolute positioning relative to the header */
+    display: flex;
+    justify-content: center; /* Keeps the logo centered */
+    align-items: center;
+    padding: 10px;
+    background-color: #f5f5f5;
+}
+
+/* Hamburger menu button styles */
+.hamburger-menu {
+    position: absolute; /* Position the menu absolutely to the left */
+    left: 10px; /* Adjust as needed, based on desired spacing from the left edge */
+    top: 50%; /* Start at the vertical center of the header */
+    transform: translateY(-50%); /* Shift upwards by half its height to center it */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px; /* Width of the button */
+    height: 25px; /* Height of the button */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.hamburger-menu span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background: #333; /* Color of the menu lines */
+    border-radius: 3px;
+}
+
+/* Ensure the logo doesn't move */
+.chat-logo {
+    z-index: 1; /* Ensure logo stays on top and isn't overlapped by the absolute-positioned elements */
+}
+
+.options-menu {
+    /* ... existing styles ... */
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    background: white;
+    border: 1px solid #ddd;
+    z-index: 1000;
+    width: 100%;
+    /* ... other styles ... */
+  }
+
+  .options-menu.show {
+    display: block; /* This makes the menu visible when the 'show' class is added */
+    background-color: rgb(104, 102, 102); /* This is just for testing, you can remove it later */
+}
+
+/* Add styles for the shopping list overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.shopping-list-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 90%;
+    max-width: 400px;
+}
+
+
+.menu-items {
+  max-width: 200px; /* Set the maximum width you want */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd; /* Separates menu items */
+}
+
+.menu-item:hover {
+  background-color: #f2f2f2; /* Hover effect for menu items */
+}
+
+/* Overlay styles */
+

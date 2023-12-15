@@ -19,10 +19,8 @@
 
     <div class="options-menu">
         <ul class="menu-items">
-            <li class="menu-item" id="about">About</li>
-            <li class="menu-item">Help</li>
-            <li class="menu-item">Settings</li>
-            <li class="menu-item">Contact</li>
+            <li class="menu-item" id="shopping-list-button">Shopping List</li>
+            <li class="menu-item" id="logout">Logout</li>
         </ul>
     </div>
     <img src="what_to_grill_image_round.png" alt="Logo" class="chat-logo">
@@ -46,32 +44,42 @@
                 <button id="send-button">Send</button>
             </div>
         </div>
-        <script>
-            // Set the sessionId as a global variable that can be accessed by other JavaScript modules
-            window.sessionId = "{{ sessionId }}";
-        </script>
-        <!-- Include Socket.IO -->
-        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-        <!-- Include jQuery -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-                  // Registration was successful
-                  console.log('Service Worker registered with scope: ', registration.scope);
-                }, function(err) {
-                  // registration failed :(
-                  console.log('Service Worker registration failed: ', err);
-                });
-              });
-            }
-          </script>
-
-        <script type="text/javascript">
-            var sessionId = "{{ sessionId }}";
-        </script>
-        <script src="chat_script.js"></script>
-        </body>
-    </html>
-
+          <!-- Shopping List Overlay -->
+        <div id="shopping-list-overlay" class="overlay hidden">
+            <div class="shopping-list-content">
+                <h2>Shopping List</h2>
+                <ul id="shopping-list">
+                    <!-- Shopping list items will go here -->
+                </ul>
+                <button id="close-shopping-list">Close</button>
+            </div>
+        </div>
+    
+            <script>
+                // Set the sessionId as a global variable that can be accessed by other JavaScript modules
+                window.sessionId = "{{ sessionId }}";
+            </script>
+            <!-- Include Socket.IO -->
+            <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+            <!-- Include jQuery -->
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script>
+                if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                      // Registration was successful
+                      console.log('Service Worker registered with scope: ', registration.scope);
+                    }, function(err) {
+                      // registration failed :(
+                      console.log('Service Worker registration failed: ', err);
+                    });
+                  });
+                }
+              </script>
+    
+            <script type="text/javascript">
+                var sessionId = "{{ sessionId }}";
+            </script>
+            <script src="chat_script.js"></script>
+            </body>
+        </html>

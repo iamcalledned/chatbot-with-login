@@ -14,23 +14,43 @@ function getSessionIdFromUrl() {
     return urlParams.get('sessionId');
 }
 
+// Initialize the shopping list UI
+function initializeShoppingList() {
+    $('#shopping-list-button').click(function() {
+        $('#shopping-list-overlay').removeClass('hidden');
+    });
+
+    $('#close-shopping-list').click(function() {
+        $('#shopping-list-overlay').addClass('hidden');
+    });
+
+    // Add more functions here to handle adding items, checking them off, etc.
+    // You will likely need to send and receive specific messages through the WebSocket for these actions.
+}
+
 function initializeWebSocket(sessionId) {
-    const socketUrl = `wss://www.whattogrill.com/ws?session_id=${sessionId}`;
     if (!socket || socket.readyState === WebSocket.CLOSED) {
-        socket = new WebSocket(socketUrl);
+        // Only create a new WebSocket if it doesn't exist or is closed
+        socket = new WebSocket('wss://www.whattogrill.com:8055');
 
         socket.onopen = function() {
             console.log('WebSocket connected!');
             socket.send(JSON.stringify({ session_id: sessionId }));
             localStorage.setItem('session_id', sessionId);
         };
+        initializeShoppingList();
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
+            if (msg.action === 'shopping_list_update') {
+                // Update the UI with the new shopping list data
+                updateShoppingListUI(msg.shoppingList);
+            } else {
             hideTypingIndicator();
             $('#messages').append($('<div class="message bot">').html(msg.response));
             $('#messages').scrollTop($('#messages')[0].scrollHeight);
         };
+    }
 
         socket.onerror = function(error) {
             console.error('WebSocket Error:', error);
@@ -77,10 +97,27 @@ $(document).ready(function() {
     let sessionId = getSessionIdFromUrl();
     if (sessionId) {
         initializeWebSocket(sessionId);
+        initializeShoppingList();
     } else {
         window.location.href = '/'; // Redirect to login if no session ID
     }
 });
+
+function addToShoppingList(item) {
+    // Send a message to the WebSocket server to add an item to the shopping list
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({'action': 'add_to_shopping_list', 'item': item}));
+    } else {
+        console.error('WebSocket is not open. ReadyState:', socket.readyState);
+    }
+}
+function removeItemFromShoppingList(item) {
+    // Send a message to remove the item from the shopping list
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({'action': 'remove_from_shopping_list', 'item': item}));
+    }
+}
+
 
 function showOverlay(title, content) {
     const overlay = $('<div class="overlay"></div>');
@@ -95,15 +132,43 @@ function showOverlay(title, content) {
 
     overlayContent.append(overlayTitle, overlayText, closeButton);
     overlay.append(overlayContent);
+    overlay.append(overlayContent);
     $('body').append(overlay);
 }
 
+function logout() {
+    // Example: Clear session storage and redirect to login page
+    sessionStorage.clear();
+    window.location.href = '/login'; // Adjust the URL as needed
+}
+function updateShoppingListUI(shoppingList) {
+    // Clear the existing list
+    $('#shopping-list').empty();
+
+    // Add the new items to the list
+    shoppingList.forEach(function(item) {
+        var listItem = $('<li></li>').text(item.name);
+        if (item.checked) {
+            listItem.addClass('checked');
+        }
+        // Append additional buttons/actions for each item here
+        $('#shopping-list').append(listItem);
+    });
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOMContentLoaded");
+
     document.querySelector('.hamburger-menu').addEventListener('click', function() {
+        console.log("Hamburger clicked");
         document.querySelector('.options-menu').classList.toggle('show');
     });
 
-    document.getElementById('about').addEventListener('click', function() {
-        showOverlay('About', 'This is some information about our service...');
+    // Event listener for Logout button
+    document.getElementById('logout').addEventListener('click', function() {
+        console.log("Logout clicked");
+        logout();
     });
 });
