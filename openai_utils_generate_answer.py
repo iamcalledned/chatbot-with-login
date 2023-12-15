@@ -112,6 +112,7 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 )
                 message_content = messages.data[0].content[0].text.value
                 print("messages sent")
+                print("message content:", message_content)
 
                 # Log OpenAI's response
                 await insert_conversation(pool, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
