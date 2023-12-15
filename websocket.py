@@ -36,7 +36,7 @@ async def startup_event():
     print("Database pool created")
 
 
-@app.websocket("/ws")
+@app.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     user_id = None
