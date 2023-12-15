@@ -75,13 +75,13 @@ async def create_tables(pool):
             await cur.execute(create_threads_table)
             await cur.execute(create_conversations_table)
 
-async def insert_user(pool, username):
+async def insert_user(pool, userID):
     """Insert a new user into the users table or return existing user ID"""
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # Check if user already exists
             sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
-            await cur.execute(sql_check, (username,))
+            await cur.execute(sql_check, (userID,))
             existing_user = await cur.fetchone()
             #print("existing user", existing_user)
 
@@ -90,7 +90,7 @@ async def insert_user(pool, username):
 
             # Insert new user if not existing
             sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
-            await cur.execute(sql_insert, (username,))
+            await cur.execute(sql_insert, (get_user_info_by_session_id,))
             await conn.commit()
             return cur.lastrowid  # Return the new user's ID
 
