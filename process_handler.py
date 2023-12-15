@@ -20,6 +20,16 @@ from jwt.algorithms import RSAAlgorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+import logging
+
+log_file_path = Config.LOG_PATH
+LOG_FORMAT = 'generate-answer - %(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s'
+
+logging.basicConfig(
+    filename=log_file_path,
+    level=logging.DEBUG,  # Adjust the log level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format=LOG_FORMAT
+)
 
 
 app = FastAPI()
