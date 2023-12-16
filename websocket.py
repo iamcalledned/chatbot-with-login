@@ -70,7 +70,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_content = data_dict['content']
-                save_result = await save_recipe_to_db(user_id, recipe_content, app.state.pool)  # Replace with your DB save logic
+                save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_content)  # Replace with your DB save logic
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
                 # Handle regular messages
