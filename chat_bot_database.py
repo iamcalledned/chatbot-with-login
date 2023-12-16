@@ -166,4 +166,5 @@ async def save_recipe_to_db(pool, user_id, recipe_content):
             sql = '''INSERT INTO recipes (UserID, Content) VALUES (%s, %s)'''
             await cur.execute(sql, (user_id, recipe_content))
             await conn.commit()
+            print("recipe saved")
             return "success"
