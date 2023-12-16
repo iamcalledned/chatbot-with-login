@@ -1,19 +1,27 @@
 import spacy
 from spacy.matcher import Matcher
+from spacy.tokens import Span
+from spacy.language import Language
+
+def set_custom_boundaries(doc):
+    # Custom boundary logic to prevent sentence segmentation at bullet points
+    for token in doc[:-1]:
+        if token.text in ("-"):
+            doc[token.i+1].is_sent_start = False
+    return doc
+
+@Language.component("set_custom_boundaries")
+def set_custom_boundaries_component(doc):
+    return set_custom_boundaries(doc)
+
 
 def parse_recipe_with_spacy(recipe_text):
-    # Load SpaCy model
+    # Load SpaCy model and add custom boundary settings
     nlp = spacy.load("en_core_web_sm")
+    nlp.add_pipe("set_custom_boundaries", before="parser")
 
-    # Cleaning up the text by replacing multiple newline characters with a single newline
-    cleaned_text = '\n'.join([line.strip() for line in recipe_text.split('\n') if line.strip()])
-
-    doc = nlp(cleaned_text)
-
-    # Matcher for potential recipe titles (proper nouns or noun phrases)
-    matcher = Matcher(nlp.vocab)
-    title_pattern = [{"POS": "PROPN"}, {"POS": "NOUN", "OP": "?"}]
-    matcher.add("RECIPE_TITLE", [title_pattern])
+    # Process the recipe text
+    doc = nlp(recipe_text)
 
     # Variables to hold the sections of the recipe
     title = None
@@ -21,14 +29,14 @@ def parse_recipe_with_spacy(recipe_text):
     instructions = []
     mode = None
 
-    # Iterate over sentences to find the title
-    for sent in doc.sents:
-        if matcher(sent.as_doc()):
-            title = sent.text.strip()
-            break  # Assuming the first match is the title
+    # Extract title - assuming it's the first noun phrase or sequence of proper nouns
+    for np in doc.noun_chunks:
+        if np.start == 0:
+            title = np.text
+            break
 
     # Process the rest of the text for ingredients and instructions
-    lines = cleaned_text.split('\n')
+    lines = recipe_text.split('\n')
     for line in lines:
         line = line.strip()
 
@@ -47,4 +55,3 @@ def parse_recipe_with_spacy(recipe_text):
         'ingredients': ingredients,
         'instructions': instructions
     }
-
