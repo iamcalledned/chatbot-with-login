@@ -106,12 +106,17 @@ function sendMessage() {
 
 
 // Use the document ready function to initialize WebSocket connection
+// Inside $(document).ready()
 $(document).ready(function() {
     let sessionId = getSessionIdFromUrl();
     if (sessionId) {
         initializeWebSocket(sessionId);
         initializeShoppingList();
-         // Hover effect for the Save Recipe button
+    } else {
+        window.location.href = '/'; // Redirect to login if no session ID
+    }
+
+    // Hover effect for the Save Recipe button
     $(document).on('mouseenter', '.save-recipe-button', function() {
         // Show tooltip
         $(this).append($('<span class="tooltip">Click to save this recipe!</span>'));
@@ -120,18 +125,9 @@ $(document).ready(function() {
         $(this).find('.tooltip').remove();
     });
 
-    $('.save-recipe-button').hover(function() {
-        // Show tooltip
-        $(this).append($('<span class="tooltip">Click to save this recipe!</span>'));
-    }, function() {
-        // Remove tooltip
-        $(this).find('.tooltip').remove();
-    });
-    
-    
     // Click effect for the Save Recipe button
     $(document).on('click', '.save-recipe-button', function() {
-        // Animation effect on click
+        // Trigger the animation effect on click
         $(this).animate({
             opacity: 0.5
         }, 200, function() {
@@ -140,12 +136,29 @@ $(document).ready(function() {
                 opacity: 1
             }, 200);
         });
-    });
 
-    } else {
-        window.location.href = '/'; // Redirect to login if no session ID
-    }
+        // After starting the animation, also send the save command via WebSocket
+        var recipeContent = $(this).closest('.message-bubble').find('.message-content').text();
+
+        // Construct a save command with the recipe content
+        var saveCommand = {
+            action: 'save_recipe',
+            content: recipeContent
+        };
+
+        // Send the save command to the server via WebSocket
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(saveCommand));
+        } else {
+            console.error('WebSocket is not open.');
+        }
+    });
 });
+
+// Rest of your code...
+
+    // The rest of your $(document).ready() logic...
+    
 
 function addToShoppingList(item) {
     // Send a message to the WebSocket server to add an item to the shopping list

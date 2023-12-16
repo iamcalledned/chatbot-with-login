@@ -156,3 +156,14 @@ async def end_run(pool, run_id):
     """Mark a run as completed"""
     # Logic to mark a run as completed, e.g., updating a runs table or updating conversation statuses
     pass
+
+
+async def save_recipe_to_db(pool, user_id, recipe_content):
+    """Save a new recipe to the database"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # SQL command to insert a new recipe
+            sql = '''INSERT INTO recipes (UserID, Content) VALUES (%s, %s)'''
+            await cur.execute(sql, (user_id, recipe_content))
+            await conn.commit()
+            return "success"

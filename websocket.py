@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db
 
 
 
@@ -65,22 +65,25 @@ async def websocket_endpoint(websocket: WebSocket):
 
         while True:
             data = await websocket.receive_text()
-            try:
-                data = json.loads(data)
-            except json.JSONDecodeError:
-                print(f"Received malformed data")
-                continue
+            data_dict = json.loads(data)
 
-            user_id = user_info.get('username', '')
-            uuid = str(uuid4())
-            message = data.get('message', '')
-            user_ip = "User IP"  # Placeholder for user IP
+            if 'action' in data_dict and data_dict['action'] == 'save_recipe':
+                # Handle the save recipe action
+                recipe_content = data_dict['content']
+                save_result = await save_recipe_to_db(user_id, recipe_content, app.state.pool)  # Replace with your DB save logic
+                await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
+            else:
+                # Handle regular messages
+                message = data_dict.get('message', '')
+                user_ip = "User IP"  # Placeholder for user IP
+                uuid = str(uuid4())
 
-            
-            response_text, content_type = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
-            response = {'response': response_text,
-                        'type': content_type,}
-            await websocket.send_text(json.dumps(response))
+                response_text, content_type = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
+                response = {
+                    'response': response_text,
+                    'type': content_type,
+                }
+                await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
         print(f"WebSocket disconnected for user {user_id}")
