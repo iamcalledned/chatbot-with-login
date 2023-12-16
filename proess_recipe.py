@@ -4,7 +4,11 @@ from spacy.matcher import Matcher
 def parse_recipe_with_spacy(recipe_text):
     # Load SpaCy model
     nlp = spacy.load("en_core_web_sm")
-    doc = nlp(recipe_text)
+
+    # Cleaning up the text by replacing multiple newline characters with a single newline
+    cleaned_text = '\n'.join([line.strip() for line in recipe_text.split('\n') if line.strip()])
+
+    doc = nlp(cleaned_text)
 
     # Matcher for potential recipe titles (proper nouns or noun phrases)
     matcher = Matcher(nlp.vocab)
@@ -24,7 +28,7 @@ def parse_recipe_with_spacy(recipe_text):
             break  # Assuming the first match is the title
 
     # Process the rest of the text for ingredients and instructions
-    lines = recipe_text.split('\n')
+    lines = cleaned_text.split('\n')
     for line in lines:
         line = line.strip()
 
