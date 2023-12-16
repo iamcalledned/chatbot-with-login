@@ -110,6 +110,8 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 )
                 message_content = messages.data[0].content[0].text.value
                 print("messages sent")
+                result = classify_content(message_content)
+                print("result of classification:", result)
                 
 
                 # Log OpenAI's response
