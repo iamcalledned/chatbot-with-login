@@ -42,22 +42,9 @@ client = OpenAI()
 
 async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool parameter
     # Use your new database module to create a connection
-    if pool is None:
-        return "Error: Failed to connect to the database."
-    
-    pool = await create_db_pool()  # Create the connection pool
-    
-    if pool is None:
-        return "Error: Failed to connect to the database."
-    
-    
-    async with pool.acquire() as conn:  # Acquire a connection from the pool
         user_id = await insert_user(pool, userID)
     
-
         active_thread = await get_active_thread_for_user(pool, user_id)
-
-
 
         if active_thread:
             thread_id_n = active_thread['ThreadID']  # Use .get() method to safely access the key
@@ -78,6 +65,7 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
             await insert_thread(pool, thread_id_n, user_id, True, current_time)
 
         if thread_id_n:
+            print("in thread_id_n and going to send message: ", thread_id_n)
             response_text = await send_message(thread_id_n, message)
             
 
