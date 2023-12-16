@@ -76,6 +76,7 @@ async def websocket_endpoint(websocket: WebSocket):
             message = data.get('message', '')
             user_ip = "User IP"  # Placeholder for user IP
 
+            print("going to generate answer")
             response_text = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
             response_text, content_type = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
             response = {'response': response_text,
