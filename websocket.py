@@ -66,12 +66,14 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data)
-            print("data_dict", data_dict)
+            #print("data_dict", data_dict)
 
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_content = data_dict['content']
+                print("recipe_content:", recipe_content)
                 save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_content)  # Replace with your DB save logic
+                
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
                 # Handle regular messages

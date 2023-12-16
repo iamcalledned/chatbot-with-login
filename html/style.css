@@ -42,7 +42,7 @@ body {
 
 /* User message styles */
 .message.user {
-    background-color: #007bff; /* User message background color */
+    background-color:#07777a; /* User message background color */
     color: white;
     align-self: flex-end; /* Aligns the user messages to the right */
     margin-right: 10px; /* Additional margin for better spacing */
@@ -80,13 +80,28 @@ body {
 
 /* Bot message styles */
 .message.bot {
-    background-color: #f1f1f1; /* Bot message background color */
+    background-color: #aaeaec; /* Bot message background color */
     color: black;
     align-self: flex-start; /* Aligns the bot messages to the left */
     margin-left: 10px; /* Additional margin for better spacing */
     border-radius: 20px; /* Rounded corners for bot messages */
     padding: 10px 15px; /* Padding for bot messages */
 }
+/* Bot message styles */
+.message-bubble {
+    background-color:#aaeaec; /* Bot message background color */
+    color: black;
+    align-self: flex-start; /* Aligns the bot messages to the left */
+    margin-left: 10px; /* Additional margin for better spacing */
+    border-radius: 20px; /* Rounded corners for bot messages */
+    padding: 10px 15px; /* Padding for bot messages */
+}
+.message-bubble.recipe-message {
+    border-color: #4CAF50; /* Example: Green border for recipe messages */
+    background-color: #ebf8f2; /* Light green background */
+    /* Other styling specific to recipe messages */
+}
+
 /* Typing indicator container styles */
 #typing-container {
     display: flex;

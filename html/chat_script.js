@@ -14,7 +14,6 @@ function getSessionIdFromUrl() {
     return urlParams.get('sessionId');
 }
 
-// Initialize the shopping list UI
 function initializeShoppingList() {
     $('#shopping-list-button').click(function() {
         $('#shopping-list-overlay').removeClass('hidden');
@@ -23,14 +22,10 @@ function initializeShoppingList() {
     $('#close-shopping-list').click(function() {
         $('#shopping-list-overlay').addClass('hidden');
     });
-
-    // Add more functions here to handle adding items, checking them off, etc.
-    // You will likely need to send and receive specific messages through the WebSocket for these actions.
 }
 
 function initializeWebSocket(sessionId) {
     if (!socket || socket.readyState === WebSocket.CLOSED) {
-        // Only create a new WebSocket if it doesn't exist or is closed
         socket = new WebSocket('wss://www.whattogrill.com:8055');
 
         socket.onopen = function() {
@@ -38,33 +33,37 @@ function initializeWebSocket(sessionId) {
             socket.send(JSON.stringify({ session_id: sessionId }));
             localStorage.setItem('session_id', sessionId);
         };
-        initializeShoppingList();
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
+            
+
             if (msg.action === 'shopping_list_update') {
-                // Update the UI with the new shopping list data
                 updateShoppingListUI(msg.shoppingList);
+            } else if (msg.action === 'recipe_saved') {
+                // Check if the recipe was successfully saved and show a notification
+                if (msg.status === 'success') {
+                    showNotificationBubble('Recipe saved');
+                } else {
+                    // Handle other statuses, like errors
+                    showNotificationBubble('Failed to save recipe');
+                }
             } else {
-            hideTypingIndicator();
-            var messageElement = $('<div class="message bot">').html(msg.response);
-        // Check if the message type is 'recipe' and append a Save button if it is
-        if (msg.type === 'recipe') {
-            var saveButton = $('<button class="save-recipe-button">Save Recipe</button>');
-            saveButton.click(function() {
-                // Logic to handle saving the recipe
-                console.log('Save Recipe button clicked');
-                // You can also pass the recipe text or an identifier to the save function
-            });
-            messageElement.append(saveButton);
-        }
-
-        $('#messages').append(messageElement);
-        $('#messages').scrollTop($('#messages')[0].scrollHeight);
+                hideTypingIndicator();
+                var messageElement;
+                if (msg.type === 'recipe') {
+                    messageElement = $('<div class="message-bubble recipe-message">'); // Add 'recipe-message' class
+                    var messageContent = $('<div class="message-content">').html(msg.response);
+                    var saveButton = $('<button class="save-recipe-button">Save Recipe</button>');
+                    messageElement.append(messageContent, saveButton);
+                } else {
+                    messageElement = $('<div class="message bot">').html(msg.response);
+                }
+                $('#messages').append(messageElement);
+                $('#messages').scrollTop($('#messages')[0].scrollHeight);
+            }
         };
-
-    }
-
+        
         socket.onerror = function(error) {
             console.error('WebSocket Error:', error);
         };
@@ -74,17 +73,18 @@ function initializeWebSocket(sessionId) {
             if (!event.wasClean) {
                 console.warn('WebSocket closed unexpectedly.');
             }
-            // Don't initialize WebSocket here; it will be initialized only once
         };
     }
 }
+
 function sendMessage() {
     var message = $('#message-input').val();
     if (message.trim().length > 0) {
         if (socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({'message': message}));
             $('#message-input').val('');
-            $('#messages').append($('<div class="message user">').text('You: ' + message));
+            var userMessageElement = $('<div class="message user">').text('You: ' + message);
+            $('#messages').append(userMessageElement);
             showTypingIndicator();
             $('#messages').scrollTop($('#messages')[0].scrollHeight);
         } else {
@@ -93,20 +93,6 @@ function sendMessage() {
     }
 }
 
-
-    $('#send-button').click(sendMessage);
-    $('#message-input').keypress(function(e) {
-        if (e.which == 13) { // Enter key has a keycode of 13
-            sendMessage();
-            return false; // Prevent form submission
-        }
-    });
-
-    hideTypingIndicator();
-
-
-// Use the document ready function to initialize WebSocket connection
-// Inside $(document).ready()
 $(document).ready(function() {
     let sessionId = getSessionIdFromUrl();
     if (sessionId) {
@@ -116,116 +102,101 @@ $(document).ready(function() {
         window.location.href = '/'; // Redirect to login if no session ID
     }
 
-    // Hover effect for the Save Recipe button
+    $('#send-button').click(sendMessage);
+    $('#message-input').keypress(function(e) {
+        if (e.which == 13) {
+            sendMessage();
+            return false; // Prevent form submission
+        }
+    });
+
+    hideTypingIndicator();
+
+    
     $(document).on('mouseenter', '.save-recipe-button', function() {
-        // Show tooltip
         $(this).append($('<span class="tooltip">Click to save this recipe!</span>'));
     }).on('mouseleave', '.save-recipe-button', function() {
-        // Remove tooltip
         $(this).find('.tooltip').remove();
     });
 
-    // Click effect for the Save Recipe button
     $(document).on('click', '.save-recipe-button', function() {
-        // Trigger the animation effect on click
-        $(this).animate({
-            opacity: 0.5
-        }, 200, function() {
-            // Animation complete, reset opacity
-            $(this).animate({
-                opacity: 1
-            }, 200);
-        });
+        var messageContent = $(this).siblings('.message-content');
+        if (messageContent.length) {
+            var recipeContent = messageContent.text();
+            console.log("Recipe content:", recipeContent);
 
-        // After starting the animation, also send the save command via WebSocket
-        var recipeContent = $(this).closest('.message-bubble').find('.message-content').text();
-
-        // Construct a save command with the recipe content
-        var saveCommand = {
-            action: 'save_recipe',
-            content: recipeContent
-        };
-
-        // Send the save command to the server via WebSocket
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify(saveCommand));
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                var saveCommand = {
+                    action: 'save_recipe',
+                    content: recipeContent
+                };
+                socket.send(JSON.stringify(saveCommand));
+                
+                
+            } else {
+                console.error('WebSocket is not open.');
+            
+            }
         } else {
-            console.error('WebSocket is not open.');
+            console.error("No .message-content found alongside the Save Recipe button.");
         }
+    
+    
+    });
+    
+
+    document.querySelector('.hamburger-menu').addEventListener('click', function() {
+        document.querySelector('.options-menu').classList.toggle('show');
+    });
+
+    document.getElementById('logout').addEventListener('click', function() {
+        sessionStorage.clear();
+        window.location.href = '/login'; // Adjust the URL as needed
     });
 });
 
-// Rest of your code...
-
-    // The rest of your $(document).ready() logic...
-    
-
 function addToShoppingList(item) {
-    // Send a message to the WebSocket server to add an item to the shopping list
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({'action': 'add_to_shopping_list', 'item': item}));
     } else {
         console.error('WebSocket is not open. ReadyState:', socket.readyState);
     }
 }
+
 function removeItemFromShoppingList(item) {
-    // Send a message to remove the item from the shopping list
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({'action': 'remove_from_shopping_list', 'item': item}));
     }
 }
 
-
-function showOverlay(title, content) {
-    const overlay = $('<div class="overlay"></div>');
-    const overlayContent = $('<div class="overlay-content"></div>');
-    const overlayTitle = $('<h2></h2>').text(title);
-    const overlayText = $('<p></p>').text(content);
-    const closeButton = $('<button>Close</button>');
-
-    closeButton.click(function() {
-        overlay.remove();
-    });
-
-    overlayContent.append(overlayTitle, overlayText, closeButton);
-    overlay.append(overlayContent);
-    overlay.append(overlayContent);
-    $('body').append(overlay);
-}
-
-function logout() {
-    // Example: Clear session storage and redirect to login page
-    sessionStorage.clear();
-    window.location.href = '/login'; // Adjust the URL as needed
-}
 function updateShoppingListUI(shoppingList) {
-    // Clear the existing list
     $('#shopping-list').empty();
-
-    // Add the new items to the list
     shoppingList.forEach(function(item) {
         var listItem = $('<li></li>').text(item.name);
         if (item.checked) {
             listItem.addClass('checked');
         }
-        // Append additional buttons/actions for each item here
         $('#shopping-list').append(listItem);
     });
 }
 
+function showOverlay(title, content) {
+    const overlay = $('<div class="overlay"></div>');
+    const overlayContent = $('<div class="overlay-content"></div>');
+    overlayContent.append($('<h2></h2>').text(title), $('<p></p>').text(content), $('<button>Close</button>').click(function() { overlay.remove(); }));
+    overlay.append(overlayContent);
+    $('body').append(overlay);
+}
 
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOMContentLoaded");
-
-    document.querySelector('.hamburger-menu').addEventListener('click', function() {
-        console.log("Hamburger clicked");
-        document.querySelector('.options-menu').classList.toggle('show');
+function logout() {
+    sessionStorage.clear();
+    window.location.href = '/login'; // Adjust the URL as needed
+}
+function showNotificationBubble(message) {
+    var bubble = $('<div class="notification-bubble">' + message + '</div>');
+    console.log('hit the show notification')
+    $('body').append(bubble);
+    bubble.fadeIn(200).delay(3000).fadeOut(200, function() {
+        $(this).remove(); // Remove the bubble from the DOM after it fades out
     });
-
-    // Event listener for Logout button
-    document.getElementById('logout').addEventListener('click', function() {
-        console.log("Logout clicked");
-        logout();
-    });
-});
+}
