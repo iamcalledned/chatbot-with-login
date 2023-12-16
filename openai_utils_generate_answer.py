@@ -99,10 +99,10 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                     )
             
                     if run.status == "completed":
-                        print("Run completed. Message:", run.response.message)
+                        print("Run completed. Message:", run.status)
                         break
                     elif run.status == "error":
-                        print("Run error. Message:", run.response.message)
+                        print("Run error", run.status)
                         break
 
                     await asyncio.sleep(1)   # Wait for 1 second before the next status check
