@@ -110,7 +110,7 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 )
                 message_content = messages.data[0].content[0].text.value
                 print("messages sent")
-                content_type = classify_content(message_content)
+                content_type = await classify_content(message_content)
                 print("content type:", content_type)
                 
 
