@@ -111,6 +111,37 @@ $(document).ready(function() {
     if (sessionId) {
         initializeWebSocket(sessionId);
         initializeShoppingList();
+         // Hover effect for the Save Recipe button
+    $(document).on('mouseenter', '.save-recipe-button', function() {
+        // Show tooltip
+        $(this).append($('<span class="tooltip">Click to save this recipe!</span>'));
+    }).on('mouseleave', '.save-recipe-button', function() {
+        // Remove tooltip
+        $(this).find('.tooltip').remove();
+    });
+
+    $('.save-recipe-button').hover(function() {
+        // Show tooltip
+        $(this).append($('<span class="tooltip">Click to save this recipe!</span>'));
+    }, function() {
+        // Remove tooltip
+        $(this).find('.tooltip').remove();
+    });
+    
+    
+    // Click effect for the Save Recipe button
+    $(document).on('click', '.save-recipe-button', function() {
+        // Animation effect on click
+        $(this).animate({
+            opacity: 0.5
+        }, 200, function() {
+            // Animation complete, reset opacity
+            $(this).animate({
+                opacity: 1
+            }, 200);
+        });
+    });
+
     } else {
         window.location.href = '/'; // Redirect to login if no session ID
     }
