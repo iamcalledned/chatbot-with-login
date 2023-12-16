@@ -123,7 +123,7 @@ $(document).ready(function() {
         var messageContent = $(this).siblings('.message-content');
         if (messageContent.length) {
             var recipeContent = messageContent.text();
-            console.log("Recipe content:", recipeContent);
+            
 
             if (socket && socket.readyState === WebSocket.OPEN) {
                 var saveCommand = {
@@ -187,14 +187,14 @@ function showOverlay(title, content) {
     overlay.append(overlayContent);
     $('body').append(overlay);
 }
-
+ 
 function logout() {
     sessionStorage.clear();
     window.location.href = '/login'; // Adjust the URL as needed
 }
 function showNotificationBubble(message) {
     var bubble = $('<div class="notification-bubble">' + message + '</div>');
-    console.log('hit the show notification')
+    
     $('body').append(bubble);
     bubble.fadeIn(200).delay(3000).fadeOut(200, function() {
         $(this).remove(); // Remove the bubble from the DOM after it fades out

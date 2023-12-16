@@ -11,7 +11,7 @@ from starlette.endpoints import WebSocketEndpoint
 from openai_utils_generate_answer import generate_answer
 from config import Config
 from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db
-
+from proess_recipe import parse_recipe_with_spacy
 
 
 
@@ -71,7 +71,8 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_content = data_dict['content']
-                print("recipe_content:", recipe_content)
+                nlp_content = parse_recipe_with_spacy(recipe_content)
+                print("nlp_content:", nlp_content)
                 save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_content)  # Replace with your DB save logic
                 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
