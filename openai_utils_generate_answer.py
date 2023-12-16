@@ -110,9 +110,7 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 )
                 message_content = messages.data[0].content[0].text.value
                 print("messages sent")
-                #do some NLP
-                result = classify_content(message_content)
-                print("result of nlp to determine intent:", result)
+                
 
                 # Log OpenAI's response
                 await insert_conversation(pool, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
