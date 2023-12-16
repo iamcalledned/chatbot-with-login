@@ -11,10 +11,8 @@ from starlette.endpoints import WebSocketEndpoint
 from openai_utils_generate_answer import generate_answer
 from config import Config
 from chat_bot_database import create_db_pool, get_user_info_by_session_id
-import spacy
 
-# Load spaCy's language model
-nlp = spacy.load("en_core_web_sm")
+
 
 
 # Initialize FastAPI app
@@ -80,7 +78,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
             response_text = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
             response = {'response': response_text}
-            await analyze_and_print_with_spacy(response_text)
             await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
@@ -89,16 +86,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Unhandled exception for user {user_id}: {e}")
         print("Exception Traceback: " + traceback.format_exc())
-
-async def analyze_and_print_with_spacy(text):
-    doc = nlp(text)
-    # Example: Extract entities and parts of speech
-    entities = [(ent.text, ent.label_) for ent in doc.ents]
-    pos_tags = [(token.text, token.pos_) for token in doc]
-
-    # Print analysis results on the terminal
-    print("Entities:", entities)
-    print("POS Tags:", pos_tags)
 
 # Run with Uvicorn
 if __name__ == "__main__":

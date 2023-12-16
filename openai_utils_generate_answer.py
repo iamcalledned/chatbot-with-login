@@ -19,7 +19,8 @@ import logging
 import asyncio
 import aiomysql 
 from config import Config
-
+from classify_content import classify_content
+import re
 
 
 # Other imports as necessary
@@ -43,29 +44,28 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
     # Use your new database module to create a connection
     if pool is None:
         return "Error: Failed to connect to the database."
-    print("in generate answer")
+    
     pool = await create_db_pool()  # Create the connection pool
-    print("pool in genanswer", pool)
+    
     if pool is None:
         return "Error: Failed to connect to the database."
     
-    print("trying to aquire popl")
+    
     async with pool.acquire() as conn:  # Acquire a connection from the pool
         user_id = await insert_user(pool, userID)
-        print("Database user_id for userID:", userID, "is", user_id)
+    
 
         active_thread = await get_active_thread_for_user(pool, user_id)
-        print("Active thread:", active_thread)
 
-        print("Active thread:", active_thread)
+
+
         if active_thread:
             thread_id_n = active_thread['ThreadID']  # Use .get() method to safely access the key
             if thread_id_n:
-                print("Active thread found for userID:", userID, "Thread ID:", thread_id_n)
                 if await is_thread_valid(thread_id_n):
                     print("Thread is valid. Continuing with Thread ID:", thread_id_n)
                 else:
-                    print("Thread is no longer valid. Creating a new thread.")
+                    
                     thread_id_n = await create_thread_in_openai()
                     current_time = datetime.datetime.now().isoformat()
                     await insert_thread(pool, thread_id_n, user_id, True, current_time)
@@ -79,14 +79,14 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
 
         if thread_id_n:
             response_text = await send_message(thread_id_n, message)
-            print("created message to send")
+            
 
             # Create the run on OpenAI
             run = client.beta.threads.runs.create(
                 thread_id=thread_id_n,
                 assistant_id="asst_ODqZJkwekTSZwZT554Sabqm2"
             )
-            print("created run on openAI")
+            
 
             if run is not None:
                 # Now we have a run ID, we can log the user's message
@@ -97,12 +97,10 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                         thread_id=thread_id_n,
                         run_id=run.id
                     )
-                    print("checking status...")
+            
                     if run.status == "completed":
-                        print("response received for thread:", thread_id_n, run.id)
                         break
                     elif run.status == "error":
-                        print("Error encountered in run")
                         break
 
                     await asyncio.sleep(1)   # Wait for 1 second before the next status check
@@ -112,6 +110,9 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 )
                 message_content = messages.data[0].content[0].text.value
                 print("messages sent")
+                #do some NLP
+                result = classify_content(message_content)
+                print("result of nlp to determine intent:", result)
 
                 # Log OpenAI's response
                 await insert_conversation(pool, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
