@@ -110,8 +110,8 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 )
                 message_content = messages.data[0].content[0].text.value
                 print("messages sent")
-                result = classify_content(message_content)
-                print("result of classification:", result)
+                content_type = classify_content(message_content)
+                print("content type:", content_type)
                 
 
                 # Log OpenAI's response
@@ -121,6 +121,6 @@ async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool p
                 print("Failed to create a run object in OpenAI.")
                 return "Error: Failed to create a run object."
 
-            return message_content
+            return message_content, content_type
         else:
             return "Error: Failed to create a new thread in OpenAI."

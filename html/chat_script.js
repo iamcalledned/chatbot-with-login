@@ -47,9 +47,22 @@ function initializeWebSocket(sessionId) {
                 updateShoppingListUI(msg.shoppingList);
             } else {
             hideTypingIndicator();
-            $('#messages').append($('<div class="message bot">').html(msg.response));
-            $('#messages').scrollTop($('#messages')[0].scrollHeight);
+            var messageElement = $('<div class="message bot">').html(msg.response);
+        // Check if the message type is 'recipe' and append a Save button if it is
+        if (msg.type === 'recipe') {
+            var saveButton = $('<button class="save-recipe-button">Save Recipe</button>');
+            saveButton.click(function() {
+                // Logic to handle saving the recipe
+                console.log('Save Recipe button clicked');
+                // You can also pass the recipe text or an identifier to the save function
+            });
+            messageElement.append(saveButton);
+        }
+
+        $('#messages').append(messageElement);
+        $('#messages').scrollTop($('#messages')[0].scrollHeight);
         };
+
     }
 
         socket.onerror = function(error) {
