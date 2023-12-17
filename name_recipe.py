@@ -40,7 +40,7 @@ async def name_recipe(recipe_text):
     modified_message = f"{prompt}{recipe_text}"
 
     print("Naming recipe")
-    response = await openai_client.chat.completions.create(
+    response = openai_client.chat.completions.create(
         model='gpt-3.5-turbo',
         messages=[
             {"role": "user", "content": modified_message},
