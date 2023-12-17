@@ -73,7 +73,15 @@ async def websocket_endpoint(websocket: WebSocket):
                 recipe_content = data_dict['content']
                 nlp_content = parse_recipe_with_spacy(recipe_content)
                 print("nlp_content:", nlp_content)
-                save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_content)  # Replace with your DB save logic
+                
+                # Extracting individual components
+                recipe_title = nlp_content['title']
+                recipe_ingredients = nlp_content['ingredients']
+                recipe_instructions = nlp_content['instructions']
+                save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_title, recipe_ingredients, recipe_instructions)
+                print("recipe saved for user:", user_id)
+
+                #save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_content)  # Replace with your DB save logic
                 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
