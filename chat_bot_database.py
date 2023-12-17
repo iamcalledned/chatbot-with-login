@@ -164,6 +164,12 @@ async def save_recipe_to_db(pool, user_id, recipe_title, recipe_ingredients, rec
         async with conn.cursor() as cur:
             # SQL command to insert a new recipe with title, ingredients, and instructions
             sql = '''INSERT INTO recipes (UserID, Title, Ingredients, Instructions) VALUES (%s, %s, %s, %s)'''
+            
+            # Debug: Print the query and parameters
+            print("Executing SQL:", sql)
+            print("Parameters:", user_id, recipe_title, recipe_ingredients, recipe_instructions)
+
+            # Execute the query
             await cur.execute(sql, (user_id, recipe_title, recipe_ingredients, recipe_instructions))
             await conn.commit()
             print("recipe saved")
