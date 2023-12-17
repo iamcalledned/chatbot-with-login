@@ -14,7 +14,7 @@ import time
 import pymysql
 
 from config import Config
-from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_mysql, save_user_info_to_userdata, delete_code_verifier
+from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_mysql, save_user_info_to_userdata, delete_code_verifier, insert_user
 import jwt
 from jwt.algorithms import RSAAlgorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -125,7 +125,7 @@ async def callback(request: Request, code: str, state: str):
     
         await save_user_info_to_mysql(app.state.pool, session, client_ip, state)
         await save_user_info_to_userdata(app.state.pool, session, client_ip, state)
-        await (app.state.pool, session['username'])
+        await insert_user(app.state.pool, session['username'])
         
         
         # Prepare the URL with query parameters
