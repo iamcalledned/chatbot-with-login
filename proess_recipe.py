@@ -1,6 +1,7 @@
 import spacy
 from spacy.matcher import Matcher
 from name_recipe import name_recipe
+import re
 
 async def parse_recipe_with_spacy(recipe_text):
     # Removing newlines, tabs, and excess whitespace
