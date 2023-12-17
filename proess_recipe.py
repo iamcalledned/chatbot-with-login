@@ -1,39 +1,21 @@
 import spacy
 from spacy.matcher import Matcher
+from name_recipe import name_recipe
 
-def parse_recipe_with_spacy(recipe_text):
-    # Load SpaCy model
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(recipe_text)
+async def parse_recipe_with_spacy(recipe_text):
+    # Splitting the text into two parts: ingredients and instructions
+    parts = recipe_text.split('**Instructions:**')
 
-    # Variables to hold the sections of the recipe
-    title = None
-    ingredients = []
-    instructions = []
-    mode = None
+    ingredients_part = parts[0]
+    instructions_part = parts[1] if len(parts) > 1 else ""
 
-    # Iterate over sentences to find the title
-    for sent in doc.sents:
-        text = sent.text.strip()
-        if '**ingredients**' in text.lower():
-            break
-        if title is None and text and not text.startswith('-') and len(text) < 100:
-            title = text
-            continue
-        if '**instructions**' in text.lower():
-            mode = 'instructions'
-            continue
-        if mode == 'instructions':
-            instructions.append(text)
-        else:
-            ingredients.append(text)
+    # Further processing to clean up the ingredients section
+    ingredients = ingredients_part.replace('**Ingredients:**', '').strip()
 
-    # Remove empty strings and the title from ingredients and instructions
-    ingredients = [i for i in ingredients if i and i != title]
-    instructions = [i for i in instructions if i and i != title]
-
+    # Cleaning up and splitting the instructions into steps
+    instructions = [step.strip() for step in instructions_part.split('\n') if step.strip()]
+    title = await name_recipe(recipe_text)
     return {
-        'title': title,
         'ingredients': ingredients,
         'instructions': instructions
     }
