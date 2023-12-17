@@ -41,7 +41,7 @@ async def name_recipe(recipe_text):  # Add db_pool parameter
         modified_message = f"{prompt}{recipe_text}"
 
         print("naming recipe")
-        response = openai_client.chat.completions.create(
+        response = await openai_client.chat.completions.create(
             model='gpt-3.5-turbo',
             messages=[
                     {"role": "user", "content": modified_message},
