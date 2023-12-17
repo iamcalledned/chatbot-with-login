@@ -4,7 +4,9 @@ from name_recipe import name_recipe
 
 async def parse_recipe_with_spacy(recipe_text):
     # Splitting the text into two parts: ingredients and instructions
-    print("recipe text:", recipe_text)
+    raw_text = repr(recipe_text)
+    print("Raw recipe text:", raw_text)
+    
     parts = recipe_text.split('**Instructions:**')
 
     ingredients_part = parts[0]
