@@ -125,7 +125,7 @@ async def callback(request: Request, code: str, state: str):
     
         await save_user_info_to_mysql(app.state.pool, session, client_ip, state)
         await save_user_info_to_userdata(app.state.pool, session, client_ip, state)
-
+        await (app.state.pool, session['username'])
         
         
         # Prepare the URL with query parameters
