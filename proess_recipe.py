@@ -26,6 +26,7 @@ async def parse_recipe_with_spacy(recipe_text):
 
     # Get the title
     title = name_recipe(recipe_text)
+    print("Title:", title)
 
     return {
         'title': title,
