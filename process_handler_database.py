@@ -174,7 +174,7 @@ async def insert_user(pool, username):
             existing_user = await cur.fetchone()
 
             if existing_user:
-                return existing_user[0]  # Return the existing user's ID
+                return existing_user  # Return the existing user's ID
 
             # Insert new user if not existing
             sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
