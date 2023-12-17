@@ -164,6 +164,7 @@ async def create_tables(pool):
             await cur.execute(create_user_table)
 
 async def insert_user(pool, username):
+    print("username:", username)
     """Insert a new user into the users table or return existing user ID"""
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
