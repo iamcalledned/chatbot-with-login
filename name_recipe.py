@@ -52,14 +52,6 @@ def name_recipe(recipe_text):
         frequency_penalty=0.7,
         presence_penalty=0.7
     )
+    title = response.choices[0].message.content
+    return title
     
-    # Accessing the response content correctly
-    # Assuming each message in response.choices is a ChatCompletionMessage object
-    if response.choices and len(response.choices) > 0:
-        chat_message = response.choices[0]
-        if hasattr(chat_message, 'content'):
-            response_text = chat_message.content.strip()
-            print("Response:", response_text)
-            return response_text
-    return None
-
