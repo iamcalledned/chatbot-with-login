@@ -16,6 +16,7 @@ async def parse_recipe_with_spacy(recipe_text):
     instructions = [step.strip() for step in instructions_part.split('\n') if step.strip()]
     title = name_recipe(recipe_text)
     return {
+        'title': title,
         'ingredients': ingredients,
         'instructions': instructions
     }
