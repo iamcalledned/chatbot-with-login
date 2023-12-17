@@ -71,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_content = data_dict['content']
-                nlp_content = parse_recipe_with_spacy(recipe_content)
+                nlp_content = await parse_recipe_with_spacy(recipe_content)
                 print("nlp_content:", nlp_content)
                 
                 # Extracting individual components
