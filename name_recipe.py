@@ -33,7 +33,7 @@ openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-async def name_recipe(recipe_text):
+def name_recipe(recipe_text):
     prompt = "Please give this recipe a fun name and only respond with the recipe name you pick"
 
     # Append the prompt to the recipe text
@@ -54,7 +54,7 @@ async def name_recipe(recipe_text):
     )
     
     # Correctly accessing the response text
-    response_text = response.choices[0].text.strip()
+    response_text = response.choices[0].message['content'].strip()
 
     return response_text
 
