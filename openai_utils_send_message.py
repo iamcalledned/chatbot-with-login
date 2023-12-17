@@ -29,7 +29,7 @@ async def send_message(thread_id_n, message):
         # Extracting the response text from the nested structure
         response_text = response.content[0].text.value
         
-        print("response for thread:", thread_id_n)
+       
         return response_text
     except Exception as e:
         print(f"Error in sending message: {e}")
