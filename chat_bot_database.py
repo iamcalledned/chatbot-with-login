@@ -162,14 +162,19 @@ async def save_recipe_to_db(pool, user_id, recipe_title, recipe_ingredients, rec
     """Save a new recipe to the database"""
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
+            # Convert lists to strings
+            recipe_ingredients_str = '\n'.join(recipe_ingredients)
+            recipe_instructions_str = '\n'.join(recipe_instructions)
+
             # SQL command to insert a new recipe with title, ingredients, and instructions
             sql = '''INSERT INTO recipes (UserID, title, ingredients, instructions) VALUES (%s, %s, %s, %s)'''
-
-            # Debugging: Print the parameters to check their values
-            print(f"User ID: {user_id}, Title: {recipe_title}, Ingredients: {recipe_ingredients}, Instructions: {recipe_instructions}")
+            
+            # Debugging: Print the query and parameters
+            print(f"Executing SQL: {sql}")
+            print(f"Parameters: UserID - {user_id}, Title - {recipe_title}, Ingredients - {recipe_ingredients_str}, Instructions - {recipe_instructions_str}")
 
             # Execute the query
-            await cur.execute(sql, (user_id, recipe_title, recipe_ingredients, recipe_instructions))
+            await cur.execute(sql, (user_id, recipe_title, recipe_ingredients_str, recipe_instructions_str))
             await conn.commit()
-            print("recipe saved")
+            print("Recipe saved")
             return "success"
