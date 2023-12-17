@@ -165,7 +165,7 @@ async def create_tables(pool):
 
 async def insert_user(pool, username):
     print("username:", username)
-    """Insert a new user into the users table or return existing user ID"""
+    """Insert a new user into the users table or update last login timestamp of an existing user."""
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # Check if user already exists
@@ -173,12 +173,18 @@ async def insert_user(pool, username):
             await cur.execute(sql_check, (username,))
             existing_user = await cur.fetchone()
 
+            current_ts = datetime.datetime.now()  # Current timestamp
+
             if existing_user:
+                # Update last_login_ts for existing user
+                sql_update = '''UPDATE users SET last_login_ts = %s WHERE Username = %s'''
+                await cur.execute(sql_update, (current_ts, username))
+                await conn.commit()
                 return existing_user  # Return the existing user's ID
 
             # Insert new user if not existing
-            sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
-            await cur.execute(sql_insert, (username,))
+            sql_insert = '''INSERT INTO users(Username, user_created_ts, last_login_ts) VALUES(%s, %s, %s)'''
+            await cur.execute(sql_insert, (username, current_ts, current_ts))
             await conn.commit()
             return cur.lastrowid  # Return the new user's ID
 
