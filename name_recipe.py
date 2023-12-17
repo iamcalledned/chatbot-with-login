@@ -59,6 +59,7 @@ def name_recipe(recipe_text):
         chat_message = response.choices[0]
         if hasattr(chat_message, 'content'):
             response_text = chat_message.content.strip()
+            print("Response:", response_text)
             return response_text
     return None
 

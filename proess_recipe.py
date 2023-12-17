@@ -3,21 +3,29 @@ from spacy.matcher import Matcher
 from name_recipe import name_recipe
 
 async def parse_recipe_with_spacy(recipe_text):
-    # Splitting the text into two parts: ingredients and instructions
-    raw_text = repr(recipe_text)
-    print("Raw recipe text:", raw_text)
-    
-    parts = recipe_text.split('**Instructions:**')
+    # Removing newlines, tabs, and excess whitespace
+    cleaned_text = re.sub(r'\s+', ' ', recipe_text).strip()
 
-    ingredients_part = parts[0]
-    instructions_part = parts[1] if len(parts) > 1 else ""
+    # Splitting the text into parts based on the headings
+    ingredients_marker = "Ingredients:"
+    instructions_marker = "Instructions:"
+    ingredients_part, instructions_part = "", ""
 
-    # Further processing to clean up the ingredients section
-    ingredients = ingredients_part.replace('**Ingredients:**', '').strip()
+    if ingredients_marker in cleaned_text:
+        parts = cleaned_text.split(ingredients_marker)
+        ingredients_part = parts[1].split(instructions_marker)[0]
 
-    # Cleaning up and splitting the instructions into steps
-    instructions = [step.strip() for step in instructions_part.split('\n') if step.strip()]
+    if instructions_marker in cleaned_text:
+        parts = cleaned_text.split(instructions_marker)
+        instructions_part = parts[1] if len(parts) > 1 else ""
+
+    # Clean up ingredients and instructions
+    ingredients = ingredients_part.strip()
+    instructions = instructions_part.strip()
+
+    # Get the title
     title = name_recipe(recipe_text)
+
     return {
         'title': title,
         'ingredients': ingredients,
