@@ -42,6 +42,7 @@ client = OpenAI()
 
 async def generate_answer(pool,userID, message, user_ip, uuid):  # Add db_pool parameter
     # Use your new database module to create a connection
+        print("user id:", userID)
         user_id = await insert_user(pool, userID)
     
         active_thread = await get_active_thread_for_user(pool, user_id)
