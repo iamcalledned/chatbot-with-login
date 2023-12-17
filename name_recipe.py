@@ -33,30 +33,28 @@ openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-async def name_recipe(recipe_text):  # Add db_pool parameter
-        
-        prompt = "please give this recipe a fun name and only respond with the recipe name you pick"
+async def name_recipe(recipe_text):
+    prompt = "Please give this recipe a fun name and only respond with the recipe name you pick"
 
-        # Append the prompt to the message
-        modified_message = f"{prompt}{recipe_text}"
+    # Append the prompt to the recipe text
+    modified_message = f"{prompt}{recipe_text}"
 
-        print("naming recipe")
-        response = await openai_client.chat.completions.create(
-            model='gpt-3.5-turbo',
-            messages=[
-                    {"role": "user", "content": modified_message},
-            ],
-            max_tokens=1000,
-            n=1,
-            stop=None,
-            temperature=0.7,
-            frequency_penalty=0.7,
-            presence_penalty=0.7
-        )
-        
-        response_text = response['choices'][0]['message']['content']
-
-        response_text = response['choices'][0]['message']['content']
+    print("Naming recipe")
+    response = await openai_client.chat.completions.create(
+        model='gpt-3.5-turbo',
+        messages=[
+            {"role": "user", "content": modified_message},
+        ],
+        max_tokens=1000,
+        n=1,
+        stop=None,
+        temperature=0.7,
+        frequency_penalty=0.7,
+        presence_penalty=0.7
+    )
     
+    # Correctly accessing the response text
+    response_text = response.choices[0].text.strip()
 
-        return response_text
+    return response_text
+
