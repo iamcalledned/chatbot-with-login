@@ -133,6 +133,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Handle the save recipe action
                 recipe_text = data_dict['content']
                 recipe_card = await get_recipe_card(app.state.pool, recipe_text)
+                # Initialize save_result with a default value
+                save_result = 'not processed'  # You can set a default value that makes sense for your application  
                 
                 try:
                     recipe_data = json.loads(recipe_card)
