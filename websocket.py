@@ -64,6 +64,17 @@ async def startup_event():
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     username = None
+    
+    async def ping_client():
+        while True:
+            try:
+                await websocket.send_text(json.dumps({'action': 'ping'}))
+                await asyncio.sleep(30)  # Send a ping every 30 seconds
+            except Exception as e:
+                print(f"Error sending ping: {e}")
+                break
+    ping_task = asyncio.create_task(ping_client())
+
 
     try:
         initial_data = await websocket.receive_text()
@@ -92,6 +103,10 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             data_dict = json.loads(data)
             print("data_dict from receive_text:", data_dict)
+           
+            if data_dict.get('action') == 'pong':
+                print("Pong received from client")
+                continue
 
             # Renew the session expiry time after receiving each message
             redis_client.expire(session_id, 3600)  # Reset expiry to another hour
@@ -132,6 +147,8 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Unhandled exception for user {username}: {e}")
         print("Exception Traceback: " + traceback.format_exc())
+    finally:
+        ping_task.cancel()
 
 @router.post("/validate_session")
 async def validate_session(request: Request):
