@@ -1,4 +1,3 @@
-// Define functions in the global scope
 let socket; // Declare the WebSocket outside of the functions
 
 function showTypingIndicator() {
@@ -7,11 +6,6 @@ function showTypingIndicator() {
 
 function hideTypingIndicator() {
     $('#typing-container').hide();
-}
-
-function getSessionIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('sessionId');
 }
 
 function initializeShoppingList() {
@@ -32,8 +26,7 @@ function initializeWebSocket(sessionId) {
             socket.send(JSON.stringify({ session_id: sessionId }));
             console.log('WebSocket connected!');
         };
-
-        socket.onmessage = function(event) {
+                socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
             
             if (msg.error && msg.error === 'Invalid session') {
@@ -101,9 +94,10 @@ function sendMessage() {
         }
     }
 }
+let sessionId;
 
 $(document).ready(function() {
-    
+    sessionId = localStorage.getItem('session_id');
     if (sessionId) {
         initializeWebSocket(sessionId);
         initializeShoppingList();
@@ -217,6 +211,53 @@ function showOverlay(title, content) {
     overlay.append(overlayContent);
     $('body').append(overlay);
 }
+function logout() {
+    let sessionId = localStorage.getItem('session_id');
+
+    fetch('/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ session_id: sessionId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message);
+        localStorage.removeItem('session_id');
+        sessionStorage.clear();
+        window.location.href = '/login';
+    })
+    .catch(error => {
+        console.error('Error during logout:', error);
+    });
+}
+
+function checkSessionValidity() {
+    let sessionId = localStorage.getItem('session_id');
+    if (!sessionId) {
+        window.location.href = '/login';
+        return;
+    }
+
+    fetch('/validate_session', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ session_id: sessionId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status !== 'valid') {
+            window.location.href = '/login';
+        }
+    })
+    .catch(error => {
+        console.error('Error checking session:', error);
+    });
+}
+
  
 document.getElementById('logout').addEventListener('click', function() {
     sessionStorage.clear();
