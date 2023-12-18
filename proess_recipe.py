@@ -1,32 +1,24 @@
-import spacy
-from spacy.matcher import Matcher
-from name_recipe import name_recipe
 import re
+from name_recipe import name_recipe
 
-async def parse_recipe_with_spacy(recipe_text):
-    # Removing newlines, tabs, and excess whitespace
-    cleaned_text = re.sub(r'\s+', ' ', recipe_text).strip()
-
-    # Splitting the text into parts based on the headings
-    ingredients_marker = "Ingredients:"
-    instructions_marker = "Instructions:"
-    ingredients_part, instructions_part = "", ""
-
-    if ingredients_marker in cleaned_text:
-        parts = cleaned_text.split(ingredients_marker)
-        ingredients_part = parts[1].split(instructions_marker)[0]
-
-    if instructions_marker in cleaned_text:
-        parts = cleaned_text.split(instructions_marker)
-        instructions_part = parts[1] if len(parts) > 1 else ""
-
-    # Clean up ingredients and instructions
-    ingredients = ingredients_part.strip()
-    instructions = instructions_part.strip()
+async def process_recipe(recipe_text):
+    # Function to find and concatenate multiple sections
+    def find_and_concat_sections(text, marker):
+        pattern = re.compile(rf'\b{marker}\b', re.IGNORECASE)
+        sections = pattern.split(text)
+        return '\n'.join(section.strip() for section in sections[1:]) if len(sections) > 1 else ""
 
     # Get the title
-    title = name_recipe(cleaned_text)
+    title = name_recipe(recipe_text)
     print("Title:", title)
+
+    # Find and concatenate all Ingredients and Instructions sections
+    ingredients_text = find_and_concat_sections(recipe_text, "Ingredients")
+    instructions_text = find_and_concat_sections(recipe_text, "Instructions")
+
+    # Normalize line breaks for consistency
+    ingredients = ingredients_text.replace('\r', '\n')
+    instructions = instructions_text.replace('\r', '\n')
 
     return {
         'title': title,

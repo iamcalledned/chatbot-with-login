@@ -161,22 +161,25 @@ async def end_run(pool, run_id):
 
 async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, recipe_instructions):
     """Save a new recipe to the database"""
-
     userID = await get_user_id(pool, username)
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # Convert lists to strings
-            #recipe_ingredients_str = '\n'.join(recipe_ingredients)
-            #recipe_instructions_str = '\n'.join(recipe_instructions)
+            # Insert the recipe into the recipes table
+            recipe_sql = '''INSERT INTO recipes (userID, title) VALUES (%s, %s) RETURNING RecipeID'''
+            await cur.execute(recipe_sql, (userID, recipe_title))
+            recipe_id = await cur.fetchone()[0]  # Fetch the newly created RecipeID
 
-            # SQL command to insert a new recipe with title, ingredients, and instructions
-            sql = '''INSERT INTO recipes (userID, title, ingredients, instructions) VALUES (%s, %s, %s, %s)'''
-            
-            # Debugging: Print the query and parameters
-            
-            # Execute the query
-            await cur.execute(sql, (userID, recipe_title, recipe_ingredients, recipe_instructions))
+            # Insert each ingredient into the ingredients table
+            for ingredient in recipe_ingredients.split('\n'):  # Assuming ingredients are newline-separated
+                ingredient_sql = '''INSERT INTO ingredients (RecipeID, Description) VALUES (%s, %s)'''
+                await cur.execute(ingredient_sql, (recipe_id, ingredient))
+
+            # Insert each instruction into the directions table
+            for i, instruction in enumerate(recipe_instructions.split('\n')):  # Assuming instructions are newline-separated
+                direction_sql = '''INSERT INTO directions (RecipeID, StepNumber, Instruction) VALUES (%s, %s, %s)'''
+                await cur.execute(direction_sql, (recipe_id, i + 1, instruction))
+
             await conn.commit()
             print("Recipe saved")
             return "success"
