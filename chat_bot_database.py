@@ -165,28 +165,36 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # Insert the recipe into the recipes table
-            recipe_sql = '''INSERT INTO Recipes (userID, title) VALUES (%s, %s)'''
-            await cur.execute(recipe_sql, (userID, recipe_title))
-            
-            # Retrieve the last inserted RecipeID
-            await cur.execute("SELECT LAST_INSERT_ID()")
-            recipe_id_result = await cur.fetchone()
-            recipe_id = recipe_id_result  # Extracting the RecipeID from the result
+            # Start a transaction
+            await conn.begin()
 
-            # Insert each ingredient into the ingredients table
-            for ingredient in recipe_ingredients.split('\n'):  # Assuming ingredients are newline-separated
-                ingredient_sql = '''INSERT INTO Ingredients (RecipeID, Description) VALUES (%s, %s)'''
-                await cur.execute(ingredient_sql, (recipe_id, ingredient.strip()))
+            try:
+                # Insert the recipe into the recipes table
+                recipe_sql = '''INSERT INTO Recipes (userID, title) VALUES (%s, %s)'''
+                await cur.execute(recipe_sql, (userID, recipe_title))
 
-            # Insert each instruction into the directions table
-            for i, instruction in enumerate(recipe_instructions.split('\n')):  # Assuming instructions are newline-separated
-                direction_sql = '''INSERT INTO Directions (RecipeID, StepNumber, Instruction) VALUES (%s, %s, %s)'''
-                await cur.execute(direction_sql, (recipe_id, i + 1, instruction.strip()))
+                # Retrieve the last inserted RecipeID
+                await cur.execute("SELECT LAST_INSERT_ID()")
+                recipe_id_result = await cur.fetchone()
+                
+                if not recipe_id_result or len(recipe_id_result) == 0:
+                    print("Error: No RecipeID returned from the database.")
+                    await conn.rollback()  # Rollback the transaction
+                    return "failure"
 
-            await conn.commit()
-            print("Recipe saved")
-            return "success"
+                recipe_id = recipe_id_result[0]
+
+                # Insert ingredients and instructions
+                # ... [insert ingredients and instructions code]
+
+                await conn.commit()  # Commit the transaction
+                print("Recipe saved")
+                return "success"
+
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                await conn.rollback()  # Rollback the transaction in case of error
+                return "failure"
 
 async def get_user_id(pool, username):
     async with pool.acquire() as conn:
