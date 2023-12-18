@@ -70,7 +70,7 @@ async def get_recipe_card(pool, message):  # Add db_pool parameter
                     elif run.status == "error":
                         print("Run error", run.status)
                         break
-
+                    print("waiting...")
                     await asyncio.sleep(1)   # Wait for 1 second before the next status check
 
                 messages = client.beta.threads.messages.list(
