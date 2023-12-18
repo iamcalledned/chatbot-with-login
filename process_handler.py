@@ -22,6 +22,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import logging
 
+import redis
+
 log_file_path = Config.LOG_PATH
 LOG_FORMAT = 'generate-answer - %(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s'
 
@@ -30,9 +32,16 @@ logging.basicConfig(
     level=logging.DEBUG,  # Adjust the log level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     format=LOG_FORMAT
 )
+import redis
+
+# Initialize Redis client
+redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Adjust host and port as needed
 
 
 app = FastAPI()
+
+
+
 
 # Define session middleware
 app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
@@ -122,9 +131,19 @@ async def callback(request: Request, code: str, state: str):
         session['username'] = decoded_token.get('cognito:username', 'unknown')
         session['name'] = decoded_token.get('name', 'unknown')
         session['session_id'] = os.urandom(24).hex()  # Generate a random state value
-    
+
         #await save_user_info_to_mysql(app.state.pool, session, client_ip, state)
         await save_user_info_to_userdata(app.state.pool, session)
+        session_id = session['session_id']
+        session_data = {
+        'email': decoded_token.get('email', 'unknown'),
+        'username': decoded_token.get('cognito:username', 'unknown'),
+        'name': decoded_token.get('name', 'unknown'),
+        'session_id': session['session_id']
+        }
+        print("setting redis in login")
+        redis_client.set(session_id, json.dumps(session_data), ex=3600)  # ex is expiry time in seconds
+
         
         
         

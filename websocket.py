@@ -13,7 +13,10 @@ from config import Config
 from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db
 from proess_recipe import process_recipe
 
+import redis
 
+# Initialize Redis client
+redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Adjust host and port as needed
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -51,11 +54,13 @@ async def websocket_endpoint(websocket: WebSocket):
         session_id = initial_data.get('session_id', '')
 
         if session_id:
-            user_info = await get_user_info_by_session_id(session_id, app.state.pool)
-            if user_info:
-                username = user_info['username']
-                connections[username] = websocket
-                print(f"User {username} connected with WebSocket")
+            session_data = redis_client.get(session_id)
+            if session_data:
+                session_data = json.loads(session_data)
+                username = session_data['username']
+
+                # Renew the session expiry time upon successful connection
+                redis_client.expire(session_id, 3600)  # Reset expiry to another hour
             else:
                 await websocket.send_text(json.dumps({'error': 'Invalid session'}))
                 return
@@ -66,7 +71,9 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data)
-            #print("data_dict", data_dict)
+
+            # Renew the session expiry time after receiving each message
+            redis_client.expire(session_id, 3600)  # Reset expiry to another hour
 
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
