@@ -166,24 +166,26 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # Insert the recipe into the recipes table
-            recipe_sql = '''INSERT INTO recipes (userID, title) VALUES (%s, %s) RETURNING RecipeID'''
+            recipe_sql = '''INSERT INTO recipes (userID, title) VALUES (%s, %s)'''
             await cur.execute(recipe_sql, (userID, recipe_title))
-            recipe_id = await cur.fetchone()[0]  # Fetch the newly created RecipeID
+            
+            # Retrieve the last inserted RecipeID
+            await cur.execute("SELECT LAST_INSERT_ID()")
+            recipe_id = await cur.fetchone()[0]
 
             # Insert each ingredient into the ingredients table
             for ingredient in recipe_ingredients.split('\n'):  # Assuming ingredients are newline-separated
                 ingredient_sql = '''INSERT INTO ingredients (RecipeID, Description) VALUES (%s, %s)'''
-                await cur.execute(ingredient_sql, (recipe_id, ingredient))
+                await cur.execute(ingredient_sql, (recipe_id, ingredient.strip()))
 
             # Insert each instruction into the directions table
             for i, instruction in enumerate(recipe_instructions.split('\n')):  # Assuming instructions are newline-separated
                 direction_sql = '''INSERT INTO directions (RecipeID, StepNumber, Instruction) VALUES (%s, %s, %s)'''
-                await cur.execute(direction_sql, (recipe_id, i + 1, instruction))
+                await cur.execute(direction_sql, (recipe_id, i + 1, instruction.strip()))
 
             await conn.commit()
             print("Recipe saved")
             return "success"
-
 
 async def get_user_id(pool, username):
     async with pool.acquire() as conn:
