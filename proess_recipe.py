@@ -3,22 +3,32 @@ from name_recipe import name_recipe
 
 async def process_recipe(recipe_text):
     # Function to find and concatenate multiple sections
-    def find_and_concat_sections(text, marker):
-        pattern = re.compile(rf'\b{marker}\b', re.IGNORECASE)
-        sections = pattern.split(text)
-        return '\n'.join(section.strip() for section in sections[1:]) if len(sections) > 1 else ""
+    lines = message.split('\n')
+    title, ingredients, instructions = '', [], []
 
-    # Get the title
-    title = name_recipe(recipe_text)
-    print("Title:", title)
+    # Flags to identify which part of the message is being read
+    reading_ingredients = False
+    reading_instructions = False
 
-    # Find and concatenate all Ingredients and Instructions sections
-    ingredients_text = find_and_concat_sections(recipe_text, "Ingredients")
-    instructions_text = find_and_concat_sections(recipe_text, "Instructions")
+    for line in lines:
+        if line.startswith('A recipe for:'):
+            title = line.split(':', 1)[1].strip()
+            reading_ingredients = False
+            reading_instructions = False
+        elif 'Ingredients:' in line:
+            reading_ingredients = True
+            reading_instructions = False
+        elif 'Directions:' in line or 'Instructions:' in line:
+            reading_instructions = True
+            reading_ingredients = False
+        elif reading_ingredients:
+            ingredients.append(line.strip())
+        elif reading_instructions:
+            instructions.append(line.strip())
 
-    # Normalize line breaks for consistency
-    ingredients = ingredients_text.replace('\r', '\n')
-    instructions = instructions_text.replace('\r', '\n')
+    # Remove empty strings from lists
+    ingredients = [i for i in ingredients if i]
+    instructions = [i for i in instructions if i]
 
     return {
         'title': title,
