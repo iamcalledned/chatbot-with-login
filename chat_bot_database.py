@@ -38,6 +38,16 @@ async def get_user_info_by_session_id(session_id, pool):
             await cur.execute("SELECT * FROM user_data WHERE current_session_id = %s", (session_id,))
             result = await cur.fetchone()
             return result
+        
+async def clear_user_session_id(pool, session_id):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            # Update the user_data table to clear the current_session_id
+            sql_update = "UPDATE user_data SET current_session_id = NULL WHERE current_session_id = %s"
+            await cursor.execute(sql_update, (session_id,))
+            await conn.commit()
+            print("Cleared session ID for user")
+
 
         
 

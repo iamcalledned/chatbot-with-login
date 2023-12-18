@@ -10,12 +10,13 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id
 from proess_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
 
 import redis
+from redis.exceptions import RedisError
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Adjust host and port as needed
@@ -145,7 +146,27 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print(f"WebSocket disconnected for user {username}")
+        print(f"Connections: {connections}")
+        print(f"sessionid:", session_id)
+
+        # Attempt to clear user data from Redis
+        try:
+            if session_id:
+                # Delete the session data from Redis
+                redis_client.delete(session_id)
+                print(f"Session data cleared from Redis for user {username}")
+                await clear_user_session_id(app.state.pool, session_id)
+                print(f"Session ID cleared from database for user {username}")
+
+
+                # Additional cleanup operations (if any) can be performed here
+                # For example, updating the user's online status in the database
+
+        except RedisError as e:
+            print(f"Error clearing session data from Redis for user {username}: {e}")
+
         connections.pop(username, None)
+
     except Exception as e:
         print(f"Unhandled exception for user {username}: {e}")
         print("Exception Traceback: " + traceback.format_exc())
