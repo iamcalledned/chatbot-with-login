@@ -106,6 +106,8 @@ async def websocket_endpoint(websocket: WebSocket):
            
             if data_dict.get('action') == 'pong':
                 print("Pong received from client")
+                redis_client.expire(session_id, 3600)  # Reset expiry to another hour
+                print("extended redis via ping pong")
                 continue
 
             # Renew the session expiry time after receiving each message
