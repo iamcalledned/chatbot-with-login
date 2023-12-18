@@ -171,7 +171,7 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
             #recipe_instructions_str = '\n'.join(recipe_instructions)
 
             # SQL command to insert a new recipe with title, ingredients, and instructions
-            sql = '''INSERT INTO recipes (username, title, ingredients, instructions) VALUES (%s, %s, %s, %s)'''
+            sql = '''INSERT INTO recipes (userID, title, ingredients, instructions) VALUES (%s, %s, %s, %s)'''
             
             # Debugging: Print the query and parameters
             
