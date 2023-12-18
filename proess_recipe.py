@@ -1,9 +1,9 @@
 import re
 from name_recipe import name_recipe
 
-async def process_recipe(recipe_text):
+async def process_recipe(recipe_content):
     # Function to find and concatenate multiple sections
-    lines = message.split('\n')
+    lines = recipe_content.split('\n')
     title, ingredients, instructions = '', [], []
 
     # Flags to identify which part of the message is being read
