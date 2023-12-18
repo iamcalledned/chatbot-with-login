@@ -81,7 +81,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             try:
                 await websocket.send_text(json.dumps({'action': 'ping'}))
-                await asyncio.sleep(30)  # Send a ping every 30 seconds
+                await asyncio.sleep(10)  # Send a ping every 30 seconds
             except Exception as e:
                 print(f"Error sending ping: {e}")
                 break
