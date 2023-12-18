@@ -65,7 +65,7 @@ async def startup_event():
 # Function to schedule session data cleanup
 async def clear_session_data_after_timeout(session_id, username):
     try:
-        await asyncio.sleep(60)  # Adjust the timeout as needed
+        await asyncio.sleep(600)  # Adjust the timeout as needed
         redis_client.delete(session_id)
         await clear_user_session_id(app.state.pool, session_id)
         print(f"Session data cleared for user {username}")
