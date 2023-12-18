@@ -171,8 +171,9 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
             
             # Retrieve the last inserted RecipeID
             await cur.execute("SELECT LAST_INSERT_ID()")
-            recipe_id = await cur.fetchone()[0]
-
+            recipe_id_result = await cur.fetchone()
+            recipe_id = recipe_id_result[0]  # Extracting the RecipeID from the result
+            
             # Insert each ingredient into the ingredients table
             for ingredient in recipe_ingredients.split('\n'):  # Assuming ingredients are newline-separated
                 ingredient_sql = '''INSERT INTO Ingredients (RecipeID, Description) VALUES (%s, %s)'''
