@@ -5,7 +5,7 @@ import ssl
 from uuid import uuid4
 import traceback
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
@@ -41,6 +41,7 @@ logging.basicConfig(
 # Async function to create a connection pool
 async def create_pool():
     return await create_db_pool()
+
 
 @router.post("/logout")
 async def logout(request: Request):

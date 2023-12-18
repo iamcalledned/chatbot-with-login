@@ -36,9 +36,13 @@ function initializeWebSocket(sessionId) {
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
-            
-
-            if (msg.action === 'shopping_list_update') {
+        
+            if (msg.action === 'ping') {
+                // Respond with pong when a ping message is received
+                console.log('Received ping message');
+                
+                socket.send(JSON.stringify({'action': 'pong'}));
+            } else if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
             } else if (msg.action === 'recipe_saved') {
                 // Check if the recipe was successfully saved and show a notification
@@ -147,7 +151,8 @@ $(document).ready(function() {
     
     });
     
-
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
     document.querySelector('.hamburger-menu').addEventListener('click', function() {
         document.querySelector('.options-menu').classList.toggle('show');
     });
@@ -202,4 +207,17 @@ function showNotificationBubble(message) {
     bubble.fadeIn(200).delay(3000).fadeOut(200, function() {
         $(this).remove(); // Remove the bubble from the DOM after it fades out
     });
+}
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        console.log("Page is now visible");
+        // Reconnect WebSocket if needed
+        let sessionId = getSessionIdFromUrl();
+        if (sessionId && (!socket || socket.readyState === WebSocket.CLOSED)) {
+            initializeWebSocket(sessionId);
+        }
+    } else if (document.visibilityState === 'hidden') {
+        console.log("Page is now hidden");
+        // Additional actions when the page is not visible (if needed)
+    }
 }
