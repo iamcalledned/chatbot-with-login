@@ -165,10 +165,9 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # Start a transaction
-            await conn.begin()
-
             try:
+                await conn.begin()  # Start a transaction
+
                 # Insert the recipe into the recipes table
                 recipe_sql = '''INSERT INTO Recipes (userID, title) VALUES (%s, %s)'''
                 await cur.execute(recipe_sql, (userID, recipe_title))
@@ -176,7 +175,7 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
                 # Retrieve the last inserted RecipeID
                 await cur.execute("SELECT LAST_INSERT_ID()")
                 recipe_id_result = await cur.fetchone()
-                
+
                 if not recipe_id_result or len(recipe_id_result) == 0:
                     print("Error: No RecipeID returned from the database.")
                     await conn.rollback()  # Rollback the transaction
@@ -195,6 +194,7 @@ async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, re
                 print(f"An error occurred: {e}")
                 await conn.rollback()  # Rollback the transaction in case of error
                 return "failure"
+
 
 async def get_user_id(pool, username):
     async with pool.acquire() as conn:
