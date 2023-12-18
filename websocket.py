@@ -134,21 +134,21 @@ async def websocket_endpoint(websocket: WebSocket):
                 recipe_text = data_dict['content']
                 recipe_card = await get_recipe_card(app.state.pool, recipe_text)
                 
-                try:                                                    
+                try:
                     recipe_data = json.loads(recipe_card)
 
                     # Initialize empty data structure
                     parsed_recipe = {
-                        "title": data.get("recipe_name", ""),
-                        "servings": data.get("servings", ""),
-                        "prepTime": data.get("prepTime", ""),
-                        "cookTime": data.get("cookTime", ""),
-                        "totalTime": data.get("totalTime", ""),
+                        "title": recipe_data.get("recipe_name", ""),
+                        "servings": recipe_data.get("servings", ""),
+                        "prepTime": recipe_data.get("prepTime", ""),
+                        "cookTime": recipe_data.get("cookTime", ""),
+                        "totalTime": recipe_data.get("totalTime", ""),
                         "parts": []
                     }
 
                     # Process each part
-                    for part in data.get("parts", []):
+                    for part in recipe_data.get("parts", []):
                         parsed_part = {
                             "part_name": part.get("part_name", ""),
                             "ingredients": part.get("ingredients", []),
@@ -156,19 +156,14 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                         parsed_recipe["parts"].append(parsed_part)
 
-                    return parsed_recipe
+                    if parsed_recipe:  # Check if parsed_recipe is successfully created
+                        save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
+                        print("Recipe saved for user:", username)
 
                 except json.JSONDecodeError:
                     # Handle JSON decoding error
                     print("Error parsing recipe card JSON.")
-                    return None
-                                
-            if parsed_recipe:
-                save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
-                
-                print("recipe saved for user:", username)
 
-                
                 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
