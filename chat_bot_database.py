@@ -176,53 +176,68 @@ async def get_user_id(pool, username):
             result = await cur.fetchone()
             return result['userID'] if result else None
 
-async def save_recipe_to_db(pool, recipe_data):
-    title, ingredients_sections, instructions = recipe_data['title'], recipe_data['ingredients'], recipe_data['instructions']
-    recipe_id = await save_recipe_info(pool, title)
-
-    for section, ingredients in ingredients_sections.items():
-        for ingredient in ingredients:
-            ingredient_id = await save_ingredient(pool, ingredient)
-            await link_recipe_ingredient(pool, recipe_id, ingredient_id, "some quantity", section)  # Modify to include quantity if available
-
-    for index, instruction in enumerate(instructions, start=1):
-        await save_instruction(pool, recipe_id, index, instruction)        
-
-async def save_recipe_info(pool, title):
+async def insert_recipe(pool, recipe_data):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO Recipes (title) VALUES (%s)", (title,))
+            await cur.execute(
+                "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
+                (recipe_data["title"], recipe_data["servings"], recipe_data["prepTime"], recipe_data["cookTime"], recipe_data["totalTime"]))
+            await conn.commit()
             await cur.execute("SELECT LAST_INSERT_ID()")
-            recipe_id = await cur.fetchone()
-            return recipe_id[0] if recipe_id else None
+            result = await cur.fetchone()
+            return result[0] if result else None
 
-async def save_ingredient(pool, ingredient_name):
+async def insert_part(pool, recipe_id, part_name):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO Ingredients (name) VALUES (%s) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", (ingredient_name,))
+            await cur.execute(
+                "INSERT INTO Parts (recipe_id, part_name) VALUES (%s, %s)",
+                (recipe_id, part_name))
+            await conn.commit()
             await cur.execute("SELECT LAST_INSERT_ID()")
-            ingredient_id = await cur.fetchone()
-            return ingredient_id[0]
+            result = await cur.fetchone()
+            return result[0] if result else None
 
-async def save_instruction(pool, recipe_id, step_number, description):
+async def insert_ingredient(pool, ingredient_name):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO Instructions (recipe_id, step_number, description) VALUES (%s, %s, %s)", (recipe_id, step_number, description))
+            await cur.execute(
+                "INSERT INTO Ingredients (name) VALUES (%s) ON DUPLICATE KEY UPDATE ingredient_id=LAST_INSERT_ID(ingredient_id)",
+                (ingredient_name,))
+            await cur.execute("SELECT LAST_INSERT_ID()")
+            result = await cur.fetchone()
+            return result[0]
 
-async def link_recipe_ingredient(pool, recipe_id, ingredient_id, quantity):
+async def link_part_ingredient(pool, part_id, ingredient_id, quantity):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("INSERT INTO RecipeIngredients (recipe_id, ingredient_id, quantity) VALUES (%s, %s, %s)", (recipe_id, ingredient_id, quantity))
+            await cur.execute(
+                "INSERT INTO RecipePartsIngredients (recipe_part_id, ingredient_id, quantity) VALUES (%s, %s, %s)",
+                (part_id, ingredient_id, quantity))
+            await conn.commit()
 
-async def save_recipe_to_db(pool, recipe_data):
-    title, ingredients, instructions = recipe_data['title'], recipe_data['ingredients'], recipe_data['instructions']
-    recipe_id = await save_recipe_info(pool, title)
+async def insert_instruction(pool, part_id, step_number, instruction_text):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "INSERT INTO Instructions (part_id, step_number, instruction_text) VALUES (%s, %s, %s)",
+                (part_id, step_number, instruction_text))
+            await conn.commit()
 
-    for ingredient in ingredients:
-        ingredient_id = await save_ingredient(pool, ingredient)
-        await link_recipe_ingredient(pool, recipe_id, ingredient_id, "some quantity")  # Modify to include quantity if available
+async def store_recipe_to_db(pool, recipe_data):
+    # Insert the main recipe data
+    recipe_id = await insert_recipe(pool, recipe_data)
 
-    for index, instruction in enumerate(instructions, start=1):
-        await save_instruction(pool, recipe_id, index, instruction)
+    # Iterate through each part and its details
+    for part in recipe_data["parts"]:
+        part_id = await insert_part(pool, recipe_id, part["part_name"])
 
-    print("Recipe saved successfully")        
+        # Insert each ingredient and link it to the part
+        for ingredient in part["ingredients"]:
+            ingredient_id = await insert_ingredient(pool, ingredient)
+            await link_part_ingredient(pool, part_id, ingredient_id, "some quantity")  # Define logic to extract quantity
+
+        # Insert each instruction
+        for step_number, instruction in enumerate(part["instructions"], start=1):
+            await insert_instruction(pool, part_id, step_number, instruction)
+

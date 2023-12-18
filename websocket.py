@@ -17,6 +17,8 @@ from fastapi import Request
 
 import redis
 from redis.exceptions import RedisError
+from get_recipe_card import get_recipe_card
+
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -129,20 +131,40 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
-                recipe_content = data_dict['content']
-                recipe_data = await process_recipe(recipe_content)
+                recipe_text = data_dict['content']
+                recipe_card = await get_recipe_card(app.state.pool, recipe_text)
+                
+                try:                                                    
+                    recipe_data = json.loads(recipe_card)
+
+                    # Initialize empty data structure
+                    parsed_recipe = {
+                        "title": data.get("recipe_name", ""),
+                        "servings": data.get("servings", ""),
+                        "prepTime": data.get("prepTime", ""),
+                        "cookTime": data.get("cookTime", ""),
+                        "totalTime": data.get("totalTime", ""),
+                        "parts": []
+                    }
+
+                    # Process each part
+                    for part in data.get("parts", []):
+                        parsed_part = {
+                            "part_name": part.get("part_name", ""),
+                            "ingredients": part.get("ingredients", []),
+                            "instructions": part.get("instructions", [])
+                        }
+                        parsed_recipe["parts"].append(parsed_part)
+
+                    return parsed_recipe
+
+                except json.JSONDecodeError:
+                    # Handle JSON decoding error
+                    print("Error parsing recipe card JSON.")
+                    return None
                                 
-                recipe_title = recipe_data['title']
-                recipe_ingredients = recipe_data['ingredients']
-                recipe_instructions = recipe_data['instructions']
-
-                recipe_to_save = {
-                        'title': recipe_title,
-                        'ingredients': recipe_ingredients,
-                        'instructions': recipe_instructions
-                }
-
-                save_result = await save_recipe_to_db(app.state.pool, recipe_to_save)
+            if parsed_recipe:
+                save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
                 
                 print("recipe saved for user:", username)
 
