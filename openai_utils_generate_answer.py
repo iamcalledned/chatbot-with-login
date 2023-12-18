@@ -13,7 +13,7 @@ from openai_utils_new_thread import create_thread_in_openai, is_thread_valid
 from openai_utils_send_message import send_message
 from openai import OpenAI
 
-from chat_bot_database import get_active_thread_for_user, insert_thread, insert_conversation, create_db_pool ,get_user_id
+from chat_bot_database import get_active_thread_for_user, insert_thread, insert_conversation, create_db_pool ,get_userID
 import datetime
 import logging
 import asyncio
@@ -43,12 +43,12 @@ client = OpenAI()
 async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool parameter
     # Use your new database module to create a connection
         print("username:", username)
-        #user_id = await insert_user(pool, userID)
-        user_id = await get_user_id(pool, userID)
-        print("userID", user_id)
+        #userID = await insert_user(pool, userID)
+        userID = await get_user_id(pool, username)
+        print("userID", userID)
 
     
-        active_thread = await get_active_thread_for_user(pool, user_id)
+        active_thread = await get_active_thread_for_user(pool, userID)
 
         if active_thread:
             thread_id_n = active_thread['ThreadID']  # Use .get() method to safely access the key
@@ -59,14 +59,14 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
                     
                     thread_id_n = await create_thread_in_openai()
                     current_time = datetime.datetime.now().isoformat()
-                    await insert_thread(pool, thread_id_n, user_id, True, current_time)
+                    await insert_thread(pool, thread_id_n, userID, True, current_time)
             else:
                 print("Key 0 is not present in active_thread.")
         else:
             print("No active thread found for userID:", userID, "Creating a new thread.")
             thread_id_n = await create_thread_in_openai()
             current_time = datetime.datetime.now().isoformat()
-            await insert_thread(pool, thread_id_n, user_id, True, current_time)
+            await insert_thread(pool, thread_id_n, userID, True, current_time)
 
         if thread_id_n:
             response_text = await send_message(thread_id_n, message)
@@ -81,7 +81,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
 
             if run is not None:
                 # Now we have a run ID, we can log the user's message
-                await insert_conversation(pool, user_id, thread_id_n, run.id, message, 'user', user_ip)  # Replace 'user_ip' with actual IP if available
+                await insert_conversation(pool, userID, thread_id_n, run.id, message, 'user', user_ip)  # Replace 'user_ip' with actual IP if available
 
                 while True:
                     run = client.beta.threads.runs.retrieve(
@@ -110,8 +110,8 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
                 
 
                 # Log OpenAI's response
-                await insert_conversation(pool, user_id, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
-                print("saved conversations for user:", user_id)
+                await insert_conversation(pool, userID, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
+                print("saved conversations for user:", userID)
             else:
                 print("Failed to create a run object in OpenAI.")
                 return "Error: Failed to create a run object."
