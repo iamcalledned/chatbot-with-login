@@ -133,11 +133,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 nlp_content = await process_recipe(recipe_content)
                 print("nlp_content:", nlp_content)
                 
-                # Extracting individual components
-                recipe_title = nlp_content['title']
-                recipe_ingredients = nlp_content['ingredients']
-                recipe_instructions = nlp_content['instructions']
-                save_result = await save_recipe_to_db(app.state.pool, username, recipe_title, recipe_ingredients, recipe_instructions)
+                recipe_data = {
+                    'title': recipe_title,
+                    'ingredients': recipe_ingredients,  # Assuming this is a dictionary
+                    'instructions': recipe_instructions  # Assuming this is a list
+                }
+                save_result = await save_recipe_to_db(app.state.pool, recipe_data)
+                
                 print("recipe saved for user:", username)
 
                 #save_result = await save_recipe_to_db(app.state.pool, username, recipe_content)  # Replace with your DB save logic
