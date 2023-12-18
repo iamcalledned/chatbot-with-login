@@ -105,6 +105,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             
             
                 content_type = await classify_content(message_content)
+                print("message_content:", message_content)
                 print("content_type:", content_type)
             
                 
