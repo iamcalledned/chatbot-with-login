@@ -78,45 +78,45 @@ async def get_data_from_db(session_id, pool):
 
 
 
-async def get_user_info_by_session_id(session_id, pool):
-    async with pool.acquire() as conn:
-        async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
-            result = await cur.fetchone()
-            return result
+#async def get_user_info_by_session_id(session_id, pool):
+#    async with pool.acquire() as conn:
+#        async with conn.cursor(aiomysql.DictCursor) as cur:
+#            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
+#            #await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
+#            result = await cur.fetchone()
+#            return result
 
 
-async def save_user_info_to_mysql(pool, session, client_ip, state):
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-            sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
-            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
-            await cursor.execute(sql, values)
-            
-            await conn.commit()
-            print("User information saved to login table", session['username'])
+#async def save_user_info_to_mysql(pool, session, client_ip, state):
+#    async with pool.acquire() as conn:
+#        async with conn.cursor() as cursor:
+#            sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
+#            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
+#            await cursor.execute(sql, values)
+#            
+#            await conn.commit()
+#            print("User information saved to login table", session['username'])
 
-async def save_user_info_to_userdata(pool, session, client_ip, state):
+async def save_user_info_to_userdata(pool, session):
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             sql_check = "SELECT username FROM user_data WHERE username = %s"
-            await cursor.execute(sql_check, (session['username']))
+            await cursor.execute(sql_check, (session['username'],))
             username = await cursor.fetchone()
-            
+
             if username:
-            # If the user exists, update the last_login_date
-                sql_update = "UPDATE user_data SET last_login_date = NOW() WHERE username = %s"
-                #print("updating last login date")
-                await cursor.execute(sql_update, (username['username'],))
+                # If the user exists, update the last_login_date and current_session_id
+                sql_update = "UPDATE user_data SET last_login_date = NOW(), current_session_id = %s WHERE username = %s"
+                await cursor.execute(sql_update, (session['session_id'], username['username']))
             else:
-                
-                
-                sql = "INSERT INTO user_data (username, email, name, setup_date, last_login_date) VALUES (%s, %s, %s, NOW(), NOW())"
-                values = (session['username'], session['email'], session['name'],)
-                print("inserted new user", session['username'])
+                # Insert new user with current_session_id
+                sql = "INSERT INTO user_data (username, email, name, setup_date, last_login_date, current_session_id) VALUES (%s, %s, %s, NOW(), NOW(), %s)"
+                values = (session['username'], session['email'], session['name'], session['session_id'])
                 await cursor.execute(sql, values)
+                print("inserted new user", session['username'])
+
             await conn.commit()
-            
+
 
 async def create_tables(pool):
     """Create tables"""
@@ -187,4 +187,3 @@ async def insert_user(pool, username):
             await cur.execute(sql_insert, (username, current_ts, current_ts))
             await conn.commit()
             return cur.lastrowid  # Return the new user's ID
-

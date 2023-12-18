@@ -13,7 +13,7 @@ from openai_utils_new_thread import create_thread_in_openai, is_thread_valid
 from openai_utils_send_message import send_message
 from openai import OpenAI
 
-from chat_bot_database import get_active_thread_for_user, insert_user, insert_thread, insert_conversation, create_db_pool
+from chat_bot_database import get_active_thread_for_user, insert_thread, insert_conversation, create_db_pool
 import datetime
 import logging
 import asyncio

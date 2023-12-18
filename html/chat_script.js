@@ -29,9 +29,9 @@ function initializeWebSocket(sessionId) {
         socket = new WebSocket('wss://www.whattogrill.com:8055');
 
         socket.onopen = function() {
-            console.log('WebSocket connected!');
             socket.send(JSON.stringify({ session_id: sessionId }));
             localStorage.setItem('session_id', sessionId);
+            console.log('WebSocket connected!');
         };
 
         socket.onmessage = function(event) {

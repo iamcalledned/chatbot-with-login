@@ -18,7 +18,7 @@ from proess_recipe import parse_recipe_with_spacy
 # Initialize FastAPI app
 app = FastAPI()
 OPENAI_API_KEY = Config.OPENAI_API_KEY
-connections = {}  # Dictionary to store user_id: websocket mapping
+connections = {}  # Dictionary to store username: websocket mapping
 
 log_file_path = Config.LOG_PATH
 LOG_FORMAT = 'generate-answer - %(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s'
@@ -43,7 +43,7 @@ async def startup_event():
 @app.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    user_id = None
+    username = None
 
     try:
         initial_data = await websocket.receive_text()
@@ -53,9 +53,9 @@ async def websocket_endpoint(websocket: WebSocket):
         if session_id:
             user_info = await get_user_info_by_session_id(session_id, app.state.pool)
             if user_info:
-                user_id = user_info['username']
-                connections[user_id] = websocket
-                print(f"User {user_id} connected with WebSocket")
+                username = user_info['username']
+                connections[username] = websocket
+                print(f"User {username} connected with WebSocket")
             else:
                 await websocket.send_text(json.dumps({'error': 'Invalid session'}))
                 return
@@ -78,10 +78,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 recipe_title = nlp_content['title']
                 recipe_ingredients = nlp_content['ingredients']
                 recipe_instructions = nlp_content['instructions']
-                save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_title, recipe_ingredients, recipe_instructions)
-                print("recipe saved for user:", user_id)
+                save_result = await save_recipe_to_db(app.state.pool, username, recipe_title, recipe_ingredients, recipe_instructions)
+                print("recipe saved for user:", username)
 
-                #save_result = await save_recipe_to_db(app.state.pool, user_id, recipe_content)  # Replace with your DB save logic
+                #save_result = await save_recipe_to_db(app.state.pool, username, recipe_content)  # Replace with your DB save logic
                 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
@@ -90,7 +90,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 user_ip = "User IP"  # Placeholder for user IP
                 uuid = str(uuid4())
 
-                response_text, content_type = await generate_answer(app.state.pool, user_id, message, user_ip, uuid)
+                response_text, content_type = await generate_answer(app.state.pool, username, message, user_ip, uuid)
                 response = {
                     'response': response_text,
                     'type': content_type,
@@ -98,10 +98,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
-        print(f"WebSocket disconnected for user {user_id}")
-        connections.pop(user_id, None)
+        print(f"WebSocket disconnected for user {username}")
+        connections.pop(username, None)
     except Exception as e:
-        print(f"Unhandled exception for user {user_id}: {e}")
+        print(f"Unhandled exception for user {username}: {e}")
         print("Exception Traceback: " + traceback.format_exc())
 
 # Run with Uvicorn

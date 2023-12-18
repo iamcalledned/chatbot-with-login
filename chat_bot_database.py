@@ -35,10 +35,11 @@ async def create_db_pool():
 async def get_user_info_by_session_id(session_id, pool):
     async with pool.acquire() as conn:
         async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
+            await cur.execute("SELECT * FROM user_data WHERE current_session_id = %s", (session_id,))
             result = await cur.fetchone()
             return result
 
+        
 
 async def create_tables(pool):
     """Create tables"""
@@ -75,41 +76,41 @@ async def create_tables(pool):
             await cur.execute(create_threads_table)
             await cur.execute(create_conversations_table)
 
-async def insert_user(pool, userID):
-    """Insert a new user into the users table or return existing user ID"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            # Check if user already exists
-            sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
-            await cur.execute(sql_check, (userID,))
-            existing_user = await cur.fetchone()
-            #print("existing user", existing_user)
+#async def insert_user(pool, userID):
+#    """Insert a new user into the users table or return existing user ID"""
+#    async with pool.acquire() as conn:
+#        async with conn.cursor() as cur:
+#            # Check if user already exists
+#            sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
+#            await cur.execute(sql_check, (userID,))
+#            existing_user = await cur.fetchone()
+#            #print("existing user", existing_user)###
+#
+#            if existing_user:
+#                return existing_user['UserID']  # Return the existing user's ID#
+#
+#            # Insert new user if not existing
+#            sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
+#            await cur.execute(sql_insert, (get_user_info_by_session_id,))
+#            await conn.commit()
+#            return cur.lastrowid  # Return the new user's ID
 
-            if existing_user:
-                return existing_user['UserID']  # Return the existing user's ID
-
-            # Insert new user if not existing
-            sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
-            await cur.execute(sql_insert, (get_user_info_by_session_id,))
-            await conn.commit()
-            return cur.lastrowid  # Return the new user's ID
 
 
-
-async def insert_thread(pool, thread_id, user_id, is_active, created_time):
+async def insert_thread(pool, thread_id, userID, is_active, created_time):
     """Insert a new thread into the threads table"""
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             sql = '''INSERT INTO threads(ThreadID, UserID, IsActive, CreatedTime)
                      VALUES(%s, %s, %s, %s)'''
-            await cur.execute(sql, (thread_id, user_id, is_active, created_time))
+            await cur.execute(sql, (thread_id, userID, is_active, created_time))
             await conn.commit()
 
-async def get_active_thread_for_user(pool, user_id):
+async def get_active_thread_for_user(pool, userID):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             sql = '''SELECT ThreadID FROM threads WHERE UserID = %s'''
-            await cur.execute(sql, (user_id,))
+            await cur.execute(sql, (userID,))
             return await cur.fetchone()
 
 async def deactivate_thread(pool, thread_id):
@@ -120,13 +121,13 @@ async def deactivate_thread(pool, thread_id):
             await cur.execute(sql, (thread_id,))
             await conn.commit()
 
-async def insert_conversation(pool, user_id, thread_id, run_id, message, message_type, ip_address):
+async def insert_conversation(pool, userID, thread_id, run_id, message, message_type, ip_address):
     """Insert a new conversation record into the conversations table"""
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             sql = '''INSERT INTO conversations(UserID, ThreadID, RunID, Message, MessageType, IPAddress)
                      VALUES(%s, %s, %s, %s, %s, %s)'''
-            await cur.execute(sql, (user_id, thread_id, run_id, message, message_type, ip_address))
+            await cur.execute(sql, (userID, thread_id, run_id, message, message_type, ip_address))
             await conn.commit()
 
 async def get_conversations_by_run(pool, run_id):
@@ -145,11 +146,11 @@ async def update_conversation_status(pool, conversation_id, new_status):
             await cur.execute(sql, (new_status, conversation_id))
             await conn.commit()
 
-async def start_new_run(pool, user_id, thread_id):
+async def start_new_run(pool, userID, thread_id):
     """Start a new run and return its RunID"""
     run_id = str(uuid.uuid4())
     current_time = datetime.datetime.now().isoformat()
-    await insert_thread(pool, thread_id, user_id, True, current_time)
+    await insert_thread(pool, thread_id, userID, True, current_time)
     return run_id
 
 async def end_run(pool, run_id):
@@ -158,8 +159,11 @@ async def end_run(pool, run_id):
     pass
 
 
-async def save_recipe_to_db(pool, user_id, recipe_title, recipe_ingredients, recipe_instructions):
+async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, recipe_instructions):
     """Save a new recipe to the database"""
+
+    userID = get_user_id(pool, username)
+
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # Convert lists to strings
@@ -167,12 +171,21 @@ async def save_recipe_to_db(pool, user_id, recipe_title, recipe_ingredients, rec
             #recipe_instructions_str = '\n'.join(recipe_instructions)
 
             # SQL command to insert a new recipe with title, ingredients, and instructions
-            sql = '''INSERT INTO recipes (UserID, title, ingredients, instructions) VALUES (%s, %s, %s, %s)'''
+            sql = '''INSERT INTO recipes (username, title, ingredients, instructions) VALUES (%s, %s, %s, %s)'''
             
             # Debugging: Print the query and parameters
             
             # Execute the query
-            await cur.execute(sql, (user_id, recipe_title, recipe_ingredients, recipe_instructions))
+            await cur.execute(sql, (userID, recipe_title, recipe_ingredients, recipe_instructions))
             await conn.commit()
             print("Recipe saved")
             return "success"
+
+
+async def get_user_id(pool, username):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT userID FROM user_data WHERE username = %s", (username,))
+            result = await cur.fetchone()
+            return result['userID'] if result else None
+        
