@@ -30,13 +30,17 @@ function initializeWebSocket(sessionId) {
 
         socket.onopen = function() {
             socket.send(JSON.stringify({ session_id: sessionId }));
-            localStorage.setItem('session_id', sessionId);
             console.log('WebSocket connected!');
         };
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
             
+            if (msg.error && msg.error === 'Invalid session') {
+                alert("Session expired. Please log in again.");
+                localStorage.removeItem('session_id');
+                window.location.href = '/login';
+            }
 
             if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
@@ -74,7 +78,9 @@ function initializeWebSocket(sessionId) {
         socket.onclose = function(event) {
             console.log('WebSocket closed:', event);
             if (!event.wasClean) {
-                console.warn('WebSocket closed unexpectedly.');
+                alert("Lost connection to the server. Please log in again.");
+                localStorage.removeItem('session_id');
+                window.location.href = '/login';
             }
         };
     }
@@ -97,12 +103,13 @@ function sendMessage() {
 }
 
 $(document).ready(function() {
-    let sessionId = getSessionIdFromUrl();
+    
     if (sessionId) {
         initializeWebSocket(sessionId);
         initializeShoppingList();
+        setInterval(checkSessionValidity, 300000); // every 5 minutes
     } else {
-        window.location.href = '/'; // Redirect to login if no session ID
+        window.location.href = '/login'; // Redirect to login if no session ID
     }
 
     $('#send-button').click(sendMessage);
@@ -152,10 +159,30 @@ $(document).ready(function() {
         document.querySelector('.options-menu').classList.toggle('show');
     });
 
-    document.getElementById('logout').addEventListener('click', function() {
+    let sessionId = localStorage.getItem('session_id');
+
+    if (sessionId) {
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ session_id: sessionId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message);
+            localStorage.removeItem('session_id');
+            sessionStorage.clear();
+            window.location.href = '/login';
+        })
+        .catch(error => {
+            console.error('Error during logout:', error);
+        });
+    } else {
         sessionStorage.clear();
-        window.location.href = '/login'; // Adjust the URL as needed
-    });
+        window.location.href = '/login';
+    }
 });
 
 function addToShoppingList(item) {
@@ -191,10 +218,14 @@ function showOverlay(title, content) {
     $('body').append(overlay);
 }
  
-function logout() {
+document.getElementById('logout').addEventListener('click', function() {
     sessionStorage.clear();
     window.location.href = '/login'; // Adjust the URL as needed
-}
+});
+
+
+// Attach the logout function to the logout button
+document.getElementById('logout-button').addEventListener('click', logout);
 function showNotificationBubble(message) {
     var bubble = $('<div class="notification-bubble">' + message + '</div>');
     

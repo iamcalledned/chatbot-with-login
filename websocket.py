@@ -12,6 +12,8 @@ from openai_utils_generate_answer import generate_answer
 from config import Config
 from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db
 from proess_recipe import process_recipe
+from fastapi import APIRouter
+from fastapi import Request
 
 import redis
 
@@ -20,6 +22,8 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Adjust host and
 
 # Initialize FastAPI app
 app = FastAPI()
+router = APIRouter()
+
 OPENAI_API_KEY = Config.OPENAI_API_KEY
 connections = {}  # Dictionary to store username: websocket mapping
 
@@ -36,6 +40,19 @@ logging.basicConfig(
 async def create_pool():
     return await create_db_pool()
 
+@router.post("/logout")
+async def logout(request: Request):
+    session_id = request.json().get('session_id', '')
+    if session_id:
+        # Remove session data from Redis
+        redis_client.delete(session_id)
+
+        # Additional cleanup if necessary
+        username = connections.pop(session_id, None)
+        if username:
+            print(f"User {username} logged out and disconnected.")
+
+    return {"message": "Logged out successfully"}
 
 @app.on_event("startup")
 async def startup_event():
@@ -110,6 +127,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Unhandled exception for user {username}: {e}")
         print("Exception Traceback: " + traceback.format_exc())
+
+@router.post("/validate_session")
+async def validate_session(request: Request):
+    session_id = request.json().get('session_id', '')
+    if session_id and redis_client.exists(session_id):
+        return {"status": "valid"}
+    else:
+        return {"status": "invalid"}
 
 # Run with Uvicorn
 if __name__ == "__main__":
