@@ -162,7 +162,7 @@ async def end_run(pool, run_id):
 async def save_recipe_to_db(pool, username, recipe_title, recipe_ingredients, recipe_instructions):
     """Save a new recipe to the database"""
 
-    userID = get_user_id(pool, username)
+    userID = await get_user_id(pool, username)
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
