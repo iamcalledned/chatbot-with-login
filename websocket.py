@@ -134,9 +134,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("nlp_content:", nlp_content)
                 
                 recipe_data = {
-                    'title': recipe_title,
-                    'ingredients': recipe_ingredients,  # Assuming this is a dictionary
-                    'instructions': recipe_instructions  # Assuming this is a list
+                    'title': title,
+                    'ingredients': ingredients,  # Assuming this is a dictionary
+                    'instructions': instructions  # Assuming this is a list
                 }
                 save_result = await save_recipe_to_db(app.state.pool, recipe_data)
                 
