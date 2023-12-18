@@ -69,12 +69,15 @@ async def websocket_endpoint(websocket: WebSocket):
         initial_data = await websocket.receive_text()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
+        print("session_id from get session_id:", session_id)
 
         if session_id:
             session_data = redis_client.get(session_id)
+            print("session_data from redis:", session_data)
             if session_data:
                 session_data = json.loads(session_data)
                 username = session_data['username']
+                print("username from redis:", username)
 
                 # Renew the session expiry time upon successful connection
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
@@ -88,9 +91,11 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data)
+            print("data_dict from receive_text:", data_dict)
 
             # Renew the session expiry time after receiving each message
             redis_client.expire(session_id, 3600)  # Reset expiry to another hour
+            print("extended redis")
 
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action

@@ -1,5 +1,5 @@
+// Define functions in the global scope
 let socket; // Declare the WebSocket outside of the functions
-let sessionId;
 
 function showTypingIndicator() {
     $('#typing-container').show();
@@ -7,6 +7,11 @@ function showTypingIndicator() {
 
 function hideTypingIndicator() {
     $('#typing-container').hide();
+}
+
+function getSessionIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('sessionId');
 }
 
 function initializeShoppingList() {
@@ -25,16 +30,13 @@ function initializeWebSocket(sessionId) {
 
         socket.onopen = function() {
             socket.send(JSON.stringify({ session_id: sessionId }));
+            localStorage.setItem('session_id', sessionId);
             console.log('WebSocket connected!');
         };
-                socket.onmessage = function(event) {
+
+        socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
             
-            if (msg.error && msg.error === 'Invalid session') {
-                alert("Session expired. Please log in again.");
-                localStorage.removeItem('session_id');
-                window.location.href = '/login';
-            }
 
             if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
@@ -72,9 +74,7 @@ function initializeWebSocket(sessionId) {
         socket.onclose = function(event) {
             console.log('WebSocket closed:', event);
             if (!event.wasClean) {
-                alert("Lost connection to the server. Please log in again.");
-                localStorage.removeItem('session_id');
-                window.location.href = '/login';
+                console.warn('WebSocket closed unexpectedly.');
             }
         };
     }
@@ -96,14 +96,13 @@ function sendMessage() {
     }
 }
 
-
 $(document).ready(function() {
-    // Assigning to the global variable, not redeclaring it
-    sessionId = localStorage.getItem('session_id');
+    let sessionId = getSessionIdFromUrl();
     if (sessionId) {
-        // ... (rest of your code)
+        initializeWebSocket(sessionId);
+        initializeShoppingList();
     } else {
-        window.location.href = '/login'; // Redirect to login if no session ID
+        window.location.href = '/'; // Redirect to login if no session ID
     }
 
     $('#send-button').click(sendMessage);
@@ -153,30 +152,10 @@ $(document).ready(function() {
         document.querySelector('.options-menu').classList.toggle('show');
     });
 
-    let sessionId = localStorage.getItem('session_id');
-
-    if (sessionId) {
-        fetch('/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ session_id: sessionId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data.message);
-            localStorage.removeItem('session_id');
-            sessionStorage.clear();
-            window.location.href = '/login';
-        })
-        .catch(error => {
-            console.error('Error during logout:', error);
-        });
-    } else {
+    document.getElementById('logout').addEventListener('click', function() {
         sessionStorage.clear();
-        window.location.href = '/login';
-    }
+        window.location.href = '/login'; // Adjust the URL as needed
+    });
 });
 
 function addToShoppingList(item) {
@@ -211,61 +190,11 @@ function showOverlay(title, content) {
     overlay.append(overlayContent);
     $('body').append(overlay);
 }
-function logout() {
-    // Here we are using the global variable, not redeclaring it
-    fetch('/logout', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ session_id: sessionId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data.message);
-        localStorage.removeItem('session_id');
-        sessionStorage.clear();
-        window.location.href = '/login';
-    })
-    .catch(error => {
-        console.error('Error during logout:', error);
-    });
-}
-
-function checkSessionValidity() {
-    // Use the global `sessionId` variable
-    if (!sessionId) {
-        window.location.href = '/login';
-        return;
-    }
-
-    fetch('/validate_session', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ session_id: sessionId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status !== 'valid') {
-            window.location.href = '/login';
-        }
-    })
-    .catch(error => {
-        console.error('Error checking session:', error);
-        window.location.href = '/login';
-    });
-}
  
-document.getElementById('logout').addEventListener('click', function() {
+function logout() {
     sessionStorage.clear();
     window.location.href = '/login'; // Adjust the URL as needed
-});
-
-
-// Attach the logout function to the logout button
-document.getElementById('logout-button').addEventListener('click', logout);
+}
 function showNotificationBubble(message) {
     var bubble = $('<div class="notification-bubble">' + message + '</div>');
     
@@ -274,16 +203,3 @@ function showNotificationBubble(message) {
         $(this).remove(); // Remove the bubble from the DOM after it fades out
     });
 }
-document.addEventListener('DOMContentLoaded', (event) => {
-    let logoutElement = document.getElementById('logout');
-    if (logoutElement) {
-        logoutElement.addEventListener('click', function() {
-            // Your logout logic here
-        });
-    }
-
-    let logoutButtonElement = document.getElementById('logout-button');
-    if (logoutButtonElement) {
-        logoutButtonElement.addEventListener('click', logout);
-    }
-});
