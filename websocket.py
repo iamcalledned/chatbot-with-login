@@ -5,35 +5,33 @@ import ssl
 from uuid import uuid4
 import traceback
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter, Request
 from starlette.endpoints import WebSocketEndpoint
-
 from openai_utils_generate_answer import generate_answer
 from config import Config
 from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id
-from proess_recipe import process_recipe
-from fastapi import APIRouter
-from fastapi import Request
+from process_recipe import process_recipe
 
 import redis
 from redis.exceptions import RedisError
 
 # Initialize Redis client
-redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Adjust host and port as needed
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
 # Initialize FastAPI app
 app = FastAPI()
 router = APIRouter()
 
 OPENAI_API_KEY = Config.OPENAI_API_KEY
-connections = {}  # Dictionary to store username: websocket mapping
+connections = {}
+tasks = {}  # Dictionary to track scheduled tasks for session cleanup
 
 log_file_path = Config.LOG_PATH
 LOG_FORMAT = 'generate-answer - %(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s'
 
 logging.basicConfig(
     filename=log_file_path,
-    level=logging.DEBUG,  # Adjust the log level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    level=logging.DEBUG,
     format=LOG_FORMAT
 )
 
@@ -59,6 +57,16 @@ async def logout(request: Request):
 async def startup_event():
     app.state.pool = await create_pool()
     print("Database pool created")
+
+# Function to schedule session data cleanup
+async def clear_session_data_after_timeout(session_id, username):
+    try:
+        await asyncio.sleep(60)  # Adjust the timeout as needed
+        redis_client.delete(session_id)
+        await clear_user_session_id(app.state.pool, session_id)
+        print(f"Session data cleared for user {username}")
+    except Exception as e:
+        print(f"Error in session cleanup task for {username}: {e}")
 
 
 @app.websocket("/")
@@ -150,20 +158,10 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"sessionid:", session_id)
 
         # Attempt to clear user data from Redis
-        try:
-            if session_id:
-                # Delete the session data from Redis
-                redis_client.delete(session_id)
-                print(f"Session data cleared from Redis for user {username}")
-                await clear_user_session_id(app.state.pool, session_id)
-                print(f"Session ID cleared from database for user {username}")
-
-
-                # Additional cleanup operations (if any) can be performed here
-                # For example, updating the user's online status in the database
-
-        except RedisError as e:
-            print(f"Error clearing session data from Redis for user {username}: {e}")
+        if session_id:
+            # Schedule the task instead of immediate deletion
+            task = asyncio.create_task(clear_session_data_after_timeout(session_id, username))
+            tasks[session_id] = task
 
         connections.pop(username, None)
 
@@ -172,6 +170,13 @@ async def websocket_endpoint(websocket: WebSocket):
         print("Exception Traceback: " + traceback.format_exc())
     finally:
         ping_task.cancel()
+
+async def on_user_reconnect(username, session_id):
+    if session_id in tasks:
+        tasks[session_id].cancel()
+        del tasks[session_id]
+        print(f"Clear data task canceled for user {username}")
+
 
 @router.post("/validate_session")
 async def validate_session(request: Request):
