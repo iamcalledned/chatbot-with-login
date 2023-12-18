@@ -224,7 +224,7 @@ async def insert_instruction(pool, part_id, step_number, instruction_text):
                 (part_id, step_number, instruction_text))
             await conn.commit()
 
-async def store_recipe_to_db(pool, recipe_data):
+async def save_recipe_to_db(pool, recipe_data):
     # Insert the main recipe data
     recipe_id = await insert_recipe(pool, recipe_data)
 
