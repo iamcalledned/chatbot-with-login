@@ -130,19 +130,23 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_content = data_dict['content']
-                nlp_content = await process_recipe(recipe_content)
-                print("nlp_content:", nlp_content)
-                
-                recipe_data = {
-                    'title': title,
-                    'ingredients': ingredients,  # Assuming this is a dictionary
-                    'instructions': instructions  # Assuming this is a list
+                recipe_data = await process_recipe(recipe_content)
+                                
+                recipe_title = recipe_data['title']
+                recipe_ingredients = recipe_data['ingredients']
+                recipe_instructions = recipe_data['instructions']
+
+                recipe_to_save = {
+                        'title': recipe_title,
+                        'ingredients': recipe_ingredients,
+                        'instructions': recipe_instructions
                 }
-                save_result = await save_recipe_to_db(app.state.pool, recipe_data)
+
+                save_result = await save_recipe_to_db(app.state.pool, recipe_to_save)
                 
                 print("recipe saved for user:", username)
 
-                #save_result = await save_recipe_to_db(app.state.pool, username, recipe_content)  # Replace with your DB save logic
+                
                 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
