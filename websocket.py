@@ -46,7 +46,6 @@ async def websocket_endpoint(websocket: WebSocket):
     username = None
 
     try:
-        # Initial connection and session management
         initial_data = await websocket.receive_text()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
@@ -64,37 +63,39 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_text(json.dumps({'error': 'Session ID required'}))
             return
 
-        # Main loop for receiving messages and sending heartbeats
         while True:
-            await asyncio.wait([websocket.receive_text(), asyncio.sleep(30)], return_when=asyncio.FIRST_COMPLETED)
-            try:
-                data = await websocket.receive_text()
-                data_dict = json.loads(data)
+            data = await websocket.receive_text()
+            data_dict = json.loads(data)
+            #print("data_dict", data_dict)
 
-                # Process different actions based on received data
-                if 'action' in data_dict and data_dict['action'] == 'save_recipe':
-                    # Process and save the recipe
-                    recipe_content = data_dict['content']
-                    nlp_content = await process_recipe(recipe_content)
-                    print("nlp_content:", nlp_content)
-                    recipe_title = nlp_content['title']
-                    recipe_ingredients = nlp_content['ingredients']
-                    recipe_instructions = nlp_content['instructions']
-                    save_result = await save_recipe_to_db(app.state.pool, username, recipe_title, recipe_ingredients, recipe_instructions)
-                    print("recipe saved for user:", username)
-                    await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
-                else:
-                    # Process regular messages
-                    message = data_dict.get('message', '')
-                    user_ip = "User IP"  # Placeholder for user IP
-                    uuid = str(uuid4())
-                    response_text, content_type = await generate_answer(app.state.pool, username, message, user_ip, uuid)
-                    response = {'response': response_text, 'type': content_type}
-                    await websocket.send_text(json.dumps(response))
+            if 'action' in data_dict and data_dict['action'] == 'save_recipe':
+                # Handle the save recipe action
+                recipe_content = data_dict['content']
+                nlp_content = await process_recipe(recipe_content)
+                print("nlp_content:", nlp_content)
+                
+                # Extracting individual components
+                recipe_title = nlp_content['title']
+                recipe_ingredients = nlp_content['ingredients']
+                recipe_instructions = nlp_content['instructions']
+                save_result = await save_recipe_to_db(app.state.pool, username, recipe_title, recipe_ingredients, recipe_instructions)
+                print("recipe saved for user:", username)
 
-            except asyncio.TimeoutError:
-                # Send a ping to keep the connection alive
-                await websocket.send_ping()
+                #save_result = await save_recipe_to_db(app.state.pool, username, recipe_content)  # Replace with your DB save logic
+                
+                await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
+            else:
+                # Handle regular messages
+                message = data_dict.get('message', '')
+                user_ip = "User IP"  # Placeholder for user IP
+                uuid = str(uuid4())
+
+                response_text, content_type = await generate_answer(app.state.pool, username, message, user_ip, uuid)
+                response = {
+                    'response': response_text,
+                    'type': content_type,
+                }
+                await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
         print(f"WebSocket disconnected for user {username}")
