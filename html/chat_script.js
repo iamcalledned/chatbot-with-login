@@ -1,4 +1,5 @@
 let socket; // Declare the WebSocket outside of the functions
+let sessionId;
 
 function showTypingIndicator() {
     $('#typing-container').show();
@@ -94,14 +95,13 @@ function sendMessage() {
         }
     }
 }
-let sessionId;
+
 
 $(document).ready(function() {
+    // Assigning to the global variable, not redeclaring it
     sessionId = localStorage.getItem('session_id');
     if (sessionId) {
-        initializeWebSocket(sessionId);
-        initializeShoppingList();
-        setInterval(checkSessionValidity, 300000); // every 5 minutes
+        // ... (rest of your code)
     } else {
         window.location.href = '/login'; // Redirect to login if no session ID
     }
@@ -212,8 +212,7 @@ function showOverlay(title, content) {
     $('body').append(overlay);
 }
 function logout() {
-    let sessionId = localStorage.getItem('session_id');
-
+    // Here we are using the global variable, not redeclaring it
     fetch('/logout', {
         method: 'POST',
         headers: {
@@ -234,7 +233,7 @@ function logout() {
 }
 
 function checkSessionValidity() {
-    let sessionId = localStorage.getItem('session_id');
+    // Use the global `sessionId` variable
     if (!sessionId) {
         window.location.href = '/login';
         return;
@@ -255,9 +254,9 @@ function checkSessionValidity() {
     })
     .catch(error => {
         console.error('Error checking session:', error);
+        window.location.href = '/login';
     });
 }
-
  
 document.getElementById('logout').addEventListener('click', function() {
     sessionStorage.clear();
@@ -275,3 +274,16 @@ function showNotificationBubble(message) {
         $(this).remove(); // Remove the bubble from the DOM after it fades out
     });
 }
+document.addEventListener('DOMContentLoaded', (event) => {
+    let logoutElement = document.getElementById('logout');
+    if (logoutElement) {
+        logoutElement.addEventListener('click', function() {
+            // Your logout logic here
+        });
+    }
+
+    let logoutButtonElement = document.getElementById('logout-button');
+    if (logoutButtonElement) {
+        logoutButtonElement.addEventListener('click', logout);
+    }
+});
