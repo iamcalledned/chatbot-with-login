@@ -124,6 +124,7 @@ async def get_user_id(pool, username):
 async def save_recipe_to_db(pool, userID, recipe_data):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
+            save_result = None
             # Insert into recipes table
             add_recipe = """
                 INSERT INTO recipes (userID, title, servings, prep_time, cook_time, total_time)
@@ -144,3 +145,6 @@ async def save_recipe_to_db(pool, userID, recipe_data):
                 await cur.execute(add_instruction, (recipe_id, index, step))
 
             await conn.commit()
+            save_result = 'Success'
+        return save_result
+            
