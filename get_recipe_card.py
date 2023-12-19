@@ -20,6 +20,8 @@ import aiomysql
 from config import Config
 from classify_content import classify_content
 import re
+import json
+from get_recipe_card import get_recipe_card
 
 
 # Other imports as necessary
