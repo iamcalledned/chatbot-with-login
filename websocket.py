@@ -137,7 +137,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 recipe_card = await get_recipe_card(recipe_text)
                 # Initialize save_result with a default value
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
-                
+                                
                 try:
                     recipe_data = json.loads(recipe_card)
 
@@ -147,7 +147,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         "prepTime": recipe_data.get("prepTime", ""),
                         "cookTime": recipe_data.get("cookTime", ""),
                         "totalTime": recipe_data.get("totalTime", ""),
-                        "parts": []
+                        "parts": [],
+                        "instructions": recipe_data.get("instructions", [])  # Correctly placed
                     }
 
                     for part in recipe_data.get("parts", []):
@@ -158,15 +159,13 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                         parsed_recipe["parts"].append(parsed_part)
 
-                    parsed_recipe["instructions"] = recipe_data.get("instructions", [])
-
                     if parsed_recipe:  # Check if parsed_recipe is successfully created
                         save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
                         print("Recipe saved for user:", username)
 
                 except json.JSONDecodeError:
                     print("Error parsing recipe card JSON.")
-                
+
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
                 # Handle regular messages
