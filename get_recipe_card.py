@@ -56,7 +56,7 @@ async def get_recipe_card(pool, message):  # Add db_pool parameter
             thread_id=thread_id_n,
             assistant_id="asst_1cQYQ91vErRgWrhrQXuw5aIo"
         )
-        
+        print("run", run)
 
         if run is not None:
             while True:
