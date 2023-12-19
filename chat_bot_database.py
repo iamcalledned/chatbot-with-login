@@ -178,6 +178,7 @@ async def get_user_id(pool, username):
 
 async def insert_recipe(conn, recipe_data):
     try:
+        print("recipe data", recipe_data)
         async with conn.cursor() as cur:
             await cur.execute(
                 "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
