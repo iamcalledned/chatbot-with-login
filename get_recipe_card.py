@@ -34,7 +34,7 @@ openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-def get_recipe_card(recipe_text):
+async def get_recipe_card(recipe_text):
     prompt = """You are a wiz at turning a block of text that contains a recipe with a name, ingredients, directions/instructions, prep, cook, and total times into a format that can be injected into a database in the following JSON format.  {
   "recipe_name": "",
 "servings":"",
