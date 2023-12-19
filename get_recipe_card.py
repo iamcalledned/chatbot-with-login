@@ -47,7 +47,7 @@ async def get_recipe_card(recipe_text):
       "ingredients": [],
       "instructions": []
     },  The JSON format is important, if something is missing, put "N/A".  You make sure that all steps and ingredients are included in the output  You know that some recipes have multiple components like pies for filling and crust.  In order to account for this in the database, even recipes
-        with one component must be set as a part.  When only one part is present use the recipe name for part name """
+        with one component must be set as a part.  When only one part is present use the recipe name for part name.  The most important item is returning a proper JSON formatted response"""
 
     # Append the prompt to the recipe text
     modified_message = f"{prompt}{recipe_text}"
