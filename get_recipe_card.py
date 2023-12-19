@@ -42,47 +42,47 @@ client = OpenAI()
 
 async def get_recipe_card(pool, message):  # Add db_pool parameter
     # Use your new database module to create a connection
-       
+    print("made it to get recipe card")       
     
-        thread_id_n = await create_thread_in_openai()
+    thread_id_n = await create_thread_in_openai()
 
-        if thread_id_n:
-            message = await send_message(thread_id_n, message)
-            
+    if thread_id_n:
+        message = await send_message(thread_id_n, message)
+        
 
-            # Create the run on OpenAI
-            run = client.beta.threads.runs.create(
-                thread_id=thread_id_n,
-                assistant_id="asst_1cQYQ91vErRgWrhrQXuw5aIo"
-            )
-            
+        # Create the run on OpenAI
+        run = client.beta.threads.runs.create(
+            thread_id=thread_id_n,
+            assistant_id="asst_1cQYQ91vErRgWrhrQXuw5aIo"
+        )
+        
 
-            if run is not None:
-                while True:
-                    run = client.beta.threads.runs.retrieve(
-                        thread_id=thread_id_n,
-                        run_id=run.id
-                    )
-            
-                    if run.status == "completed":
-                        print("Run completed. Message:", run.status)
-                        break
-                    elif run.status == "error":
-                        print("Run error", run.status)
-                        break
-                    print("waiting...")
-                    await asyncio.sleep(1)   # Wait for 1 second before the next status check
-
-                messages = client.beta.threads.messages.list(
-                    thread_id=thread_id_n
+        if run is not None:
+            while True:
+                run = client.beta.threads.runs.retrieve(
+                    thread_id=thread_id_n,
+                    run_id=run.id
                 )
-                recipe_card = messages.data[0].content[0].text.value
-            
-            
-                
-                
-                
+        
+                if run.status == "completed":
+                    print("Run completed. Message:", run.status)
+                    break
+                elif run.status == "error":
+                    print("Run error", run.status)
+                    break
+                print("waiting...")
+                await asyncio.sleep(1)   # Wait for 1 second before the next status check
 
-            return recipe_card
-        else:
-            return "Error: Failed to create a new thread in OpenAI."
+            messages = client.beta.threads.messages.list(
+                thread_id=thread_id_n
+            )
+            recipe_card = messages.data[0].content[0].text.value
+        
+        
+            
+            
+            
+
+        return recipe_card
+    else:
+        return "Error: Failed to create a new thread in OpenAI."
