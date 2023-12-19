@@ -113,7 +113,7 @@ def main():
 
     connection = None
     try:
-        connection = mysql.connector.connect(db_config)
+        connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
         drop_tables(cursor)
         create_tables(cursor)
