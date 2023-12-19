@@ -134,7 +134,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_text = data_dict['content']
-                recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
+                #recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
                 # Regular expression for extracting title, servings, and times
                 title_match = re.search(r"A recipe for: (.+?)\n", recipe_text)
                 servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
