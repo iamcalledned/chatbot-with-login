@@ -64,6 +64,7 @@ async def get_recipe_card(pool, message):  # Add db_pool parameter
                     thread_id=thread_id_n,
                     run_id=run.id
                 )
+                print("run", run)
         
                 if run.status == "completed":
                     print("Run completed. Message:", run.status)

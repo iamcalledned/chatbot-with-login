@@ -82,3 +82,39 @@ CREATE TABLE Directions (
 
 
 
+CREATE TABLE Recipes (
+    recipe_id INT AUTO_INCREMENT PRIMARY KEY,
+    recipe_name VARCHAR(255) NOT NULL,
+    servings VARCHAR(50),
+    prepTime VARCHAR(50),
+    cookTime VARCHAR(50),
+    totalTime VARCHAR(50)
+);
+
+CREATE TABLE Parts (
+    part_id INT AUTO_INCREMENT PRIMARY KEY,
+    recipe_id INT,
+    part_name VARCHAR(255) NOT NULL,
+    FOREIGN KEY (recipe_id) REFERENCES Recipes(recipe_id)
+);
+
+CREATE TABLE Ingredients (
+    ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE RecipePartsIngredients (
+    recipe_part_id INT,
+    ingredient_id INT,
+    quantity VARCHAR(100),
+    FOREIGN KEY (recipe_part_id) REFERENCES Parts(part_id),
+    FOREIGN KEY (ingredient_id) REFERENCES Ingredients(ingredient_id)
+);
+
+CREATE TABLE Instructions (
+    instruction_id INT AUTO_INCREMENT PRIMARY KEY,
+    part_id INT,
+    step_number INT NOT NULL,
+    instruction_text TEXT NOT NULL,
+    FOREIGN KEY (part_id) REFERENCES Parts(part_id)
+);
