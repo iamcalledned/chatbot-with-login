@@ -132,6 +132,8 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_text = data_dict['content']
+                recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
+
                 recipe_card = await get_recipe_card(recipe_text)
                 # Initialize save_result with a default value
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
