@@ -120,7 +120,7 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             data_dict = json.loads(data)
             print("data_dict from receive_text:", data_dict)
-           
+                       
             if data_dict.get('action') == 'pong':
                 print("Pong received from client")
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
@@ -133,7 +133,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
-                recipe_text = data_dict['content']
+                
+                recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
                 # Regular expression for extracting title, servings, and times
                 title_match = re.search(r"A recipe for: (.+?)\n", recipe_text)
                 servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
