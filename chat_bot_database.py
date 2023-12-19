@@ -121,7 +121,7 @@ async def get_user_id(pool, username):
             return result['userID'] if result else None
 
 
-async def ave_recipe_to_dsb(pool, userID, recipe_data):
+async def save_recipe_to_dsb(pool, userID, recipe_data):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # Insert into recipes table
