@@ -177,25 +177,29 @@ async def get_user_id(pool, username):
             return result['userID'] if result else None
 
 async def insert_recipe(conn, recipe_data):
-    async with conn.cursor() as cur:
-        await cur.execute(
-            "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
-            (recipe_data["title"], recipe_data["servings"], recipe_data["prepTime"], recipe_data["cookTime"], recipe_data["totalTime"]))
+    try:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
+                (recipe_data["title"], recipe_data["servings"], recipe_data["prepTime"], recipe_data["cookTime"], recipe_data["totalTime"]))
 
-        await cur.execute("SELECT LAST_INSERT_ID()")
-        result = await cur.fetchone()
-        return result[0] if result else None
-
+            await cur.execute("SELECT LAST_INSERT_ID()")
+            result = await cur.fetchone()
+            return result[0] if result else None
+    except Exception as e:
+        print(f"An error occurred in insert_recipe: {e}")
 
 async def insert_part(conn, recipe_id, part_name):
-    async with conn.cursor() as cur:
-        await cur.execute(
-            "INSERT INTO Parts (recipe_id, part_name) VALUES (%s, %s)",
-            (recipe_id, part_name))
-        await cur.execute("SELECT LAST_INSERT_ID()")
-        result = await cur.fetchone()
-        return result[0] if result else None
-
+    try:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "INSERT INTO Parts (recipe_id, part_name) VALUES (%s, %s)",
+                (recipe_id, part_name))
+            await cur.execute("SELECT LAST_INSERT_ID()")
+            result = await cur.fetchone()
+            return result[0] if result else None
+    except Exception as e:
+        print(f"An error occurred at insert_part: {e}")
 
 async def insert_ingredient(conn, ingredient_name):
     async with conn.cursor() as cur:
