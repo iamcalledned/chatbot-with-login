@@ -20,6 +20,7 @@ from redis.exceptions import RedisError
 from get_recipe_card import get_recipe_card
 
 import spacy
+import re
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -188,14 +189,35 @@ async def websocket_endpoint(websocket: WebSocket):
                 }
                 #### start playing with spacy
                 nlp = spacy.load("en_core_web_sm")
-                doc = nlp(response_text)
-                # Tokenize and print each token
-                for token in doc:
-                    print(token.text)
+                recipe_text = response_text
+                # Regular expression for extracting title, servings, and times
+                title_match = re.search(r"A recipe for: (.+?)\n", recipe_text)
+                servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
+                prep_time_match = re.search(r"Prep time: (.+?)\n", recipe_text)
+                cook_time_match = re.search(r"Cook time: (.+?)\n", recipe_text)
+                total_time_match = re.search(r"Total time: (.+?)\n", recipe_text)
 
-                # Named Entity Recognition
-                for ent in doc.ents:
-                    print(ent.text, ent.label_)
+                # Extracting ingredients using NLP
+                ingredients_text = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL).group(1)
+                ingredients_doc = nlp(ingredients_text)
+                ingredients = [ent.text for ent in ingredients_doc.ents if ent.label_ in ["QUANTITY", "MONEY"]]
+
+                # Extracting instructions
+                instructions_text = re.search(r"Instructions:\n(.*?)\nEnjoy", recipe_text, re.DOTALL).group(1)
+                instructions = [instr.strip() for instr in instructions_text.split('\n') if instr.strip()]
+
+                # Structuring the extracted data
+                recipe_dict = {
+                    "title": title_match.group(1) if title_match else None,
+                    "servings": servings_match.group(1) if servings_match else None,
+                    "prep_time": prep_time_match.group(1) if prep_time_match else None,
+                    "cook_time": cook_time_match.group(1) if cook_time_match else None,
+                    "total_time": total_time_match.group(1) if total_time_match else None,
+                    "ingredients": ingredients,
+                    "instructions": instructions
+                }
+
+                print(recipe_dict)
 
                 
                 await websocket.send_text(json.dumps(response))
