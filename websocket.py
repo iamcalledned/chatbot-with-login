@@ -19,7 +19,7 @@ import redis
 from redis.exceptions import RedisError
 from get_recipe_card import get_recipe_card
 
-from transformers import pipeline
+import spacy
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -186,19 +186,18 @@ async def websocket_endpoint(websocket: WebSocket):
                     'response': response_text,
                     'type': content_type,
                 }
-                # Load a pre-trained NER pipeline
-                ner_pipeline = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english")
+                #### start playing with spacy
+                nlp = spacy.load("en_core_web_sm")
+                doc = nlp(response_text)
+                # Tokenize and print each token
+                for token in doc:
+                    print(token.text)
 
-                # Example recipe text
-                recipe_text_to_pipeline = response_text
+                # Named Entity Recognition
+                for ent in doc.ents:
+                    print(ent.text, ent.label_)
 
-                # Use the pipeline to extract entities
-                entities = ner_pipeline(recipe_text_to_pipeline)
-
-                # Process the entities to structure them
-                # (This step will vary based on your specific needs and the entities' format)
-                for entity in entities:
-                    print(entity)
+                
                 await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
