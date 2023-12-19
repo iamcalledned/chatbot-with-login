@@ -46,6 +46,7 @@ async def get_recipe_card(pool, message):  # Add db_pool parameter
     
     thread_id_n = await create_thread_in_openai()
     print("thread id n", thread_id_n)
+    print("message", message)
     if thread_id_n:
         message = await send_message(thread_id_n, message)
         
