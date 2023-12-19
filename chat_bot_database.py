@@ -176,68 +176,76 @@ async def get_user_id(pool, username):
             result = await cur.fetchone()
             return result['userID'] if result else None
 
-async def insert_recipe(pool, recipe_data):
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
-                (recipe_data["title"], recipe_data["servings"], recipe_data["prepTime"], recipe_data["cookTime"], recipe_data["totalTime"]))
-            await conn.commit()
-            await cur.execute("SELECT LAST_INSERT_ID()")
-            result = await cur.fetchone()
-            return result[0] if result else None
+async def insert_recipe(conn, recipe_data):
+    async with conn.cursor() as cur:
+        await cur.execute(
+            "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
+            (recipe_data["title"], recipe_data["servings"], recipe_data["prepTime"], recipe_data["cookTime"], recipe_data["totalTime"]))
 
-async def insert_part(pool, recipe_id, part_name):
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO Parts (recipe_id, part_name) VALUES (%s, %s)",
-                (recipe_id, part_name))
-            await conn.commit()
-            await cur.execute("SELECT LAST_INSERT_ID()")
-            result = await cur.fetchone()
-            return result[0] if result else None
+        await cur.execute("SELECT LAST_INSERT_ID()")
+        result = await cur.fetchone()
+        return result[0] if result else None
 
-async def insert_ingredient(pool, ingredient_name):
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO Ingredients (name) VALUES (%s) ON DUPLICATE KEY UPDATE ingredient_id=LAST_INSERT_ID(ingredient_id)",
-                (ingredient_name,))
-            await cur.execute("SELECT LAST_INSERT_ID()")
-            result = await cur.fetchone()
-            return result[0]
 
-async def link_part_ingredient(pool, part_id, ingredient_id, quantity):
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO RecipePartsIngredients (recipe_part_id, ingredient_id, quantity) VALUES (%s, %s, %s)",
-                (part_id, ingredient_id, quantity))
-            await conn.commit()
+async def insert_part(conn, recipe_id, part_name):
+    async with conn.cursor() as cur:
+        await cur.execute(
+            "INSERT INTO Parts (recipe_id, part_name) VALUES (%s, %s)",
+            (recipe_id, part_name))
+        await cur.execute("SELECT LAST_INSERT_ID()")
+        result = await cur.fetchone()
+        return result[0] if result else None
 
-async def insert_instruction(pool, part_id, step_number, instruction_text):
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO Instructions (part_id, step_number, instruction_text) VALUES (%s, %s, %s)",
-                (part_id, step_number, instruction_text))
-            await conn.commit()
+
+async def insert_ingredient(conn, ingredient_name):
+    async with conn.cursor() as cur:
+        await cur.execute(
+            "INSERT INTO Ingredients (name) VALUES (%s) ON DUPLICATE KEY UPDATE ingredient_id=LAST_INSERT_ID(ingredient_id)",
+            (ingredient_name,))
+        await cur.execute("SELECT LAST_INSERT_ID()")
+        result = await cur.fetchone()
+        return result[0]
+
+
+async def link_part_ingredient(conn, part_id, ingredient_id, quantity):
+    async with conn.cursor() as cur:
+        await cur.execute(
+            "INSERT INTO RecipePartsIngredients (recipe_part_id, ingredient_id, quantity) VALUES (%s, %s, %s)",
+            (part_id, ingredient_id, quantity))
+
+async def insert_instruction(conn, part_id, step_number, instruction_text):
+    async with conn.cursor() as cur:
+        await cur.execute(
+            "INSERT INTO Instructions (part_id, step_number, instruction_text) VALUES (%s, %s, %s)",
+            (part_id, step_number, instruction_text))
+
 
 async def save_recipe_to_db(pool, recipe_data):
     # Insert the main recipe data
-    recipe_id = await insert_recipe(pool, recipe_data)
+    async with pool.acquire() as conn:
+        try:
+            await conn.begin()  # Start a transaction
+            recipe_id = await insert_recipe(conn, recipe_data)
+            if not recipe_id:
+                raise Exception("Failed to insert recipe.")
 
-    # Iterate through each part and its details
-    for part in recipe_data["parts"]:
-        part_id = await insert_part(pool, recipe_id, part["part_name"])
+             # Iterate through each part and its details
+            for part in recipe_data["parts"]:
+                part_id = await insert_part(conn, recipe_id, part["part_name"])
 
-        # Insert each ingredient and link it to the part
-        for ingredient in part["ingredients"]:
-            ingredient_id = await insert_ingredient(pool, ingredient)
-            await link_part_ingredient(pool, part_id, ingredient_id, "some quantity")  # Define logic to extract quantity
+            # Insert each ingredient and link it to the part
+            for ingredient in part["ingredients"]:
+                ingredient_id = await insert_ingredient(pool, ingredient)
+                await link_part_ingredient(conn, part_id, ingredient_id, "some quantity")  # Define logic to extract quantity
 
-        # Insert each instruction
-        for step_number, instruction in enumerate(part["instructions"], start=1):
-            await insert_instruction(pool, part_id, step_number, instruction)
+            # Insert each instruction
+            for step_number, instruction in enumerate(part["instructions"], start=1):
+                await insert_instruction(conn, part_id, step_number, instruction)
+
+            await conn.commit()
+            return "success"
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            await conn.rollback()  # Rollback the transaction in case of error
+            return "failure"
 
