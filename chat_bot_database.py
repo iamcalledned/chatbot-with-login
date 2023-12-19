@@ -48,63 +48,7 @@ async def clear_user_session_id(pool, session_id):
             await conn.commit()
             print("Cleared session ID for user")
 
-
-        
-
-async def create_tables(pool):
-    """Create tables"""
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            create_users_table = """CREATE TABLE IF NOT EXISTS users (
-                UserID INT AUTO_INCREMENT PRIMARY KEY,
-                Username VARCHAR(255) UNIQUE NOT NULL
-            );"""
-
-            create_threads_table = """CREATE TABLE IF NOT EXISTS threads (
-                ThreadID VARCHAR(36) PRIMARY KEY,
-                UserID INT NOT NULL,
-                IsActive BOOLEAN NOT NULL,
-                CreatedTime DATETIME NOT NULL,
-                FOREIGN KEY (UserID) REFERENCES users (UserID)
-            );"""
-
-            create_conversations_table = """CREATE TABLE IF NOT EXISTS conversations (
-                ConversationID INT AUTO_INCREMENT PRIMARY KEY,
-                UserID INT NOT NULL,
-                ThreadID VARCHAR(36) NOT NULL,
-                RunID VARCHAR(36) NOT NULL,
-                Message TEXT NOT NULL,
-                Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                MessageType VARCHAR(255) NOT NULL,
-                IPAddress VARCHAR(255),
-                Status VARCHAR(255) DEFAULT 'active',
-                FOREIGN KEY (UserID) REFERENCES users (UserID),
-                FOREIGN KEY (ThreadID) REFERENCES threads (ThreadID)
-            );"""
-
-            await cur.execute(create_users_table)
-            await cur.execute(create_threads_table)
-            await cur.execute(create_conversations_table)
-
-#async def insert_user(pool, userID):
-#    """Insert a new user into the users table or return existing user ID"""
-#    async with pool.acquire() as conn:
-#        async with conn.cursor() as cur:
-#            # Check if user already exists
-#            sql_check = '''SELECT UserID FROM users WHERE Username = %s'''
-#            await cur.execute(sql_check, (userID,))
-#            existing_user = await cur.fetchone()
-#            #print("existing user", existing_user)###
-#
-#            if existing_user:
-#                return existing_user['UserID']  # Return the existing user's ID#
-#
-#            # Insert new user if not existing
-#            sql_insert = '''INSERT INTO users(Username) VALUES(%s)'''
-#            await cur.execute(sql_insert, (get_user_info_by_session_id,))
-#            await conn.commit()
-#            return cur.lastrowid  # Return the new user's ID
-
+       
 
 
 async def insert_thread(pool, thread_id, userID, is_active, created_time):
@@ -176,81 +120,27 @@ async def get_user_id(pool, username):
             result = await cur.fetchone()
             return result['userID'] if result else None
 
-async def insert_recipe(conn, recipe_data):
-    try:
-        print("recipe data", recipe_data)
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO Recipes (recipe_name, servings, prepTime, cookTime, totalTime) VALUES (%s, %s, %s, %s, %s)",
-                (recipe_data["title"], recipe_data["servings"], recipe_data["prepTime"], recipe_data["cookTime"], recipe_data["totalTime"]))
 
-            await cur.execute("SELECT LAST_INSERT_ID()")
-            result = await cur.fetchone()
-            return result[0] if result else None
-    except Exception as e:
-        print(f"An error occurred in insert_recipe: {e}")
-
-async def insert_part(conn, recipe_id, part_name):
-    try:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO Parts (recipe_id, part_name) VALUES (%s, %s)",
-                (recipe_id, part_name))
-            await cur.execute("SELECT LAST_INSERT_ID()")
-            result = await cur.fetchone()
-            return result[0] if result else None
-    except Exception as e:
-        print(f"An error occurred at insert_part: {e}")
-
-async def insert_ingredient(conn, ingredient_name):
-    async with conn.cursor() as cur:
-        await cur.execute(
-            "INSERT INTO Ingredients (name) VALUES (%s) ON DUPLICATE KEY UPDATE ingredient_id=LAST_INSERT_ID(ingredient_id)",
-            (ingredient_name,))
-        await cur.execute("SELECT LAST_INSERT_ID()")
-        result = await cur.fetchone()
-        return result[0]
-
-
-async def link_part_ingredient(conn, part_id, ingredient_id, quantity):
-    async with conn.cursor() as cur:
-        await cur.execute(
-            "INSERT INTO RecipePartsIngredients (recipe_part_id, ingredient_id, quantity) VALUES (%s, %s, %s)",
-            (part_id, ingredient_id, quantity))
-
-async def insert_instruction(conn, part_id, step_number, instruction_text):
-    async with conn.cursor() as cur:
-        await cur.execute(
-            "INSERT INTO Instructions (part_id, step_number, instruction_text) VALUES (%s, %s, %s)",
-            (part_id, step_number, instruction_text))
-
-
-async def save_recipe_to_db(pool, recipe_data):
-    # Insert the main recipe data
+async def ave_recipe_to_dsb(pool, userID, recipe_data):
     async with pool.acquire() as conn:
-        try:
-            await conn.begin()  # Start a transaction
-            recipe_id = await insert_recipe(conn, recipe_data)
-            if not recipe_id:
-                raise Exception("Failed to insert recipe.")
+        async with conn.cursor() as cur:
+            # Insert into recipes table
+            add_recipe = """
+                INSERT INTO recipes (userID, title, servings, prep_time, cook_time, total_time)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            await cur.execute(add_recipe, (userID, recipe_data["title"], recipe_data["servings"], 
+                                           recipe_data["prep_time"], recipe_data["cook_time"], recipe_data["total_time"]))
+            recipe_id = cur.lastrowid  # Get the ID of the inserted recipe
 
-             # Iterate through each part and its details
-            for part in recipe_data["parts"]:
-                part_id = await insert_part(conn, recipe_id, part["part_name"])
+            # Insert ingredients
+            add_ingredient = "INSERT INTO ingredients (recipe_id, item, category) VALUES (%s, %s, %s)"
+            for ingredient in recipe_data["ingredients"]:
+                await cur.execute(add_ingredient, (recipe_id, ingredient["item"], ingredient.get("category")))
 
-            # Insert each ingredient and link it to the part
-            for ingredient in part["ingredients"]:
-                ingredient_id = await insert_ingredient(pool, ingredient)
-                await link_part_ingredient(conn, part_id, ingredient_id, "some quantity")  # Define logic to extract quantity
-
-            # Insert each instruction
-            for step_number, instruction in enumerate(part["instructions"], start=1):
-                await insert_instruction(conn, part_id, step_number, instruction)
+            # Insert instructions
+            add_instruction = "INSERT INTO instructions (recipe_id, step_number, description) VALUES (%s, %s, %s)"
+            for index, step in enumerate(recipe_data["instructions"], start=1):
+                await cur.execute(add_instruction, (recipe_id, index, step))
 
             await conn.commit()
-            return "success"
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            await conn.rollback()  # Rollback the transaction in case of error
-            return "failure"
-

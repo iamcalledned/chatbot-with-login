@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id
 from proess_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -136,60 +136,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 recipe_text = data_dict['content']
                 recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
 
-                recipe_card = await get_recipe_card(recipe_text)
-                # Initialize save_result with a default value
-                save_result = 'not processed'  # You can set a default value that makes sense for your application  
-                                
-                try:
-                    try:
-                        recipe_data = json.loads(recipe_card)
-                        # Further processing based on recipe_data
-                    except json.JSONDecodeError as e:
-                        print("Error parsing recipe card JSON:", e) 
-                    
-                    recipe_data = json.loads(recipe_card)
-
-                    parsed_recipe = {
-                        "title": recipe_data.get("recipe_name", ""),
-                        "servings": recipe_data.get("servings", ""),
-                        "prepTime": recipe_data.get("prepTime", ""),
-                        "cookTime": recipe_data.get("cookTime", ""),
-                        "totalTime": recipe_data.get("totalTime", ""),
-                        "parts": [],
-                        "instructions": recipe_data.get("instructions", [])  # Correctly placed
-                    }
-
-                    for part in recipe_data.get("parts", []):
-                        parsed_part = {
-                            "part_name": part.get("part_name", ""),
-                            "ingredients": part.get("ingredients", []),
-                            "instructions": part.get("instructions", [])
-                        }
-                        parsed_recipe["parts"].append(parsed_part)
-
-                    if parsed_recipe:  # Check if parsed_recipe is successfully created
-                        #save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
-                        print("parsed recipe:", parsed_recipe)
-                        print("Recipe saved for user:", username)
-
-                except json.JSONDecodeError:
-                    print("Error parsing recipe card JSON.")
-
-                await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
-            else:
-                # Handle regular messages
-                message = data_dict.get('message', '')
-                user_ip = "User IP"  # Placeholder for user IP
-                uuid = str(uuid4())
-
-                response_text, content_type = await generate_answer(app.state.pool, username, message, user_ip, uuid)
-                response = {
-                    'response': response_text,
-                    'type': content_type,
-                }
-                #### start playing with spacy
-                nlp = spacy.load("en_core_web_sm")
-                recipe_text = response_text
+                
                 # Regular expression for extracting title, servings, and times
                 # Regular expressions for extracting recipe components
                 title_match = re.search(r"A recipe for: (.+?)\n", recipe_text)
@@ -215,7 +162,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 instructions = [instr.strip() for instr in instructions_text.split('\n') if instr.strip()]
 
                 # Structured recipe data
-                recipe_dict = {
+                recipe_data = {
                     "title": title_match.group(1) if title_match else None,
                     "servings": servings_match.group(1) if servings_match else None,
                     "prep_time": prep_time_match.group(1) if prep_time_match else None,
@@ -225,7 +172,27 @@ async def websocket_endpoint(websocket: WebSocket):
                     "instructions": instructions
                 }
 
-                print(recipe_dict)
+                
+
+                
+                # Initialize save_result with a default value
+                save_result = 'not processed'  # You can set a default value that makes sense for your application  
+                userID = get_user_id(app.state.pool, username)
+                print("userID from new get user:", userID)
+                save_result = await save_recipe_to_db(app.state.pool, userID, recipe_data)                
+
+                await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
+            else:
+                # Handle regular messages
+                message = data_dict.get('message', '')
+                user_ip = "User IP"  # Placeholder for user IP
+                uuid = str(uuid4())
+
+                response_text, content_type = await generate_answer(app.state.pool, username, message, user_ip, uuid)
+                response = {
+                    'response': response_text,
+                    'type': content_type,
+                }
                 
                 await websocket.send_text(json.dumps(response))
 
