@@ -183,7 +183,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
                 userID = await get_user_id(app.state.pool, username)
                 print("userID from new get user:", userID)
+                print("recipe data", recipe_data)
                 save_result = await save_recipe_to_db(app.state.pool, userID, recipe_data)                
+                print("save result:", save_result)
 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
