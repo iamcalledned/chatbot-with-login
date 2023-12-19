@@ -2,7 +2,7 @@ import mysql.connector
 from config import Config
 
 def drop_tables(cursor):
-    tables = ["Directions", "Ingredients", "Recipes", "threads", "conversations", "recipes", "user_data", "verifier_store"]
+    tables = ["ingredients", "instructions", "recipes", "threads", "conversations", "user_data", "verifier_store"]
     for table in tables:
         try:
             cursor.execute(f"DROP TABLE IF EXISTS {table};")
@@ -23,18 +23,38 @@ def create_tables(cursor):
             PRIMARY KEY (userID)
         );
     """
-
+ 
     recipes = """
         CREATE TABLE recipes (
-            recipe_seq_num INT AUTO_INCREMENT PRIMARY KEY,
-            userID INT NOT NULL,
-            title VARCHAR(255),
-            ingredients TEXT,
-            instructions TEXT,
+            recipe_id INT AUTO_INCREMENT PRIMARY KEY,
+            userID INT,
+            title VARCHAR(255) NOT NULL,
+            servings VARCHAR(255),
+            prep_time VARCHAR(255),
+            cook_time VARCHAR(255),
+            total_time VARCHAR(255),
             FOREIGN KEY (userID) REFERENCES user_data(userID)
         );
     """
-
+    
+    ingredients =  """
+        CREATE TABLE ingredients (
+            ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
+            recipe_id INT,
+            item VARCHAR(255) NOT NULL,
+            category VARCHAR(255),
+            FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+        );
+        """
+    instructions = """
+        CREATE TABLE instructions (
+            instruction_id INT AUTO_INCREMENT PRIMARY KEY,
+            recipe_id INT,
+            step_number INT,
+            description TEXT,
+            FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+        );
+        """
     conversations = """
         CREATE TABLE conversations (
             ConversationID int NOT NULL AUTO_INCREMENT,
@@ -72,39 +92,9 @@ def create_tables(cursor):
         );
     """
 
-    Recipes = """
-        CREATE TABLE Recipes (
-            RecipeID INT AUTO_INCREMENT PRIMARY KEY,
-            userID INT,
-            Title VARCHAR(255),
-            PrepTime VARCHAR(100),
-            CookTime VARCHAR(100),
-            TotalTime VARCHAR(100),
-            ServingSize VARCHAR(100),
-            FOREIGN KEY (userID) REFERENCES user_data(userID)
-        );
-    """
+    
 
-    Ingredients = """
-        CREATE TABLE Ingredients (
-            IngredientID INT AUTO_INCREMENT PRIMARY KEY,
-            RecipeID INT,
-            Description TEXT,
-            FOREIGN KEY (RecipeID) REFERENCES Recipes(RecipeID)
-        );
-    """
-
-    Directions = """
-        CREATE TABLE Directions (
-            DirectionID INT AUTO_INCREMENT PRIMARY KEY,
-            RecipeID INT,
-            StepNumber INT,
-            Instruction TEXT,
-            FOREIGN KEY (RecipeID) REFERENCES Recipes(RecipeID)
-        );
-    """
-
-    table_creation_queries = [user_data, recipes, conversations, threads, verifier_store, Recipes, Ingredients, Directions]
+    table_creation_queries = [user_data, recipes, ingredients, instructions, conversations, threads, verifier_store]
 
     for query in table_creation_queries:
         try:
