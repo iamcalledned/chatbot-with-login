@@ -134,11 +134,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 recipe_text = data_dict['content']
-                recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
-
-                
                 # Regular expression for extracting title, servings, and times
-                # Regular expressions for extracting recipe components
                 title_match = re.search(r"A recipe for: (.+?)\n", recipe_text)
                 servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
                 prep_time_match = re.search(r"Prep time: (.+?)\n", recipe_text)
@@ -146,20 +142,28 @@ async def websocket_endpoint(websocket: WebSocket):
                 total_time_match = re.search(r"Total time: (.+?)\n", recipe_text)
 
                 # Ingredient extraction
-                ingredients_text = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL).group(1)
-                ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
-                ingredients = []
-                current_category = None
-                for line in ingredients_lines:
-                    if line.endswith(':'):
-                        current_category = line[:-1]
-                    else:
-                        ingredient = {'item': line, 'category': current_category}
-                        ingredients.append(ingredient)
+                ingredients_match = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL)
+                if ingredients_match:
+                    ingredients_text = ingredients_match.group(1)
+                    ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
+                    ingredients = []
+                    current_category = None
+                    for line in ingredients_lines:
+                        if line.endswith(':'):
+                            current_category = line[:-1]
+                        else:
+                            ingredient = {'item': line, 'category': current_category}
+                            ingredients.append(ingredient)
+                else:
+                    ingredients = []  # or handle the error appropriately
 
                 # Instruction extraction
-                instructions_text = re.search(r"Instructions:\n(.*?)\nEnjoy", recipe_text, re.DOTALL).group(1)
-                instructions = [instr.strip() for instr in instructions_text.split('\n') if instr.strip()]
+                instructions_match = re.search(r"Instructions:\n(.*?)\nEnjoy", recipe_text, re.DOTALL)
+                if instructions_match:
+                    instructions_text = instructions_match.group(1)
+                    instructions = [instr.strip() for instr in instructions_text.split('\n') if instr.strip()]
+                else:
+                    instructions = []  # or handle the error appropriately
 
                 # Structured recipe data
                 recipe_data = {
