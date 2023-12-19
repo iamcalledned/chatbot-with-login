@@ -191,22 +191,30 @@ async def websocket_endpoint(websocket: WebSocket):
                 nlp = spacy.load("en_core_web_sm")
                 recipe_text = response_text
                 # Regular expression for extracting title, servings, and times
+                # Regular expressions for extracting recipe components
                 title_match = re.search(r"A recipe for: (.+?)\n", recipe_text)
                 servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
                 prep_time_match = re.search(r"Prep time: (.+?)\n", recipe_text)
                 cook_time_match = re.search(r"Cook time: (.+?)\n", recipe_text)
                 total_time_match = re.search(r"Total time: (.+?)\n", recipe_text)
 
-                # Extracting ingredients using NLP
+                # Ingredient extraction
                 ingredients_text = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL).group(1)
-                ingredients_doc = nlp(ingredients_text)
-                ingredients = [ent.text for ent in ingredients_doc.ents if ent.label_ in ["QUANTITY", "MONEY"]]
+                ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
+                ingredients = []
+                current_category = None
+                for line in ingredients_lines:
+                    if line.endswith(':'):
+                        current_category = line[:-1]
+                    else:
+                        ingredient = {'item': line, 'category': current_category}
+                        ingredients.append(ingredient)
 
-                # Extracting instructions
+                # Instruction extraction
                 instructions_text = re.search(r"Instructions:\n(.*?)\nEnjoy", recipe_text, re.DOTALL).group(1)
                 instructions = [instr.strip() for instr in instructions_text.split('\n') if instr.strip()]
 
-                # Structuring the extracted data
+                # Structured recipe data
                 recipe_dict = {
                     "title": title_match.group(1) if title_match else None,
                     "servings": servings_match.group(1) if servings_match else None,
@@ -218,7 +226,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 }
 
                 print(recipe_dict)
-
                 
                 await websocket.send_text(json.dumps(response))
 
