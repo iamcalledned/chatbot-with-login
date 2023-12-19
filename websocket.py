@@ -166,7 +166,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         parsed_recipe["parts"].append(parsed_part)
 
                     if parsed_recipe:  # Check if parsed_recipe is successfully created
-                        save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
+                        #save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
+                        print("parsed recipe:", parsed_recipe)
                         print("Recipe saved for user:", username)
 
                 except json.JSONDecodeError:

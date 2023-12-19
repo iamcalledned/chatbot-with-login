@@ -35,19 +35,7 @@ openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
 async def get_recipe_card(recipe_text):
-    prompt = """You are a wiz at turning a block of text that contains a recipe with a name, ingredients, directions/instructions, prep, cook, and total times into a format that can be injected into a database in the following JSON format.  {
-  "recipe_name": "",
-"servings":"",
-  "prepTime": "",
-  "cookTime": "",
-  "totalTime": "",
-  "parts": [
-    {
-      "part_name": "xxxt",
-      "ingredients": [],
-      "instructions": []
-    },  The JSON format is important, if something is missing, put "N/A".  You make sure that all steps and ingredients are included in the output  You know that some recipes have multiple components like pies for filling and crust.  In order to account for this in the database, even recipes
-        with one component must be set as a part.  When only one part is present use the recipe name for part name.  The most important item is returning a proper JSON formatted response"""
+    prompt = """Format the following recipe into a JSON structure for database entry, with keys for 'name', 'time_requirements' (including 'prep', 'cook', 'total'), 'ingredients' (as an array, with separate arrays for multiple parts), and 'instructions' (as an array, with separate arrays for multiple parts)"""
 
     # Append the prompt to the recipe text
     modified_message = f"{prompt}{recipe_text}"
