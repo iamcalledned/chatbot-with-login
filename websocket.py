@@ -159,12 +159,24 @@ async def websocket_endpoint(websocket: WebSocket):
                     ingredients = []  # or handle the error appropriately
 
                 # Instruction extraction
-                instructions_match = re.search(r"Instructions:\n(.*?)\nEnjoy", recipe_text, re.DOTALL)
-                if instructions_match:
-                    instructions_text = instructions_match.group(1)
-                    instructions = [instr.strip() for instr in instructions_text.split('\n') if instr.strip()]
+                instructions_section_match = re.search(r"(Instructions|Directions):\n", recipe_text)
+                if instructions_section_match:
+                    # Find the start index of instructions
+                    start_index = instructions_section_match.end()
+                    
+                    # Extract text starting from 'Instructions' or 'Directions'
+                    following_text = recipe_text[start_index:]
+
+                    # Use regex to find all lines starting with a number
+                    instructions = re.findall(r"^\d+\.\s*(.+)$", following_text, re.MULTILINE)
                 else:
-                    instructions = []  # or handle the error appropriately
+                    instructions = []  # Handle the case where instructions are not found
+
+                # Structured recipe data
+                recipe_data = {
+                    # ... other fields ...
+                    "instructions": instructions
+                }
 
                 # Structured recipe data
                 recipe_data = {
