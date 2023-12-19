@@ -1,4 +1,3 @@
-# generate_answer.py
 import time
 import sys
 import os
@@ -13,7 +12,7 @@ from openai_utils_new_thread import create_thread_in_openai, is_thread_valid
 from openai_utils_send_message import send_message
 from openai import OpenAI
 
-from chat_bot_database import get_active_thread_for_user, insert_thread, insert_conversation, create_db_pool ,get_user_id
+from chat_bot_database import get_active_thread_for_user, insert_thread, insert_conversation, create_db_pool
 import datetime
 import logging
 import asyncio
@@ -27,64 +26,43 @@ import re
 OPENAI_API_KEY = Config.OPENAI_API_KEY
 
 
-log_file_path = '/home/ubuntu/whattogrill-backend/logs/generate_answer_logs.txt'
-logging.basicConfig(
-    filename=log_file_path,
-    level=logging.DEBUG,  # Adjust the log level as needed (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
 # Initialize OpenAI client
 
 openai_client = OpenAI()
 openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
-async def get_recipe_card(pool, message):  # Add db_pool parameter
-    # Use your new database module to create a connection
-    print("made it to get recipe card")       
+def name_recipe(recipe_text):
+    prompt = """You are a wiz at turning a block of text that contains a recipe with a name, ingredients, directions/instructions, prep, cook, and total times into a format that can be injected into a database in the following JSON format.  {
+  "recipe_name": "",
+"servings":"",
+  "prepTime": "",
+  "cookTime": "",
+  "totalTime": "",
+  "parts": [
+    {
+      "part_name": "xxxt",
+      "ingredients": [],
+      "instructions": []
+    },  The JSON format is important, if something is missing, put "N/A".  You make sure that all steps and ingredients are included in the output  You know that some recipes have multiple components like pies for filling and crust.  In order to account for this in the database, even recopies with one component must be set as a part"""
+
+    # Append the prompt to the recipe text
+    modified_message = f"{prompt}{recipe_text}"
+
+    print("creating recipe card")
+    response = openai_client.chat.completions.create(
+        model='gpt-3.5-turbo',
+        messages=[
+            {"role": "user", "content": modified_message},
+        ],
+        max_tokens=1000,
+        n=1,
+        stop=None,
+        temperature=0.7,
+        frequency_penalty=0.7,
+        presence_penalty=0.7
+    )
+    recipe_card = response.choices[0].message.content
+    print("recipe card", recipe_card)
+    return recipe_card
     
-    thread_id_n = await create_thread_in_openai()
-    print("thread id n", thread_id_n)
-    print("message", message)
-    if thread_id_n:
-        message = await send_message(thread_id_n, message)
-        
-
-        # Create the run on OpenAI
-        run = client.beta.threads.runs.create(
-            thread_id=thread_id_n,
-            assistant_id="asst_1cQYQ91vErRgWrhrQXuw5aIo"
-        )
-        print("run", run)
-
-        if run is not None:
-            while True:
-                run = client.beta.threads.runs.retrieve(
-                    thread_id=thread_id_n,
-                    run_id=run.id
-                )
-                print("run", run)
-        
-                if run.status == "completed":
-                    print("Run completed. Message:", run.status)
-                    break
-                elif run.status == "error":
-                    print("Run error", run.status)
-                    break
-                print("waiting...")
-                await asyncio.sleep(1)   # Wait for 1 second before the next status check
-
-            messages = client.beta.threads.messages.list(
-                thread_id=thread_id_n
-            )
-            recipe_card = messages.data[0].content[0].text.value
-        
-        
-            
-            
-            
-
-        return recipe_card
-    else:
-        return "Error: Failed to create a new thread in OpenAI."
