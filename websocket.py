@@ -139,7 +139,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 try:
                     recipe_data = json.loads(recipe_card)
 
-                    # Initialize empty data structure
                     parsed_recipe = {
                         "title": recipe_data.get("recipe_name", ""),
                         "servings": recipe_data.get("servings", ""),
@@ -149,7 +148,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         "parts": []
                     }
 
-                    # Process each part
                     for part in recipe_data.get("parts", []):
                         parsed_part = {
                             "part_name": part.get("part_name", ""),
@@ -158,14 +156,14 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                         parsed_recipe["parts"].append(parsed_part)
 
+                    parsed_recipe["instructions"] = recipe_data.get("instructions", [])
+
                     if parsed_recipe:  # Check if parsed_recipe is successfully created
                         save_result = await save_recipe_to_db(app.state.pool, parsed_recipe)
                         print("Recipe saved for user:", username)
 
                 except json.JSONDecodeError:
-                    # Handle JSON decoding error
                     print("Error parsing recipe card JSON.")
-
                 
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             else:
