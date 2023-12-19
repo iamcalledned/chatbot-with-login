@@ -139,6 +139,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
                                 
                 try:
+                    try:
+                        recipe_data = json.loads(recipe_card)
+                        # Further processing based on recipe_data
+                    except json.JSONDecodeError as e:
+                        print("Error parsing recipe card JSON:", e) 
+                    
                     recipe_data = json.loads(recipe_card)
 
                     parsed_recipe = {
