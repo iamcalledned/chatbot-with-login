@@ -17,10 +17,12 @@ print("loaded nlp from", model_path)
 
 def analyze_ingredient(ingredient_text):
     # Process the text with spaCy
-    ingredient_text = ingredient_text.lstrip('- ').strip()
+    cleaned_ingredient_text = ingredient_text.lstrip('- ').strip()
+    print("cleaned ingredient text:", cleaned_ingredient_text)
     pattern = r'\(\d[^)]*\)'
-    ingredient_text = re.sub(pattern, '', ingredient_text)
-    doc = nlp(ingredient_text)
+    cleaned_ingredient_text = re.sub(pattern, '', cleaned_ingredient_text)
+    print("cleaned ingredient text:", cleaned_ingredient_text)
+    doc = nlp(cleaned_ingredient_text)
 
     # Extract relevant information (e.g., quantity, unit, ingredient)
     # This part depends on your specific needs and might require a custom model
