@@ -33,7 +33,41 @@ def extract_ingredients():
 
 # Function to process ingredient text and create annotations
 
+def process_ingredient(ingredient):
+    cleaned_ingredient = ingredient.lstrip('- ').strip()
+
+    # Regular expression pattern to match the quantity and unit
+    pattern = r'^([\d\s¼½¾/-]+(?:\([\d\s.]+\))?)([a-zA-Z.]+)?\s*(.*)'
     match = re.match(pattern, cleaned_ingredient)
+    
+    if match:
+        quantity, unit, ingredient_name = match.groups(default='')
+    else:
+        # Fallback for cases where regex doesn't match
+        quantity, unit, ingredient_name = None, None, cleaned_ingredient
+
+    # Trim whitespace and set to None if empty
+    quantity = quantity.strip() if quantity else None
+    unit = unit.strip() if unit else None
+    ingredient_name = ingredient_name.strip() if ingredient_name else None
+
+    # Calculate positions for each entity
+    entities = []
+    quantity_len = len(quantity) if quantity else 0
+    unit_len = len(unit) if unit else 0
+
+    if quantity:
+        entities.append((0, quantity_len, "QUANTITY"))
+    if unit:
+        start = quantity_len + 1
+        entities.append((start, start + unit_len, "UNIT"))
+    if ingredient_name:
+        start_index = quantity_len + unit_len + 1 if unit else quantity_len + 1
+        entities.append((start_index, start_index + len(ingredient_name), "INGREDIENT"))
+
+    processed_data = {"text": cleaned_ingredient, "entities": entities}
+    print(processed_data)
+    return processed_data
 
 
 ingredient_texts = extract_ingredients()
