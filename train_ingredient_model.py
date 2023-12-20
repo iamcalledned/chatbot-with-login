@@ -35,12 +35,16 @@ def extract_ingredients():
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
 
-    # Handle cases starting with a number
-    if re.match(r'^\d', cleaned_ingredient):
+    # Handle cases starting with a number or a fraction
+    if re.match(r'^[\d¼½¾]', cleaned_ingredient):
         parts = re.split(r'(?<=\d)\s*([^\d\s].*)', cleaned_ingredient, maxsplit=1)
         if len(parts) == 2:
             quantity_unit, ingredient_name = parts
-            quantity, unit = re.match(r'(\d[\d\s/]*)([a-zA-Z.]*)', quantity_unit).groups(default='')
+            quantity_match = re.match(r'([\d\s¼½¾/]+)([a-zA-Z.]*)', quantity_unit)
+            if quantity_match:
+                quantity, unit = quantity_match.groups(default='')
+            else:
+                quantity, unit = quantity_unit, None
         else:
             quantity, unit, ingredient_name = parts[0], None, None
     elif 'of ' in cleaned_ingredient:
@@ -55,18 +59,17 @@ def process_ingredient(ingredient):
     # Calculate positions for each entity
     entities = []
     if quantity:
-        entities.append((0, len(quantity), "QUANTITY"))
-    if unit:
-        start = len(quantity) + 1 if quantity else 0
-        entities.append((start, start + len(unit), "UNIT"))
-    if ingredient_name:
-        start = len(cleaned_ingredient) - len(ingredient_name)
-        entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
+        entities.append((0, len(quantity.strip()), "QUANTITY"))
+    if unit and unit.strip():
+        start = len(quantity) + 1
+        entities.append((start, start + len(unit.strip()), "UNIT"))
+    if ingredient_name and ingredient_name.strip():
+        start = len(quantity) + len(unit) + 2 if quantity and unit else len(quantity) + 1 if quantity else 0
+        entities.append((start, start + len(ingredient_name.strip()), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     print(processed_data)
     return processed_data
-
 
 ingredient_texts = extract_ingredients()
 #train_data = [process_ingredient(text) for text in ingredient_texts]
