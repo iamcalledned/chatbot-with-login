@@ -40,9 +40,9 @@ def process_ingredient(ingredient):
     cleaned_ingredient = re.sub(pattern, '', cleaned_ingredient)
 
     pattern = r'\(\d[^)]*\)'
-    cleaned_ingredient_text = re.sub(pattern, '', cleaned_ingredient_text)
+    cleaned_ingredient = re.sub(pattern, '', cleaned_ingredient)
     
-    cleaned_ingredient_text = re.sub(r'\s+', ' ', cleaned_ingredient_text)  # Collapse multiple spaces into one
+    cleaned_ingredient = re.sub(r'\s+', ' ', cleaned_ingredient)  # Collapse multiple spaces into one
     
 
     # Define common units of measurement and common ingredient names
