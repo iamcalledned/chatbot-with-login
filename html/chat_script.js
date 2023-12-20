@@ -46,7 +46,7 @@ function initializeWebSocket(sessionId) {
                 updateShoppingListUI(msg.shoppingList);
             } else if (msg.action === 'recipe_saved') {
                 // Check if the recipe was successfully saved and show a notification
-                if (msg.status === 'success') {
+                if (msg.status === 'Success') {
                     $('.save-recipe-button').text('Recipe Saved'); // Change button text
                     $('.save-recipe-button').addClass('recipe-saved-button'); // Add a new class for styling (optional)
                     $('.save-recipe-button').prop('disabled', true); // Disable the button
