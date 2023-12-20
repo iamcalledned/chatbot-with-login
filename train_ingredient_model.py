@@ -34,7 +34,7 @@ def extract_ingredients():
 # Function to process ingredient text and create annotations
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
-    pattern = r'^(\d+[\d\s/]*[\.\d\s/]*)?\s*([a-zA-Z]+)?\s*(\(.*?\))?\s*(.*)'
+    pattern = r'^(\d+\s*\d*[/\d]*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)?\s*([a-zA-Z.]+)?\s*(\(.*?\))?\s*(.*)'
     match = re.match(pattern, cleaned_ingredient)
 
     if match:
@@ -46,6 +46,8 @@ def process_ingredient(ingredient):
         if quantity and additional_info:
             quantity = f"{quantity} {additional_info}"
 
+        # Further refinement or fallback logic here if needed
+
         entities = []
         if quantity:
             entities.append((0, len(quantity), "QUANTITY"))
@@ -55,12 +57,15 @@ def process_ingredient(ingredient):
         if ingredient_name:
             start = len(cleaned_ingredient) - len(ingredient_name)
             entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
-        processed_data = {"text": cleaned_ingredient, "entities": {"entities": entities}}
-        print(processed_data)
+        
+        print({"text": cleaned_ingredient, "entities": entities})
 
         return {"text": cleaned_ingredient, "entities": entities}  
     
-    return {"text": cleaned_ingredient, "entities": []}
+    else:
+        # Fallback logic if regex match fails
+        print({"text": cleaned_ingredient, "entities": [("INGREDIENT",)]})
+        return {"text": cleaned_ingredient, "entities": [("INGREDIENT",)]}
 
 # Extract and process ingredients
 ingredient_texts = extract_ingredients()
