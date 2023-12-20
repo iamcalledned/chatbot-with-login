@@ -89,4 +89,4 @@ with nlp.disable_pipes(*other_pipes):
         print("Losses", losses)
 
 # Save the trained model
-nlp.to_disk("/path/to/saved/model")
+nlp.to_disk("~/chatbot-with-login/model")
