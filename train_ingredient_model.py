@@ -35,37 +35,31 @@ def extract_ingredients():
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
 
-    # Use a more robust pattern in re.split to avoid None segments
-    pattern = r'(\d+\s*\d*/?\d*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)\s*([a-zA-Z.]+)?'
-    segments = re.split(pattern, cleaned_ingredient)
-    segments = [seg for seg in segments if seg and seg.strip()]  # Filter out None and empty strings
-
-    quantity, unit, ingredient_name = None, None, None
-
-    # Analyze each segment and classify them
-    if len(segments) > 0:
-        quantity = segments[0]
-        if len(segments) > 2:
-            unit = segments[1]
-            ingredient_name = ' '.join(segments[2:])
-        else:
-            ingredient_name = ' '.join(segments[1:])
+    # Define specific rules for handling different formats
+    if re.match(r'^\d', cleaned_ingredient):  # Starts with a number
+        # Split at the first non-numeric/non-space character
+        quantity_unit, ingredient_name = re.split(r'(?<=\d)\s*([^\d\s].*)', cleaned_ingredient, maxsplit=1)
+        quantity, unit = re.match(r'(\d[\d\s/]*)([a-zA-Z.]*)', quantity_unit).groups()
+    elif 'of ' in cleaned_ingredient:  # Handle cases like "2 racks of ribs"
+        quantity, rest = cleaned_ingredient.split(' of ', 1)
+        unit, ingredient_name = None, f'of {rest}'
+    else:
+        quantity, unit, ingredient_name = None, None, cleaned_ingredient  # Fallback for complex cases
 
     # Calculate the positions for each entity
     entities = []
     if quantity:
         entities.append((0, len(quantity), "QUANTITY"))
-    if unit:
-        start = len(quantity) + 1 if quantity else 0
+    if unit and unit.strip():
+        start = len(quantity) + 1
         entities.append((start, start + len(unit), "UNIT"))
     if ingredient_name:
-        start = len(quantity) + len(unit) + 2 if quantity and unit else len(quantity) + 1 if quantity else 0
-        entities.append((start, start + len(ingredient_name), "INGREDIENT"))
+        start = len(quantity) + len(unit) + 2 if unit else len(quantity) + 1
+        entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     print(processed_data)
     return processed_data
-
 # Extract and process ingredients
 ingredient_texts = extract_ingredients()
 train_data = [process_ingredient(text) for text in ingredient_texts]
