@@ -39,6 +39,12 @@ def process_ingredient(ingredient):
     pattern = r'\(\d[^)]*\)'
     cleaned_ingredient = re.sub(pattern, '', cleaned_ingredient)
 
+    pattern = r'\(\d[^)]*\)'
+    cleaned_ingredient_text = re.sub(pattern, '', cleaned_ingredient_text)
+    
+    cleaned_ingredient_text = re.sub(r'\s+', ' ', cleaned_ingredient_text)  # Collapse multiple spaces into one
+    
+
     # Define common units of measurement and common ingredient names
     common_units = ['cup', 'teaspoon', 'tablespoon', 'ounce', 'pound', 'gram', 'kg', 'ml', 'liter']
     common_ingredients = ['onion', 'carrots', 'celery', 'pepper', 'garlic']
@@ -105,7 +111,7 @@ for example in train_data:
 other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
 with nlp.disable_pipes(*other_pipes):
     optimizer = nlp.begin_training()
-    for itn in range(10):  # Number of training iterations
+    for itn in range(25):  # Number of training iterations
         losses = {}
         for example in train_data:
             doc = nlp.make_doc(example['text'])
