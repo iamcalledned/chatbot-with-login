@@ -3,6 +3,7 @@ import re
 import spacy
 from spacy.training import Example
 from config import Config
+import os
 
 # Database configuration
 DB_CONFIG = {
@@ -97,4 +98,6 @@ with nlp.disable_pipes(*other_pipes):
 
 
 # Save the trained model
-nlp.to_disk("~/chatbot-with-login/model")
+model_path = os.path.expanduser("~/chatbot-with-login/model")
+
+nlp.to_disk(model_path)
