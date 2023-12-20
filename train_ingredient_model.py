@@ -57,9 +57,9 @@ def process_ingredient(ingredient):
         processed_data = {"text": cleaned_ingredient, "entities": {"entities": entities}}
         print(processed_data)
 
-        return processed_data
+        return {"text": cleaned_ingredient, "entities": entities}  
     
-    return {"text": cleaned_ingredient, "entities": {"entities": []}}
+    return {"text": cleaned_ingredient, "entities": []}
 
 # Extract and process ingredients
 ingredient_texts = extract_ingredients()
@@ -73,8 +73,8 @@ ner = nlp.add_pipe("ner", last=True)
 
 # Add entity labels to the NER component
 for example in train_data:
-    for start, end, label in example['entities']:
-        ner.add_label(label)
+    for ent in example['entities']:
+        ner.add_label(ent[2])  # Add label for each entity
 
 
 # Training the NER model
@@ -83,10 +83,11 @@ with nlp.disable_pipes(*other_pipes):
     optimizer = nlp.begin_training()
     for itn in range(10):  # Number of training iterations
         losses = {}
-        for text, annotations in train_data:
-            doc = nlp.make_doc(text)
-            example = Example.from_dict(doc, annotations)
-            nlp.update([example], drop=0.5, losses=losses)
+        for example in train_data:
+            doc = nlp.make_doc(example['text'])
+            ents = [doc.char_span(start, end, label) for start, end, label in example['entities']]
+            example_data = Example.from_dict(doc, {"entities": ents})
+            nlp.update([example_data], drop=0.5, losses=losses)
         print("Losses", losses)
 
 # Save the trained model
