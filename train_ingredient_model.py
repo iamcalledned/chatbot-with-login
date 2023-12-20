@@ -34,8 +34,7 @@ def extract_ingredients():
 # Function to process ingredient text and create annotations
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
-    print(cleaned_ingredient)
-    pattern = r'^(\d+\s*\d*[/\d]*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)?\s*([a-zA-Z.]+)?\s*(\(.*?\))?\s*(.*)'
+    pattern = r'^(\d+\s*\d*[/\d]*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)\s*([a-zA-Z.]+)?\s*(\(.*?\))?\s*(.*)'
     match = re.match(pattern, cleaned_ingredient)
 
     if match:
@@ -44,33 +43,27 @@ def process_ingredient(ingredient):
         additional_info = match.group(3).strip() if match.group(3) else None
         ingredient_name = match.group(4).strip()
 
-        if quantity and additional_info:
-            quantity = f"{quantity} {additional_info}"
-
-        # Further refinement or fallback logic here if needed
+        # Ignore additional info in brackets for the entity extraction
+        if additional_info:
+            ingredient_name = ingredient_name.replace(additional_info, '').strip()
 
         entities = []
         if quantity:
             entities.append((0, len(quantity), "QUANTITY"))
         if unit:
             start = len(quantity) + 1 if quantity else 0
-            entities.append((start, start + len(unit), "UNIT"))
+            end = start + len(unit)
+            entities.append((start, end, "UNIT"))
         if ingredient_name:
             start = len(cleaned_ingredient) - len(ingredient_name)
             entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
-        
-        print(f"Original: {ingredient}")
-        print(f"Processed: {cleaned_ingredient}")
-        print(f"Match Groups: {match.groups()}")
-        print(f"Entities: {entities}")        
 
-        return {"text": cleaned_ingredient, "entities": entities}  
+        processed_data = {"text": cleaned_ingredient, "entities": entities}
+        print(processed_data)
+        return processed_data
     
-    else:
-        print(f"No match for: {cleaned_ingredient}")
-       
-        return {"text": cleaned_ingredient, "entities": [("INGREDIENT",)]}
-
+    return {"text": cleaned_ingredient, "entities": []}    
+    
 # Extract and process ingredients
 ingredient_texts = extract_ingredients()
 train_data = [process_ingredient(text) for text in ingredient_texts]
