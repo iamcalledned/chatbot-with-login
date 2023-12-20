@@ -32,26 +32,20 @@ def extract_ingredients():
     return ingredients
 
 # Function to process ingredient text and create annotations
+import re
+
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
 
-    # Handle cases starting with a number or a fraction
-    if re.match(r'^[\d¼½¾]', cleaned_ingredient):
-        parts = re.split(r'(?<=\d)\s*([^\d\s].*)', cleaned_ingredient, maxsplit=1)
-        if len(parts) == 2:
-            quantity_unit, ingredient_name = parts
-            quantity_match = re.match(r'([\d\s¼½¾/]+)([a-zA-Z.]*)', quantity_unit)
-            if quantity_match:
-                quantity, unit = quantity_match.groups(default='')
-            else:
-                quantity, unit = quantity_unit, None
-        else:
-            quantity, unit, ingredient_name = parts[0], None, None
-    elif 'of ' in cleaned_ingredient:
-        # Handle cases like "2 racks of ribs"
-        parts = cleaned_ingredient.split(' of ', 1)
-        quantity, ingredient_name = parts[0], 'of ' + parts[1]
-        unit = None
+    # Regular expression pattern to match the quantity and unit
+    pattern = r'^([\d\s¼½¾/-]+(?:\([\d\s.]+\))?)([a-zA-Z.]+)?\s*(.*)'
+    match = re.match(pattern, cleaned_ingredient)
+    
+    if match:
+        quantity, unit, ingredient_name = match.groups(default='')
+        quantity = quantity.strip()
+        unit = unit.strip() if unit else None
+        ingredient_name = ingredient_name.strip() if ingredient_name else None
     else:
         # Fallback for other cases
         quantity, unit, ingredient_name = None, None, cleaned_ingredient
@@ -59,13 +53,13 @@ def process_ingredient(ingredient):
     # Calculate positions for each entity
     entities = []
     if quantity:
-        entities.append((0, len(quantity.strip()), "QUANTITY"))
-    if unit and unit.strip():
+        entities.append((0, len(quantity), "QUANTITY"))
+    if unit:
         start = len(quantity) + 1
-        entities.append((start, start + len(unit.strip()), "UNIT"))
-    if ingredient_name and ingredient_name.strip():
-        start = len(quantity) + len(unit) + 2 if quantity and unit else len(quantity) + 1 if quantity else 0
-        entities.append((start, start + len(ingredient_name.strip()), "INGREDIENT"))
+        entities.append((start, start + len(unit), "UNIT"))
+    if ingredient_name:
+        start = len(quantity) + len(unit) + 2 if unit else len(quantity) + 1
+        entities.append((start, start + len(ingredient_name), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     print(processed_data)
