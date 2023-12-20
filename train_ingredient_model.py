@@ -85,10 +85,16 @@ with nlp.disable_pipes(*other_pipes):
         losses = {}
         for example in train_data:
             doc = nlp.make_doc(example['text'])
-            ents = [doc.char_span(start, end, label) for start, end, label in example['entities']]
-            example_data = Example.from_dict(doc, {"entities": ents})
-            nlp.update([example_data], drop=0.5, losses=losses)
+            ents = []
+            for start, end, label in example['entities']:
+                span = doc.char_span(start, end, label=label)
+                if span is not None:  # Ensure the span is valid
+                    ents.append(span)
+            if ents:  # Proceed only if there are valid entities
+                example_data = Example.from_dict(doc, {"entities": ents})
+                nlp.update([example_data], drop=0.5, losses=losses)
         print("Losses", losses)
+
 
 # Save the trained model
 nlp.to_disk("~/chatbot-with-login/model")
