@@ -5,7 +5,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 app = FastAPI()
 
 
-async def process_recipe(message_content, userID):
+async def process_recipe(pool, message_content, userID):
             # Handle the save recipe action
             recipe_text = message_content
             #recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")

@@ -107,7 +107,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             
                 content_type = await classify_content(message_content)
                 if content_type == 'recipe':
-                    await process_recipe(message_content, userID)
+                    await process_recipe(pool, message_content, userID)
                     print("done processing recipe")
                     
 
