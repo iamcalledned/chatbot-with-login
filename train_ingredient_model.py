@@ -37,9 +37,13 @@ def process_ingredient(ingredient):
 
     # Define specific rules for handling different formats
     if re.match(r'^\d', cleaned_ingredient):  # Starts with a number
-        # Split at the first non-numeric/non-space character
-        quantity_unit, ingredient_name = re.split(r'(?<=\d)\s*([^\d\s].*)', cleaned_ingredient, maxsplit=1)
-        quantity, unit = re.match(r'(\d[\d\s/]*)([a-zA-Z.]*)', quantity_unit).groups()
+        # Use re.split and handle cases where more than two segments might be returned
+        parts = re.split(r'(?<=\d)\s*([^\d\s].*)', cleaned_ingredient, maxsplit=1)
+        if len(parts) > 1:
+            quantity_unit, ingredient_name = parts
+            quantity, unit = re.match(r'(\d[\d\s/]*)([a-zA-Z.]*)', quantity_unit).groups()
+        else:
+            quantity, unit, ingredient_name = parts[0], None, None
     elif 'of ' in cleaned_ingredient:  # Handle cases like "2 racks of ribs"
         quantity, rest = cleaned_ingredient.split(' of ', 1)
         unit, ingredient_name = None, f'of {rest}'
@@ -51,17 +55,17 @@ def process_ingredient(ingredient):
     if quantity:
         entities.append((0, len(quantity), "QUANTITY"))
     if unit and unit.strip():
-        start = len(quantity) + 1
+        start = len(quantity) + 1 if quantity else 0
         entities.append((start, start + len(unit), "UNIT"))
     if ingredient_name:
-        start = len(quantity) + len(unit) + 2 if unit else len(quantity) + 1
+        start = len(quantity) + len(unit) + 2 if quantity and unit else len(quantity) + 1 if quantity else 0
         entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     print(processed_data)
-    return processed_data
-# Extract and process ingredients
+    return processed_data# Extract and process ingredients
 ingredient_texts = extract_ingredients()
+#train_data = [process_ingredient(text) for text in ingredient_texts]
 train_data = [process_ingredient(text) for text in ingredient_texts]
 
 # Load a blank spaCy model
