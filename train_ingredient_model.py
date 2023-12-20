@@ -59,13 +59,16 @@ def process_ingredient(ingredient):
             start = len(cleaned_ingredient) - len(ingredient_name)
             entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
         
-        print({"text": cleaned_ingredient, "entities": entities})
+        print(f"Original: {ingredient}")
+        print(f"Processed: {cleaned_ingredient}")
+        print(f"Match Groups: {match.groups()}")
+        print(f"Entities: {entities}")        
 
         return {"text": cleaned_ingredient, "entities": entities}  
     
     else:
-        # Fallback logic if regex match fails
-        print({"text": cleaned_ingredient, "entities": [("INGREDIENT",)]})
+        print(f"No match for: {cleaned_ingredient}")
+       
         return {"text": cleaned_ingredient, "entities": [("INGREDIENT",)]}
 
 # Extract and process ingredients
