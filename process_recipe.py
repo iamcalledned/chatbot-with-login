@@ -71,6 +71,6 @@ async def process_recipe(pool, message_content, userID):
             
             print("userID from process_recipe:", userID)
             print("recipe data", recipe_data)
-            save_result = await save_recipe_to_db(app.state.pool, userID, recipe_data)                
+            save_result = await save_recipe_to_db(pool, userID, recipe_data)                
             print("save result:", save_result)
             
