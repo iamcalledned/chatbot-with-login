@@ -57,8 +57,8 @@ def process_ingredient(ingredient):
         processed_data = {"text": cleaned_ingredient, "entities": {"entities": entities}}
         print(processed_data)
 
-        return {"text": cleaned_ingredient, "entities": {"entities": entities}}
-
+        return processed_data
+    
     return {"text": cleaned_ingredient, "entities": {"entities": []}}
 
 # Extract and process ingredients
@@ -72,9 +72,10 @@ nlp = spacy.blank("en")
 ner = nlp.add_pipe("ner", last=True)
 
 # Add entity labels to the NER component
-for _, annotations in train_data:
-    for ent in annotations.get("entities"):
-        ner.add_label(ent[2])
+for example in train_data:
+    for start, end, label in example['entities']:
+        ner.add_label(label)
+
 
 # Training the NER model
 other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
