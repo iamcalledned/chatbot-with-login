@@ -18,6 +18,8 @@ print("loaded nlp from", model_path)
 def analyze_ingredient(ingredient_text):
     # Process the text with spaCy
     ingredient_text = ingredient_text.lstrip('- ').strip()
+    pattern = r'\(\d[^)]*\)'
+    ingredient_text = re.sub(pattern, '', ingredient_text)
     doc = nlp(ingredient_text)
 
     # Extract relevant information (e.g., quantity, unit, ingredient)
