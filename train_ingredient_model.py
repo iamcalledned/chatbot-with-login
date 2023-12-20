@@ -35,6 +35,9 @@ def extract_ingredients():
 
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
+    pattern = r'\((.*?(kg|ml|g|mg).*?)\)'
+    cleaned_ingredient = re.sub(pattern, '', ingredient)
+    
 
     # Regular expression pattern to match the quantity and unit
     pattern = r'^([\d\s¼½¾/-]+(?:\([\d\s.]+\))?)([a-zA-Z.]+)?\s*(.*)'
