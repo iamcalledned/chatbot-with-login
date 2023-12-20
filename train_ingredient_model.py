@@ -34,6 +34,7 @@ def extract_ingredients():
 # Function to process ingredient text and create annotations
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
+    print(cleaned_ingredient)
     pattern = r'^(\d+\s*\d*[/\d]*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)?\s*([a-zA-Z.]+)?\s*(\(.*?\))?\s*(.*)'
     match = re.match(pattern, cleaned_ingredient)
 
