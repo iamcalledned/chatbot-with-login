@@ -2,7 +2,24 @@ import re
 from chat_bot_database import save_recipe_to_db
 from config import Config
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+import spacy
+
 app = FastAPI()
+
+# Load the spaCy model
+nlp = spacy.load("en_core_web_sm")
+
+def analyze_ingredient(ingredient_text):
+    # Process the text with spaCy
+    doc = nlp(ingredient_text)
+
+    # Extract relevant information (e.g., quantity, unit, ingredient)
+    # This part depends on your specific needs and might require a custom model
+    # For demonstration, I'm just printing the entities spaCy finds
+    for ent in doc.ents:
+        print(f"Entity: {ent.text}, Label: {ent.label_}")
+
+
 
 
 async def process_recipe(pool, message_content, userID):
@@ -46,11 +63,7 @@ async def process_recipe(pool, message_content, userID):
             else:
                 instructions = []  # Handle the case where instructions are not found
 
-            # Structured recipe data
-            recipe_data = {
-                # ... other fields ...
-                "instructions": instructions
-            }
+
 
             # Structured recipe data
             recipe_data = {
@@ -62,7 +75,12 @@ async def process_recipe(pool, message_content, userID):
                 "ingredients": ingredients,
                 "instructions": instructions
             }
-
+            for ingredient_dict in recipe_data['ingredients']:
+                ingredient_text = ingredient_dict['item']
+                analyze_ingredient(ingredient_text)
+            
+            nlp = spacy.load("en_core_web_sm")
+            doc = nlp(ingredient_text)
             print("ingredients", ingredient)
 
             
