@@ -77,11 +77,9 @@ async def process_recipe(pool, message_content, userID):
             }
             for ingredient_dict in recipe_data['ingredients']:
                 ingredient_text = ingredient_dict['item']
+                print("ingredient text:", ingredient_text)
                 analyze_ingredient(ingredient_text)
             
-            nlp = spacy.load("en_core_web_sm")
-            doc = nlp(ingredient_text)
-            print("ingredients", ingredient)
 
             
             # Initialize save_result with a default value
