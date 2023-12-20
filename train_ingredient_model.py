@@ -89,11 +89,31 @@ def process_ingredient(ingredient):
     print(processed_data)
     return processed_data
 
+def load_train_data(file_path):
+    train_data = []
+    with open(file_path, 'r') as file:
+        for line in file:
+            # Assuming each line is a dictionary in string format
+            try:
+                line_data = eval(line.strip())
+                if 'text' in line_data and 'entities' in line_data:
+                    train_data.append(line_data)
+            except (SyntaxError, NameError):
+                # Handle any lines that can't be evaluated or don't have the expected format
+                continue
+    return train_data
+
+# Define the path to the file
+file_path = os.path.expanduser('~/chatbot-with-login/ents.txt')
+
+# Load the training data from the file
+train_data = load_train_data(file_path)
 
 
-ingredient_texts = extract_ingredients()
+
+#ingredient_texts = extract_ingredients()
 #train_data = [process_ingredient(text) for text in ingredient_texts]
-train_data = [process_ingredient(text) for text in ingredient_texts]
+#train_data = [process_ingredient(text) for text in ingredient_texts]
 
 # Load a blank spaCy model
 nlp = spacy.blank("en")
