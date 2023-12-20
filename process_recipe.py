@@ -21,6 +21,7 @@ def analyze_ingredient(ingredient_text):
     print("cleaned ingredient text:", cleaned_ingredient_text)
     pattern = r'\(\d[^)]*\)'
     cleaned_ingredient_text = re.sub(pattern, '', cleaned_ingredient_text)
+    cleaned_ingredient_text = re.sub(r'\s+', ' ', cleaned_ingredient_text)  # Collapse multiple spaces into one
     print("cleaned ingredient text:", cleaned_ingredient_text)
     doc = nlp(cleaned_ingredient_text)
 
