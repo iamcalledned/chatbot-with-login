@@ -34,24 +34,24 @@ def extract_ingredients():
 # Function to process ingredient text and create annotations
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
-    
-    # Split the ingredient text into segments
-    segments = re.split(r'(\d+[\d\s/]*[\.\d\s/]*\s*[a-zA-Z]*)\s*([a-zA-Z.]+)?', cleaned_ingredient)
-    segments = [seg.strip() for seg in segments if seg.strip()]
+
+    # Use a more robust pattern in re.split to avoid None segments
+    pattern = r'(\d+\s*\d*/?\d*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)\s*([a-zA-Z.]+)?'
+    segments = re.split(pattern, cleaned_ingredient)
+    segments = [seg for seg in segments if seg and seg.strip()]  # Filter out None and empty strings
 
     quantity, unit, ingredient_name = None, None, None
 
     # Analyze each segment and classify them
     if len(segments) > 0:
-        # Assume the first segment is the quantity
         quantity = segments[0]
-        # Check if the second segment can be a unit
-        if len(segments) > 1 and any(char.isalpha() for char in segments[1]):
+        if len(segments) > 2:
             unit = segments[1]
             ingredient_name = ' '.join(segments[2:])
         else:
             ingredient_name = ' '.join(segments[1:])
 
+    # Calculate the positions for each entity
     entities = []
     if quantity:
         entities.append((0, len(quantity), "QUANTITY"))
@@ -59,8 +59,8 @@ def process_ingredient(ingredient):
         start = len(quantity) + 1 if quantity else 0
         entities.append((start, start + len(unit), "UNIT"))
     if ingredient_name:
-        start = len(cleaned_ingredient) - len(ingredient_name)
-        entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
+        start = len(quantity) + len(unit) + 2 if quantity and unit else len(quantity) + 1 if quantity else 0
+        entities.append((start, start + len(ingredient_name), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     print(processed_data)
