@@ -15,6 +15,24 @@ DB_CONFIG = {
 }
 
 # Function to extract ingredient data from the database
+def extract_ingredients():
+    ingredients = []
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        cursor.execute("SELECT item FROM ingredients")
+        ingredients = [ingredient[0] for ingredient in cursor.fetchall()]
+    except mysql.connector.Error as e:
+        print(f"Error connecting to MySQL: {e}")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")
+    return ingredients
+
+# Function to process ingredient text and create annotations
+
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
 
@@ -60,6 +78,7 @@ def process_ingredient(ingredient):
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     return processed_data
+
 
 
 ingredient_texts = extract_ingredients()
