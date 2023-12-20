@@ -77,6 +77,7 @@ def process_ingredient(ingredient):
         entities.append((start_index, start_index + len(ingredient_name), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
+    print(processed_data)
     return processed_data
 
 
