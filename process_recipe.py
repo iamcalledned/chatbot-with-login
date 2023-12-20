@@ -12,6 +12,7 @@ app = FastAPI()
 model_path = os.path.expanduser("~/chatbot-with-login/model")
 
 nlp = spacy.load(model_path)
+print("loaded nlp from", model_path)
 
 
 def analyze_ingredient(ingredient_text):
