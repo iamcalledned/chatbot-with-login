@@ -36,6 +36,9 @@ def extract_ingredients():
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
 
+    pattern = r'\(\d[^)]*\)'
+    cleaned_ingredient = re.sub(pattern, '', cleaned_ingredient)
+
     # Define common units of measurement and common ingredient names
     common_units = ['cup', 'teaspoon', 'tablespoon', 'ounce', 'pound', 'gram', 'kg', 'ml', 'liter']
     common_ingredients = ['onion', 'carrots', 'celery', 'pepper', 'garlic']
