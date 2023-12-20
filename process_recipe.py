@@ -63,7 +63,7 @@ async def process_recipe(pool, message_content, userID):
                 "instructions": instructions
             }
 
-            
+            print("ingredients", ingredient)
 
             
             # Initialize save_result with a default value
