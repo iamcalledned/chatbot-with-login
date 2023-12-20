@@ -32,7 +32,6 @@ def extract_ingredients():
     return ingredients
 
 # Function to process ingredient text and create annotations
-import re
 
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
@@ -58,12 +57,14 @@ def process_ingredient(ingredient):
         start = len(quantity) + 1
         entities.append((start, start + len(unit), "UNIT"))
     if ingredient_name:
-        start = len(quantity) + len(unit) + 2 if unit else len(quantity) + 1
-        entities.append((start, start + len(ingredient_name), "INGREDIENT"))
+        start_index = len(quantity) + 1  # Start after quantity
+        start_index += len(unit) + 1 if unit else 0  # Add length of unit if present
+        entities.append((start_index, start_index + len(ingredient_name), "INGREDIENT"))
 
     processed_data = {"text": cleaned_ingredient, "entities": entities}
     print(processed_data)
     return processed_data
+
 
 ingredient_texts = extract_ingredients()
 #train_data = [process_ingredient(text) for text in ingredient_texts]
