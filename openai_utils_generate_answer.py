@@ -21,6 +21,7 @@ import aiomysql
 from config import Config
 from classify_content import classify_content
 import re
+from process_recipe import process_recipe
 
 
 # Other imports as necessary
@@ -105,6 +106,12 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             
             
                 content_type = await classify_content(message_content)
+                if content_type == 'recipe':
+                    await process_recipe(message_content, userID)
+                    print("done processing recipe")
+                    
+
+
                 print("message_content:", message_content)
                 print("content_type:", content_type)
             
