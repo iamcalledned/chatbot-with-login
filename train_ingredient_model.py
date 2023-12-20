@@ -34,43 +34,37 @@ def extract_ingredients():
 # Function to process ingredient text and create annotations
 def process_ingredient(ingredient):
     cleaned_ingredient = ingredient.lstrip('- ').strip()
-    print(cleaned_ingredient)
-    pattern = r'^(\d+\s*\d*[/\d]*\s*[a-zA-Z]*[\s\d]*[a-zA-Z]*)?\s*([a-zA-Z.]+)?\s*(\(.*?\))?\s*(.*)'
-    match = re.match(pattern, cleaned_ingredient)
-
-    if match:
-        quantity = match.group(1).strip() if match.group(1) else None
-        unit = match.group(2).strip() if match.group(2) else None
-        additional_info = match.group(3).strip() if match.group(3) else None
-        ingredient_name = match.group(4).strip()
-
-        if quantity and additional_info:
-            quantity = f"{quantity} {additional_info}"
-
-        # Further refinement or fallback logic here if needed
-
-        entities = []
-        if quantity:
-            entities.append((0, len(quantity), "QUANTITY"))
-        if unit:
-            start = len(quantity) + 1 if quantity else 0
-            entities.append((start, start + len(unit), "UNIT"))
-        if ingredient_name:
-            start = len(cleaned_ingredient) - len(ingredient_name)
-            entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
-        
-        print(f"Original: {ingredient}")
-        print(f"Processed: {cleaned_ingredient}")
-        print(f"Match Groups: {match.groups()}")
-        print(f"Entities: {entities}")        
-
-        return {"text": cleaned_ingredient, "entities": entities}
-          
     
-    else:
-        print(f"No match for: {cleaned_ingredient}")
-       
-        return {"text": cleaned_ingredient, "entities": [("INGREDIENT",)]}
+    # Split the ingredient text into segments
+    segments = re.split(r'(\d+[\d\s/]*[\.\d\s/]*\s*[a-zA-Z]*)\s*([a-zA-Z.]+)?', cleaned_ingredient)
+    segments = [seg.strip() for seg in segments if seg.strip()]
+
+    quantity, unit, ingredient_name = None, None, None
+
+    # Analyze each segment and classify them
+    if len(segments) > 0:
+        # Assume the first segment is the quantity
+        quantity = segments[0]
+        # Check if the second segment can be a unit
+        if len(segments) > 1 and any(char.isalpha() for char in segments[1]):
+            unit = segments[1]
+            ingredient_name = ' '.join(segments[2:])
+        else:
+            ingredient_name = ' '.join(segments[1:])
+
+    entities = []
+    if quantity:
+        entities.append((0, len(quantity), "QUANTITY"))
+    if unit:
+        start = len(quantity) + 1 if quantity else 0
+        entities.append((start, start + len(unit), "UNIT"))
+    if ingredient_name:
+        start = len(cleaned_ingredient) - len(ingredient_name)
+        entities.append((start, len(cleaned_ingredient), "INGREDIENT"))
+
+    processed_data = {"text": cleaned_ingredient, "entities": entities}
+    print(processed_data)
+    return processed_data
 
 # Extract and process ingredients
 ingredient_texts = extract_ingredients()
