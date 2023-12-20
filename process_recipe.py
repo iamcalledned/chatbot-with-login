@@ -3,11 +3,16 @@ from chat_bot_database import save_recipe_to_db
 from config import Config
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 import spacy
+import os
 
 app = FastAPI()
 
 # Load the spaCy model
-nlp = spacy.load("en_core_web_sm")
+#nlp = spacy.load("en_core_web_sm")
+model_path = os.path.expanduser("~/chatbot-with-login/model")
+
+nlp = spacy.load(model_path)
+
 
 def analyze_ingredient(ingredient_text):
     # Process the text with spaCy
