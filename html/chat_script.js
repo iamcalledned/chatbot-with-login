@@ -60,8 +60,16 @@ function initializeWebSocket(sessionId) {
                 updateShoppingListUI(msg.shoppingList);
             
             } else if (msg.action === 'force_logout') {
-                    // Redirect to login page
-                    window.location.href = '/login'; // Adjust URL as needed
+                // Redirect to login page
+                window.location.href = '/login'; // Adjust URL as needed
+
+            } else if (msg.action === 'redirect_login') {
+                // Optionally display an alert or notification to the user
+                alert('Your session is invalid. Please log in again.');
+        
+                // Redirect to the login page
+                window.location.href = '/login';  // Adjust this URL as needed
+                          
             
             } else if (msg.action === 'recipe_saved') {
                 // Check if the recipe was successfully saved and show a notification

@@ -69,13 +69,19 @@ async def startup_event():
 # Function to schedule session data cleanup
 async def clear_session_data_after_timeout(session_id, username):
     try:
-        await asyncio.sleep(600)  # Adjust the timeout as needed
-        redis_client.delete(session_id)
-        await clear_user_session_id(app.state.pool, session_id)
-        print(f"Session data cleared for user {username}")
+        await asyncio.sleep(60)  # 10 minutes
+        # Check if the session still exists before clearing
+        if redis_client.exists(session_id):
+            redis_client.delete(session_id)
+            await clear_user_session_id(app.state.pool, session_id)
+            print(f"Session data cleared for user {username}")
+
+            # Send a WebSocket message to the client to log out
+            if username in connections:
+                websocket = connections[username]
+                await websocket.send_text(json.dumps({'action': 'force_logout'}))
     except Exception as e:
         print(f"Error in session cleanup task for {username}: {e}")
-
 
 @app.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):
@@ -86,7 +92,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             try:
                 await websocket.send_text(json.dumps({'action': 'ping'}))
-                await asyncio.sleep(10)  # Send a ping every 30 seconds
+                await asyncio.sleep(30)  # Send a ping every 30 seconds
             except Exception as e:
                 print(f"Error sending ping: {e}")
                 break
@@ -110,10 +116,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Renew the session expiry time upon successful connection
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
             else:
-                await websocket.send_text(json.dumps({'error': 'Invalid session'}))
+                await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid session'}))
+                #await websocket.send_text(json.dumps({'error': 'Invalid session'}))
                 return
         else:
-            await websocket.send_text(json.dumps({'error': 'Session ID required'}))
+            await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Session ID required'}))
+            #await websocket.send_text(json.dumps({'error': 'Session ID required'}))
             return
 
         while True:
