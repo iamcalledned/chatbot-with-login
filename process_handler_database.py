@@ -187,3 +187,9 @@ async def insert_user(pool, username):
             await cur.execute(sql_insert, (username, current_ts, current_ts))
             await conn.commit()
             return cur.lastrowid  # Return the new user's ID
+
+async def delete_old_verifiers(pool):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            one_hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
+            await cur.execute("DELETE FROM verifier_store WHERE login_timestamp < %s", (one_hour_ago,))

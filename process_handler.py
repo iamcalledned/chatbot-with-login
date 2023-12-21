@@ -14,13 +14,14 @@ import time
 import pymysql
 
 from config import Config
-from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_userdata, delete_code_verifier
+from process_handler_database import create_db_pool, save_code_verifier, get_code_verifier, generate_code_verifier_and_challenge, get_data_from_db, save_user_info_to_userdata, delete_code_verifier, delete_old_verifiers
 import jwt
 from jwt.algorithms import RSAAlgorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import logging
+import asyncio
 
 import redis
 
@@ -50,8 +51,10 @@ app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 
 @app.on_event("startup")
 async def startup():
+    pool = None
     app.state.pool = await create_db_pool()
     print("Database pool created")
+    asyncio.create_task(schedule_verifier_cleanup(pool))
 #####!!!!  Startup   !!!!!!################
 
 
@@ -247,8 +250,14 @@ async def validate_token(id_token):
 
 ######   Sessions
 
-def get_session(request: Request):
+async def get_session(request: Request):
     return request.session
+
+async def schedule_verifier_cleanup(pool):
+    while True:
+        await delete_old_verifiers(pool)
+        await asyncio.sleep(60)  # wait for 60 seconds
+
 
 ##################################################################
 
