@@ -189,6 +189,7 @@ async def insert_user(pool, username):
             return cur.lastrowid  # Return the new user's ID
 
 async def delete_old_verifiers(pool):
+    print("trying to delete old veriiers")
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             one_hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
