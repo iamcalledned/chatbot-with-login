@@ -52,21 +52,23 @@ app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 async def startup():
     app.state.pool = await create_db_pool()  # No argument is passed here
     print(f"Database pool created: {app.state.pool}")
-    if os.environ.get('RUN_SCHEDULED_TASKS') == 'True':
-        asyncio.create_task(schedule_verifier_cleanup(app.state.pool))
+    asyncio.create_task(schedule_verifier_cleanup(app.state.pool, redis_client))
 
 
 #####!!!!  Startup   !!!!!!################
 
-async def schedule_verifier_cleanup(pool):
-    print(f"Pool in schedule_verifier_cleanup: {pool}")  # Should not print None
+async def schedule_verifier_cleanup(pool, redis_client):
     while True:
-        if pool:
+        # Attempt to acquire the lock
+        if redis_client.set("verifier_cleanup_lock", "true", nx=True, ex=60):
+            print("Lock acquired. Running cleanup task.")
             await delete_old_verifiers(pool)
+            redis_client.delete("verifier_cleanup_lock")
         else:
-            print("Pool is None, cannot delete old verifiers.")
+            print("Lock not acquired. Skipping cleanup task.")
+        
+        # Wait for 60 seconds before the next attempt
         await asyncio.sleep(60)
-
 
 
 ################################################################## 
