@@ -1,5 +1,8 @@
 // Define functions in the global scope
 let socket; // Declare the WebSocket outside of the functions
+let reconnectInterval = 1000; // Start with 1 second
+const MAX_RECONNECT_INTERVAL = 30000; // Max interval 30 seconds
+
 
 function showTypingIndicator() {
     $('#typing-container').show();
@@ -29,10 +32,20 @@ function initializeWebSocket(sessionId) {
         socket = new WebSocket('wss://www.whattogrill.com:8055');
 
         socket.onopen = function() {
+            displayConnectionMessage('Connected to the server.', 'success');
+            reconnectInterval = 1000; // Reset reconnect interval on successful connection
             socket.send(JSON.stringify({ session_id: sessionId }));
             localStorage.setItem('session_id', sessionId);
             console.log('WebSocket connected!');
         };
+
+        socket.onclose = function(event) {
+            displayConnectionMessage('Connection lost. Reconnecting...', 'warning');
+            setTimeout(reconnectWebSocket, reconnectInterval);
+            reconnectInterval = Math.min(reconnectInterval * 2, MAX_RECONNECT_INTERVAL); // Exponential backoff
+            console.log('WebSocket closed:', event);
+        };
+
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
@@ -75,12 +88,7 @@ function initializeWebSocket(sessionId) {
             console.error('WebSocket Error:', error);
         };
 
-        socket.onclose = function(event) {
-            console.log('WebSocket closed:', event);
-            if (!event.wasClean) {
-                console.warn('WebSocket closed unexpectedly.');
-            }
-        };
+        
     }
 }
 
@@ -151,6 +159,20 @@ $(document).ready(function() {
     
     });
     
+    window.addEventListener('load', () => {
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                reconnectWebSocket(); // Attempt to reconnect WebSocket if not connected
+            } else {
+                displayConnectionMessage('You are offline. Trying to reconnect...', 'warning');
+            }
+        }
+    
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+    });
+    
+    
     document.addEventListener("visibilitychange", handleVisibilityChange);
     
     document.querySelector('.hamburger-menu').addEventListener('click', function() {
@@ -219,5 +241,17 @@ function handleVisibilityChange() {
     } else if (document.visibilityState === 'hidden') {
         console.log("Page is now hidden");
         // Additional actions when the page is not visible (if needed)
+    }
+}
+function displayConnectionMessage(message, type) {
+    // Display a connection message to the user
+    // Implement this function to show messages using a banner or similar UI element
+    console.log(`${type.toUpperCase()}: ${message}`);
+}
+
+function reconnectWebSocket() {
+    let sessionId = getSessionIdFromUrl();
+    if (sessionId && (!socket || socket.readyState === WebSocket.CLOSED)) {
+        initializeWebSocket(sessionId);
     }
 }
