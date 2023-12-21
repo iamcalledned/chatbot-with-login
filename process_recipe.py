@@ -49,10 +49,7 @@ async def process_recipe(pool, message_content, userID):
             ingredients_match = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL)
             if ingredients_match:
                 ingredients_text = ingredients_match.group(1)
-                
-                
-                #ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
-                ingredients_lines = [line[2:] if line.startswith('- ') else line for line in ingredients_text.split('\n') if line.strip()]
+                ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
                 ingredients = []
                 current_category = None
                 for line in ingredients_lines:
