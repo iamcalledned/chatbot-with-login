@@ -50,7 +50,7 @@ async def process_recipe(pool, message_content, userID):
             if ingredients_match:
                 ingredients_text = ingredients_match.group(1)
                 ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
-                ingredients_lines = [line[2:].strip() if line.startswith('- ') else line for line in line]
+                ingredients_lines = [line[2:].strip() if line.startswith('- ') else line for line in lines]
 
                 ingredients = []
                 current_category = None
