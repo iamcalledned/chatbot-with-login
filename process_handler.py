@@ -48,21 +48,25 @@ app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 
 #####!!!!  Startup   !!!!!!################
-
 @app.on_event("startup")
 async def startup():
-    pool = None
-    app.state.pool = await create_db_pool(pool)
-    print("Database pool created")
-    asyncio.create_task(schedule_verifier_cleanup(pool))
-    print("Verifier cleanup task scheduled")
+    # Ensure that create_db_pool is awaited and the result is assigned to app.state.pool
+    app.state.pool = await create_db_pool()
+    print(f"Database pool created: {app.state.pool}")  # Should not be None
+    if app.state.pool is not None:
+        asyncio.create_task(schedule_verifier_cleanup(app.state.pool))
+    else:
+        print("Failed to create database pool.")
+
 #####!!!!  Startup   !!!!!!################
 
 async def schedule_verifier_cleanup(pool):
-    print(f"Pool in schedule_verifier_cleanup: {pool}")  # Debug statement
+    print(f"Pool in schedule_verifier_cleanup: {pool}")  # Should not print None
     while True:
-        await delete_old_verifiers(pool)
-        print("Deleted old verifiers")
+        if pool:
+            await delete_old_verifiers(pool)
+        else:
+            print("Pool is None, cannot delete old verifiers.")
         await asyncio.sleep(60)
 
 
