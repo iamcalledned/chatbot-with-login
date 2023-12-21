@@ -55,8 +55,14 @@ function initializeWebSocket(sessionId) {
                 console.log('Received ping message');
                 
                 socket.send(JSON.stringify({'action': 'pong'}));
+            
             } else if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
+            
+            } else if (msg.action === 'force_logout') {
+                    // Redirect to login page
+                    window.location.href = '/login'; // Adjust URL as needed
+            
             } else if (msg.action === 'recipe_saved') {
                 // Check if the recipe was successfully saved and show a notification
                 if (msg.status === 'Success') {
