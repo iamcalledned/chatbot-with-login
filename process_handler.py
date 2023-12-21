@@ -52,7 +52,7 @@ app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 @app.on_event("startup")
 async def startup():
     pool = None
-    app.state.pool = await create_db_pool()
+    app.state.pool = await create_db_pool(pool)
     print("Database pool created")
     asyncio.create_task(schedule_verifier_cleanup(pool))
     print("Verifier cleanup task scheduled")
