@@ -79,25 +79,6 @@ async def get_data_from_db(session_id, pool):
 
 
 
-#async def get_user_info_by_session_id(session_id, pool):
-#    async with pool.acquire() as conn:
-#        async with conn.cursor(aiomysql.DictCursor) as cur:
-#            await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
-#            #await cur.execute("SELECT * FROM login WHERE session_id = %s", (session_id,))
-#            result = await cur.fetchone()
-#            return result
-
-
-#async def save_user_info_to_mysql(pool, session, client_ip, state):
-#    async with pool.acquire() as conn:
-#        async with conn.cursor() as cursor:
-#            sql = "INSERT INTO login (username, email, name, session_id, ip_address, state) VALUES (%s, %s, %s, %s, %s, %s)"
-#            values = (session['username'], session['email'], session['name'], session['session_id'], client_ip, state)
-#            await cursor.execute(sql, values)
-#            
-#            await conn.commit()
-#            print("User information saved to login table", session['username'])
-
 async def save_user_info_to_userdata(pool, session):
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:

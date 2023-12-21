@@ -52,7 +52,8 @@ app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 async def startup():
     app.state.pool = await create_db_pool()  # No argument is passed here
     print(f"Database pool created: {app.state.pool}")
-    asyncio.create_task(schedule_verifier_cleanup(app.state.pool))
+    if os.environ.get('RUN_SCHEDULED_TASKS') == 'True':
+        asyncio.create_task(schedule_verifier_cleanup(app.state.pool))
 
 
 #####!!!!  Startup   !!!!!!################
