@@ -191,6 +191,8 @@ async def insert_user(pool, username):
 async def delete_old_verifiers(pool):
     print("trying to delete old veriiers")
     async with pool.acquire() as conn:
+        print("we have the pool")
         async with conn.cursor() as cur:
             one_hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
+            print("one hour ago:", one_hour_ago)
             await cur.execute("DELETE FROM verifier_store WHERE login_timestamp < %s", (one_hour_ago,))
