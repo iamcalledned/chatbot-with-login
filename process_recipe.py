@@ -53,6 +53,8 @@ async def process_recipe(pool, message_content, userID):
                 ingredients = []
                 current_category = None
                 for line in ingredients_lines:
+                    if line.startswith('- '):  # Skip lines that start with '- '
+                        continue
                     if line.endswith(':'):
                         current_category = line[:-1]
                     else:
