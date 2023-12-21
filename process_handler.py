@@ -55,6 +55,7 @@ async def startup():
     app.state.pool = await create_db_pool()
     print("Database pool created")
     asyncio.create_task(schedule_verifier_cleanup(pool))
+    print("Verifier cleanup task scheduled")
 #####!!!!  Startup   !!!!!!################
 
 
