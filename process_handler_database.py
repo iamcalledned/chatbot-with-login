@@ -190,6 +190,7 @@ async def insert_user(pool, username):
 
 async def delete_old_verifiers(pool):
     print("trying to delete old veriiers")
+    print("pool")
     async with pool.acquire() as conn:
         print("we have the pool")
         async with conn.cursor() as cur:
