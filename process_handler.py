@@ -256,6 +256,7 @@ async def get_session(request: Request):
 async def schedule_verifier_cleanup(pool):
     while True:
         await delete_old_verifiers(pool)
+        print("deleted old verifiers")
         await asyncio.sleep(60)  # wait for 60 seconds
 
 
