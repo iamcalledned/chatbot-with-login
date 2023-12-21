@@ -28,13 +28,14 @@ DB_CONFIG = {
 
 
 
-async def create_db_pool(pool):
-    return await aiomysql.create_pool(
+async def create_db_pool():
+    pool = await aiomysql.create_pool(
         host=Config.DB_HOST, port=Config.DB_PORT,
         user=Config.DB_USER, password=Config.DB_PASSWORD,
         db=Config.DB_NAME, charset='utf8',
         cursorclass=aiomysql.DictCursor, autocommit=True
     )
+    return pool
 
 
 # Save the code_verifier and state in the database
@@ -190,7 +191,6 @@ async def insert_user(pool, username):
 
 async def delete_old_verifiers(pool):
     print("trying to delete old veriiers")
-    print("pool")
     async with pool.acquire() as conn:
         print("we have the pool")
         async with conn.cursor() as cur:

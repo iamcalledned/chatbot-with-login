@@ -50,13 +50,10 @@ app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
 #####!!!!  Startup   !!!!!!################
 @app.on_event("startup")
 async def startup():
-    # Ensure that create_db_pool is awaited and the result is assigned to app.state.pool
-    app.state.pool = await create_db_pool()
-    print(f"Database pool created: {app.state.pool}")  # Should not be None
-    if app.state.pool is not None:
-        asyncio.create_task(schedule_verifier_cleanup(app.state.pool))
-    else:
-        print("Failed to create database pool.")
+    app.state.pool = await create_db_pool()  # No argument is passed here
+    print(f"Database pool created: {app.state.pool}")
+    asyncio.create_task(schedule_verifier_cleanup(app.state.pool))
+
 
 #####!!!!  Startup   !!!!!!################
 
