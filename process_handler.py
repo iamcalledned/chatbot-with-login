@@ -58,6 +58,14 @@ async def startup():
     print("Verifier cleanup task scheduled")
 #####!!!!  Startup   !!!!!!################
 
+async def schedule_verifier_cleanup(pool):
+    print(f"Pool in schedule_verifier_cleanup: {pool}")  # Debug statement
+    while True:
+        await delete_old_verifiers(pool)
+        print("Deleted old verifiers")
+        await asyncio.sleep(60)
+
+
 
 ################################################################## 
 ######!!!!       Routes                !!!!!######################
@@ -254,11 +262,14 @@ async def validate_token(id_token):
 async def get_session(request: Request):
     return request.session
 
+
+
 async def schedule_verifier_cleanup(pool):
+    print(f"Pool in schedule_verifier_cleanup: {pool}")  # Debug statement
     while True:
         await delete_old_verifiers(pool)
-        print("deleted old verifiers")
-        await asyncio.sleep(60)  # wait for 60 seconds
+        print("Deleted old verifiers")
+        await asyncio.sleep(60)
 
 
 ##################################################################
