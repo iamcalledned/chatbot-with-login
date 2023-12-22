@@ -104,5 +104,5 @@ async def process_recipe(pool, message_content, userID):
             recipe_id = None
             save_result, recipe_id = await save_recipe_to_db(pool, userID, recipe_data)
             
-            return recipe_id
+            return save_result, recipe_id
             
