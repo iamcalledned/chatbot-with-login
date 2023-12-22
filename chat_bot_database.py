@@ -149,20 +149,25 @@ async def save_recipe_to_db(pool, userID, recipe_data):
         return save_result, recipe_id
             
 async def favorite_recipe(pool, userID, recipe_id):
+    print("in the pool")
     current_time = datetime.datetime.now().isoformat()
     save_result = None
     async with pool.acquire() as conn:
+        print("acquire")
         async with conn.cursor() as cur:
             sql = '''INSERT INTO favorite_recipes (userID, recipe_id, saved_time)
                      VALUES(%s, %s, %s)'''
             await cur.execute(sql, (userID, recipe_id, current_time))
             await conn.commit()
+            print("save result")
             return save_result
         
 async def un_favorite_recipe(pool, userID, recipe_id):
+    print("hit the pool")
     current_time = datetime.datetime.now().isoformat()
     save_result = None
     async with pool.acquire() as conn:
+        print("acquire")
         async with conn.cursor() as cur:
             sql = '''INSERT INTO favorite_recipes (userID, recipe_id, saved_time)
                      VALUES(%s, %s, %s)'''
