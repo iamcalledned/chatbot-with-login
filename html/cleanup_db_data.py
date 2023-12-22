@@ -3,17 +3,17 @@ from config import Config
 
 def clean_ingredient_items(cursor):
     # Select rows where 'item' starts with '- '
-    select_query = "SELECT id, item FROM ingredients WHERE item LIKE '- %'"
+    select_query = "SELECT item FROM ingredients WHERE item LIKE '- %'"
     cursor.execute(select_query)
 
     rows = cursor.fetchall()
     for row in rows:
-        id, item = row
+        old_item = row[0]
         # Remove '- ' from the start of the item
-        new_item = item[2:]
+        new_item = old_item[2:]
         # Update the row with the cleaned item
-        update_query = "UPDATE ingredients SET item = %s WHERE id = %s"
-        cursor.execute(update_query, (new_item, id))
+        update_query = "UPDATE ingredients SET item = %s WHERE item = %s"
+        cursor.execute(update_query, (new_item, old_item))
     print(f"Cleaned {len(rows)} rows in 'ingredients' table.")
 
 def main():
@@ -29,14 +29,11 @@ def main():
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
 
-        # Add your existing database setup functions here
-        # ...
-
         # Clean the ingredients items
         clean_ingredient_items(cursor)
         connection.commit()
 
-        print("Database setup and cleaning completed successfully.")
+        print("Database cleaning completed successfully.")
     except mysql.connector.Error as err:
         print(f"Database Error: {err}")
     finally:
