@@ -145,7 +145,7 @@ async def save_recipe_to_db(pool, userID, recipe_data):
                 await cur.execute(add_instruction, (recipe_id, index, step))
 
             await conn.commit()
-            save_result = 'Success'
+            save_result = 'success'
         return save_result, recipe_id
             
 async def favorite_recipe(pool, userID, recipe_id):
