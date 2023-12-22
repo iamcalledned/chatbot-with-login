@@ -44,6 +44,7 @@ client = OpenAI()
 async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool parameter
     # Use database to get userID
         recipe_id = None
+        
         userID = await get_user_id(pool, username)
         print("userID", userID, "username", username)
     
@@ -106,7 +107,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             
                 content_type = await classify_content(message_content)
                 if content_type == 'recipe':
-                    recipe_id = await process_recipe(pool, message_content, userID)
+                    save_result, recipe_id = await process_recipe(pool, message_content, userID)
                     print("done processing recipe")
                     
 
