@@ -143,6 +143,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 userID = await get_user_id(app.state.pool, username)
                 recipe_id = data_dict.get('content')
                 save_result = await favorite_recipe(app.state.pool, userID, recipe_id)
+                print("save result from websocket:", save_result)
 
                 if save_result == 'Success':
                    save_result = 'success'
