@@ -42,12 +42,10 @@ openai_client.api_key = Config.OPENAI_API_KEY
 client = OpenAI()
 
 async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool parameter
-    # Use your new database module to create a connection
-        print("username:", username)
-        #userID = await insert_user(pool, userID)
+    # Use database to get userID
         userID = await get_user_id(pool, username)
-        print("userID", userID)
-
+        print("userID", userID, "username", username)
+    
     
         active_thread = await get_active_thread_for_user(pool, userID)
 
@@ -110,12 +108,6 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
                     recipe_id = await process_recipe(pool, message_content, userID)
                     print("done processing recipe")
                     
-
-
-                print("message_content:", message_content)
-                print("content_type:", content_type)
-            
-                
 
                 # Log OpenAI's response
                 await insert_conversation(pool, userID, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP

@@ -91,7 +91,7 @@ async def process_recipe(pool, message_content, userID):
             }
             for ingredient_dict in recipe_data['ingredients']:
                 ingredient_text = ingredient_dict['item']
-                print("ingredient text:", ingredient_text)
+                
                 analyze_ingredient(ingredient_text)
             
 
@@ -99,11 +99,8 @@ async def process_recipe(pool, message_content, userID):
             # Initialize save_result with a default value
             save_result = 'not processed'  # You can set a default value that makes sense for your application  
             
-            print("userID from process_recipe:", userID)
-            print("recipe data", recipe_data)
             recipe_id = None
             save_result, recipe_id = await save_recipe_to_db(pool, userID, recipe_data)
-            print("recipe_id",recipe_id)
-            print("save result:", save_result)
+            
             return recipe_id
             

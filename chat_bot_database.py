@@ -159,6 +159,7 @@ async def favorite_recipe(pool, userID, recipe_id):
                      VALUES(%s, %s, %s)'''
             await cur.execute(sql, (userID, recipe_id, current_time))
             await conn.commit()
+            save_result = 'success'
             print("save result")
             return save_result
         

@@ -103,7 +103,7 @@ async def websocket_endpoint(websocket: WebSocket):
         initial_data = await websocket.receive_text()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
-        print("got a live one, welcome:",username)
+        print("got a live one, welcome")
 
         if session_id:
             session_data = redis_client.get(session_id)
@@ -125,12 +125,10 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data)
-            print("data_dict from receive_text:", data_dict)
+            #print("data_dict from receive_text:", data_dict)
                        
             if data_dict.get('action') == 'pong':
-                print("Pong received from client")
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
-                print("extended redis via ping pong")
                 continue
 
             # Renew the session expiry time after receiving each message
