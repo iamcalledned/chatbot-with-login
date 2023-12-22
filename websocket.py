@@ -128,7 +128,7 @@ async def websocket_endpoint(websocket: WebSocket):
             data_dict = json.loads(data)
             message = data_dict.get('message', '')
             session_id = data_dict.get('session_id', '')
-            print("session ID from receive text", session_id)")
+            print("session ID from receive text", session_id)
                 # Validate session_id
             if not session_id or not redis_client.exists(session_id):
                 await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid or expired session'}))
