@@ -153,7 +153,7 @@ async def favorite_recipe(pool, userID, recipe_id):
     save_result = None
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            sql = '''INSERT INTO favorite_recipes (UserID, RecipeID, SavedTime)
+            sql = '''INSERT INTO favorite_recipes (userID, recipe_id, saved_time)
                      VALUES(%s, %s, %s)'''
             await cur.execute(sql, (userID, recipe_id, current_time))
             await conn.commit()
@@ -164,7 +164,7 @@ async def un_favorite_recipe(pool, userID, recipe_id):
     save_result = None
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            sql = '''INSERT INTO favorite_recipes (UserID, RecipeID, SavedTime)
+            sql = '''INSERT INTO favorite_recipes (userID, recipe_id, saved_time)
                      VALUES(%s, %s, %s)'''
             await cur.execute(sql, (userID, recipe_id, current_time))
             await conn.commit()
