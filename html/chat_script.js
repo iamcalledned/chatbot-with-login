@@ -143,8 +143,16 @@ $(document).ready(function() {
 
     
     $(document).on('mouseenter', '.save-recipe-button', function() {
-        $(this).append($('<span class="tooltip">Click to add this to your recipe box!</span>'));
+        // Check if the button is disabled
+        if ($(this).prop('disabled')) {
+            // If the button is disabled, it means the recipe is already saved
+            $(this).append($('<span class="tooltip">Recipe already saved</span>'));
+        } else {
+            // If the button is not disabled, show the default tooltip
+            $(this).append($('<span class="tooltip">Click to add this to your recipe box!</span>'));
+        }
     }).on('mouseleave', '.save-recipe-button', function() {
+        // Remove the tooltip when the mouse leaves the button
         $(this).find('.tooltip').remove();
     });
 
