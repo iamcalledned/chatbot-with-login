@@ -146,5 +146,12 @@ async def save_recipe_to_db(pool, userID, recipe_data):
 
             await conn.commit()
             save_result = 'Success'
-        return save_result
+        return save_result, recipe_id
             
+async def favorite_recipe(pool, conversation_id, new_status):
+    """Update the status of a conversation"""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''UPDATE conversations SET Status = %s WHERE ConversationID = %s'''
+            await cur.execute(sql, (new_status, conversation_id))
+            await conn.commit()            
