@@ -1,19 +1,20 @@
 import mysql.connector
 from config import Config
 
-def update_ingredients(cursor):
+def clean_ingredient_items(cursor):
     # Select rows where 'item' starts with '- '
     select_query = "SELECT id, item FROM ingredients WHERE item LIKE '- %'"
     cursor.execute(select_query)
-    rows = cursor.fetchall()
 
-    # Update each row
+    rows = cursor.fetchall()
     for row in rows:
         id, item = row
-        new_item = item[2:]  # Remove the '- ' prefix
+        # Remove '- ' from the start of the item
+        new_item = item[2:]
+        # Update the row with the cleaned item
         update_query = "UPDATE ingredients SET item = %s WHERE id = %s"
         cursor.execute(update_query, (new_item, id))
-    print(f"Updated {len(rows)} rows.")
+    print(f"Cleaned {len(rows)} rows in 'ingredients' table.")
 
 def main():
     db_config = {
@@ -27,11 +28,15 @@ def main():
     try:
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
-        
-        update_ingredients(cursor)  # Call the update function
-        
-        connection.commit()  # Commit the changes
-        print("Ingredient items updated successfully.")
+
+        # Add your existing database setup functions here
+        # ...
+
+        # Clean the ingredients items
+        clean_ingredient_items(cursor)
+        connection.commit()
+
+        print("Database setup and cleaning completed successfully.")
     except mysql.connector.Error as err:
         print(f"Database Error: {err}")
     finally:
