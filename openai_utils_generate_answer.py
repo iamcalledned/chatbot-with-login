@@ -111,15 +111,9 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
                     print("done processing recipe")
                     
 
-
-                
-                
-            
-                
-
                 # Log OpenAI's response
                 await insert_conversation(pool, userID, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
-                print("saved conversations for user:", userID)
+                
             else:
                 print("Failed to create a run object in OpenAI.")
                 return "Error: Failed to create a run object."

@@ -115,7 +115,7 @@ function sendMessage() {
     var message = $('#message-input').val();
     if (message.trim().length > 0) {
          if (socket.readyState === WebSocket.OPEN) {
-            var sessionId = getSessionId(); // Retrieve session ID
+            var sessionId = getSessionIdFromUrl(); // Retrieve session ID
             var messageObject = {
                 message: message,
                 session_id: sessionId  // Include session ID in the message object
@@ -170,6 +170,7 @@ $(document).ready(function() {
     $(document).on('click', '.save-recipe-button', function() {
         var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
+        var sessionId = getSessionIdFromUrl(); // Retrieve session ID
         if (messageContent.length) {
             var recipeContent = messageContent.text();
             
@@ -177,7 +178,8 @@ $(document).ready(function() {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 var saveCommand = {
                     action: 'save_recipe',
-                    content: recipeId
+                    content: recipeId,
+                    session_id: sessionId,
                 };
                 socket.send(JSON.stringify(saveCommand));
                 
