@@ -103,6 +103,7 @@ async def websocket_endpoint(websocket: WebSocket):
         initial_data = await websocket.receive_text()
         initial_data = json.loads(initial_data)
         session_id = initial_data.get('session_id', '')
+        print("initial data", initial_data)
         print("got a live one, welcome")
 
         if session_id:
