@@ -51,10 +51,15 @@ function initializeWebSocket(sessionId) {
             var msg = JSON.parse(event.data);
         
             if (msg.action === 'ping') {
-                // Respond with pong when a ping message is received
                 console.log('Received ping message');
                 
-                socket.send(JSON.stringify({'action': 'pong'}));
+                var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+                var pongMessage = {
+                    action: 'pong',
+                    session_id: sessionId  // Include the session ID in the pong message
+                };
+            
+                socket.send(JSON.stringify(pongMessage));
             
             } else if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
@@ -109,8 +114,8 @@ function initializeWebSocket(sessionId) {
 function sendMessage() {
     var message = $('#message-input').val();
     if (message.trim().length > 0) {
-        if (socket.readyState === WebSocket.OPEN) {
-            var sessionId = getSessionIdFromUrl(); // Retrieve session ID from URL
+         if (socket.readyState === WebSocket.OPEN) {
+            var sessionId = getSessionId(); // Retrieve session ID
             var messageObject = {
                 message: message,
                 session_id: sessionId  // Include session ID in the message object
