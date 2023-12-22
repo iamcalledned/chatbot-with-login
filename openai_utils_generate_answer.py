@@ -43,6 +43,7 @@ client = OpenAI()
 
 async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool parameter
     # Use database to get userID
+        recipe_id = None
         userID = await get_user_id(pool, username)
         print("userID", userID, "username", username)
     
