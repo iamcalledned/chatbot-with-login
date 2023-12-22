@@ -126,7 +126,7 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             data_dict = json.loads(data)
             #print("data_dict from receive_text:", data_dict)
-                       
+            print("data_dict from receive_text:", data_dict)           
             if data_dict.get('action') == 'pong':
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
                 continue
@@ -134,7 +134,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Renew the session expiry time after receiving each message
             redis_client.expire(session_id, 3600)  # Reset expiry to another hour
             print("extended redis")
-    
+            
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 
