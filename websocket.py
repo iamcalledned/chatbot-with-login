@@ -163,7 +163,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     'type': content_type,
                     'recipe_id': recipe_id
                 }
-                
+                print("response to websocket:", response)
                 await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
