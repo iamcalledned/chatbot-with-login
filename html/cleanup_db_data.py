@@ -39,6 +39,5 @@ def main():
     finally:
         if connection:
             connection.close()
-
 if __name__ == "__main__":
     main()
