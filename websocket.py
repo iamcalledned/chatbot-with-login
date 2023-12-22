@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe
 from process_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -143,10 +143,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Initialize save_result with a default value
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
                 userID = await get_user_id(app.state.pool, username)
-                print("userID from new get user:", userID)
-                print("recipe data", recipe_data)
-                save_result = await save_recipe_to_db(app.state.pool, userID, recipe_data)                
-                print("save result:", save_result)
+                recipe_id = data_dict.get('recipe_id')
+                save_result = await favorite_recipe(app.state.pool, userID, recipe_id)
+
                 if save_result == 'Success':
                    save_result = 'success'
                    print("save result:", save_result)
@@ -156,11 +155,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 message = data_dict.get('message', '')
                 user_ip = "User IP"  # Placeholder for user IP
                 uuid = str(uuid4())
-
-                response_text, content_type = await generate_answer(app.state.pool, username, message, user_ip, uuid)
+                
+                response_text, content_type, recipe_id = await generate_answer(app.state.pool, username, message, user_ip, uuid)
                 response = {
                     'response': response_text,
                     'type': content_type,
+                    'recipe_id': recipe_id
                 }
                 
                 await websocket.send_text(json.dumps(response))

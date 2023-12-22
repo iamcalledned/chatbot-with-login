@@ -2,7 +2,7 @@ import mysql.connector
 from config import Config
 
 def drop_tables(cursor):
-    tables = ["ingredients", "instructions", "recipes", "threads", "conversations", "user_data", "verifier_store"]
+    tables = ["ingredients", "instructions", "recipes", "threads", "conversations", "user_data", "verifier_store", "favorite_recipes"]
     for table in tables:
         try:
             cursor.execute(f"DROP TABLE IF EXISTS {table};")
@@ -91,10 +91,22 @@ def create_tables(cursor):
             PRIMARY KEY (state)
         );
     """
+    favorite_recipes = """
+        CREATE TABLE favorite_recipes (
+            favorite_id int NOT NULL AUTO_INCREMENT,
+            userID int NOT NULL,
+            recipe_id int NOT NULL,
+            saved_time datetime DEFAULT CURRENT_TIMESTAMP,
+            del_i varchar(1),
+            PRIMARY KEY (favorite_id),
+            FOREIGN KEY (userID) REFERENCES user_data(userID),
+            FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+        );
+    """
 
     
 
-    table_creation_queries = [user_data, recipes, ingredients, instructions, conversations, threads, verifier_store]
+    table_creation_queries = [user_data, recipes, ingredients, instructions, conversations, threads, verifier_store, favorite_recipes]
 
     for query in table_creation_queries:
         try:

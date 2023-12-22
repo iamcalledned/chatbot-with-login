@@ -88,7 +88,7 @@ function initializeWebSocket(sessionId) {
                 if (msg.type === 'recipe') {
                     messageElement = $('<div class="message-bubble recipe-message">'); // Add 'recipe-message' class
                     var messageContent = $('<div class="message-content">').html(msg.response);
-                    var saveButton = $('<button class="save-recipe-button">Save Recipe</button>');
+                    var saveButton = $('<button class="save-recipe-button" data-recipe-id="' + msg.recipe_id + '">Save Recipe</button>');
                     messageElement.append(messageContent, saveButton);
                 } else {
                     messageElement = $('<div class="message bot">').html(msg.response);
@@ -143,12 +143,13 @@ $(document).ready(function() {
 
     
     $(document).on('mouseenter', '.save-recipe-button', function() {
-        $(this).append($('<span class="tooltip">Click to save this recipe!</span>'));
+        $(this).append($('<span class="tooltip">Click to add this to your recipe box!</span>'));
     }).on('mouseleave', '.save-recipe-button', function() {
         $(this).find('.tooltip').remove();
     });
 
     $(document).on('click', '.save-recipe-button', function() {
+        var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
         if (messageContent.length) {
             var recipeContent = messageContent.text();
@@ -157,7 +158,7 @@ $(document).ready(function() {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 var saveCommand = {
                     action: 'save_recipe',
-                    content: recipeContent
+                    content: recipeId
                 };
                 socket.send(JSON.stringify(saveCommand));
                 
