@@ -40,7 +40,7 @@ async def process_recipe(pool, message_content, userID):
             print("recipe text:", recipe_text)
             #recipe_text = recipe_text.replace("\n", " ").replace("\t", " ")
             # Regular expression for extracting title, servings, and times
-            title_match = re.search(r"[Aa] recipe for? (.+?)\n", recipe_text)
+            title_match = re.search(r"[Aa] recipe for:? (.+?)\n", recipe_text)
 
             servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
             prep_time_match = re.search(r"Prep time: (.+?)\n", recipe_text)
