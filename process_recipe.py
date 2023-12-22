@@ -98,12 +98,11 @@ async def process_recipe(pool, message_content, userID):
             
             # Initialize save_result with a default value
             save_result = 'not processed'  # You can set a default value that makes sense for your application  
-            const = None
+            
             print("userID from process_recipe:", userID)
             print("recipe data", recipe_data)
             recipe_id = None
-            const [save_result, recipe_id] = await save_recipe_to_db(pool, userID, recipe_data);
-
+            save_result, recipe_id = await save_recipe_to_db(pool, userID, recipe_data)
             print("recipe_id",recipe_id)
             print("save result:", save_result)
             
