@@ -126,6 +126,15 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data)
+            message = data_dict.get('message', '')
+            session_id = data_dict.get('session_id', '')
+                # Validate session_id
+            if not session_id or not redis_client.exists(session_id):
+                await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid or expired session'}))
+                
+
+            # Renew the session expiry time
+            redis_client.expire(session_id, 3600)
             #print("data_dict from receive_text:", data_dict)
             print("data_dict from receive_text:", data_dict)           
             if data_dict.get('action') == 'pong':
@@ -157,6 +166,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 message = data_dict.get('message', '')
                 user_ip = "User IP"  # Placeholder for user IP
                 uuid = str(uuid4())
+                print("session ID", session_id)
+                
                 
                 response_text, content_type, recipe_id = await generate_answer(app.state.pool, username, message, user_ip, uuid)
                 response = {

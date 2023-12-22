@@ -110,7 +110,13 @@ function sendMessage() {
     var message = $('#message-input').val();
     if (message.trim().length > 0) {
         if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({'message': message}));
+            var sessionId = getSessionIdFromUrl(); // Retrieve session ID from URL
+            var messageObject = {
+                message: message,
+                session_id: sessionId  // Include session ID in the message object
+            };
+
+            socket.send(JSON.stringify(messageObject));
             $('#message-input').val('');
             var userMessageElement = $('<div class="message user">').text('You: ' + message);
             $('#messages').append(userMessageElement);
