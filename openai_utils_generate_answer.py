@@ -45,7 +45,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
     # Use database to get userID
         userID = await get_user_id(pool, username)
         print("userID", userID, "username", username)
-        recipe_id = None
+    
     
         active_thread = await get_active_thread_for_user(pool, userID)
 
@@ -79,7 +79,6 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             
 
             if run is not None:
-                recipe_id = None
                 # Now we have a run ID, we can log the user's message
                 await insert_conversation(pool, userID, thread_id_n, run.id, message, 'user', user_ip)  # Replace 'user_ip' with actual IP if available
 
@@ -109,6 +108,12 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
                     recipe_id = await process_recipe(pool, message_content, userID)
                     print("done processing recipe")
                     
+
+
+                
+                
+            
+                
 
                 # Log OpenAI's response
                 await insert_conversation(pool, userID, thread_id_n, run.id, message_content, 'bot', None)  # Same here for IP
