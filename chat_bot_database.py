@@ -160,7 +160,7 @@ async def favorite_recipe(pool, userID, recipe_id):
             await cur.execute(sql, (userID, recipe_id, current_time))
             await conn.commit()
             save_result = 'success'
-            print("save result")
+            print("save result", save_result)
             return save_result
         
 async def un_favorite_recipe(pool, userID, recipe_id):
