@@ -79,6 +79,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             
 
             if run is not None:
+                recipe_id = None
                 # Now we have a run ID, we can log the user's message
                 await insert_conversation(pool, userID, thread_id_n, run.id, message, 'user', user_ip)  # Replace 'user_ip' with actual IP if available
 
