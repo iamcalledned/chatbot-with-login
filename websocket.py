@@ -134,10 +134,10 @@ async def websocket_endpoint(websocket: WebSocket):
             # Renew the session expiry time after receiving each message
             redis_client.expire(session_id, 3600)  # Reset expiry to another hour
             print("extended redis")
-
+            recipe_id = None
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
-                recipe_id = None
+                
                 # Initialize save_result with a default value
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
                 userID = await get_user_id(app.state.pool, username)
