@@ -137,7 +137,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
-                
+                recipe_id = None
                 # Initialize save_result with a default value
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
                 userID = await get_user_id(app.state.pool, username)
