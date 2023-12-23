@@ -48,15 +48,10 @@ async def is_thread_valid(thread_id):
 async def get_thread_contents (thread_id):
     
     try:
-        #print("trying....")
-        thread_contents = openai_client.v1.threads(thread_id)/messages
-        print("openai thread response", thread_contents)
-        
-        # Add your logic here based on how OpenAI's response indicates a valid thread.
-        # This might depend on the response structure. For example:
-        # return 'status' in my_thread and my_thread.status == 'active'
-        #print("my thread", my_thread)
-        return True  # Assuming the thread is valid if no exception occurred
+        response = openai_client.get(f"threads/{thread_id}/messages")
+        messages = response.json()
+        print("messages:", messages)
+        return messages
     except Exception as e:
-        print(f"Error checking thread validity: {e}")
-        return False
+        print(f"Error retrieving messages: {e}")
+        return None
