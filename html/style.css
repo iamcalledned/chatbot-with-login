@@ -175,7 +175,7 @@ body {
 /* Media query for smaller screens (e.g., mobile devices) */
 @media (max-width: 768px) {
     #chat-container {
-        height: 75vh; /* Reduced height for better mobile fit */
+        height: 90vh; /* Reduced height for better mobile fit */
         width: 95%;
         margin-top: 0; /* Or a smaller value than you currently have */
         margin: 5px auto 10px auto; /* Smaller top margin, auto horizontal margins, slightly larger bottom margin */
