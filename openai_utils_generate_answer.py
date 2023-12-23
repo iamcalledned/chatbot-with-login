@@ -68,8 +68,8 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             thread_id_n = await create_thread_in_openai()
             current_time = datetime.datetime.now().isoformat()
             await insert_thread(pool, thread_id_n, userID, True, current_time)
-        thread_contents = get_thread_contents(thread_id_n)
-        print("thread contents", thread_contents)
+        await get_thread_contents(thread_id_n)
+        
         if thread_id_n:
             response_text = await send_message(thread_id_n, message)
             
