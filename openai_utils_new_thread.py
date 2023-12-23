@@ -48,9 +48,8 @@ async def is_thread_valid(thread_id):
 async def get_thread_contents (thread_id):
     
     try:
-        response = openai_client.get(f"threads/{thread_id}/messages")
-        messages = response.json()
-        print("messages:", messages)
+        messages =openai_client.beta.threads.messages.list(thread_id)
+        print("messages", messages)
         return messages
     except Exception as e:
         print(f"Error retrieving messages: {e}")
