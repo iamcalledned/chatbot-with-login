@@ -49,7 +49,7 @@ async def get_thread_contents (thread_id):
     
     try:
         #print("trying....")
-        thread_contents = openai_client.v1.threads(thread_id)
+        thread_contents = openai_client.beta.threads(thread_id)/messages
         print("openai thread response", thread_contents)
         
         # Add your logic here based on how OpenAI's response indicates a valid thread.
