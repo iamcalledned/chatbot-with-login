@@ -9,7 +9,7 @@ parent_directory = os.path.dirname(current_script_path)
 # Add the config directory to sys.path
 sys.path.append(os.path.join(parent_directory, 'database'))
 sys.path.append(os.path.join(parent_directory, 'config'))
-from openai_utils_new_thread import create_thread_in_openai, is_thread_valid
+from openai_utils_new_thread import create_thread_in_openai, is_thread_valid, get_thread_contents
 from openai_utils_send_message import send_message
 from openai import OpenAI
 
