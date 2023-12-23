@@ -49,8 +49,12 @@ async def get_thread_contents (thread_id):
     
     try:
         messages =openai_client.beta.threads.messages.list(thread_id)
-        print("messages", messages)
-        return messages
+        filtered_messages = [msg for msg in reversed(messages) if msg.role in ['user', 'assistant']]
+        print("filtered messages", filtered_messages)
+
+
+
+        return filtered_messages
     except Exception as e:
         print(f"Error retrieving messages: {e}")
         return None
