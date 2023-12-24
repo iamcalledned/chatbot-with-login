@@ -36,7 +36,7 @@ logging.basicConfig(
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Adjust host and port as needed
-logging.info(f"redis-client created at port", Config.REDIS_PORT)
+logging.info(f"redis-client created at port")
 print(f"redis-client created at port")
 
 
