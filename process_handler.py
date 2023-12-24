@@ -202,6 +202,7 @@ async def callback(request: Request, code: str, state: str):
         
         
         headers = {'X-Session-ID': session['session_id']}
+        print(f"headers: {headers}")
         
 
         # Prepare the URL with query parameters
