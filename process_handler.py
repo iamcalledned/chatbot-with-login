@@ -201,17 +201,17 @@ async def callback(request: Request, code: str, state: str):
 
         
         
-            
-            # Prepare the URL with query parameters
-            chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
-            redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
+        headers = {'X-Session-ID': session['session_id']}
+        print(f"headers: {headers}")
+        
 
-            # Redirect the user to the chatbot interface with query parameters
-            #return RedirectResponse(url=redirect_url, status_code=302)     
-            response = RedirectResponse(url=chat_html_url)
-            response.set_cookie(key="sessionId", value=session['session_id'], httponly=True, secure=True)
-            return response
+        # Prepare the URL with query parameters
+        chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
+        redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
 
+        # Redirect the user to the chatbot interface with query parameters
+        #return RedirectResponse(url=redirect_url, status_code=302)
+        return RedirectResponse(url=chat_html_url, status_code=302, headers=headers)
     else:   
         return 'Error during token exchange.', 400
     
