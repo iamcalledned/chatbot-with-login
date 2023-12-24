@@ -12,10 +12,6 @@ function hideTypingIndicator() {
     $('#typing-container').hide();
 }
 
-function getSessionIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('sessionId');
-}
 
 function initializeShoppingList() {
     $('#shopping-list-button').click(function() {
@@ -28,6 +24,12 @@ function initializeShoppingList() {
 }
 
 function initializeWebSocket(sessionId) {
+    const sessionId = sessionStorage.getItem('sessionId');
+    if (!sessionId) {
+        console.error('Session ID is missing. Redirecting to login.');
+        window.location.href = '/login';
+        return;
+    }
     if (!socket || socket.readyState === WebSocket.CLOSED) {
         socket = new WebSocket('wss://www.whattogrill.com:8055');
 
@@ -53,7 +55,7 @@ function initializeWebSocket(sessionId) {
             if (msg.action === 'ping') {
                 console.log('Received ping message');
                 
-                var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+                var sessionId = gsessionStorage.getItem('sessionId'); // Updated line
                 var pongMessage = {
                     action: 'pong',
                     session_id: sessionId  // Include the session ID in the pong message
@@ -113,9 +115,10 @@ function initializeWebSocket(sessionId) {
 
 function sendMessage() {
     var message = $('#message-input').val();
+    
     if (message.trim().length > 0) {
          if (socket.readyState === WebSocket.OPEN) {
-            var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+            var sessionId = sessionStorage.getItem('sessionId'); // Updated line
             var messageObject = {
                 message: message,
                 session_id: sessionId  // Include session ID in the message object
@@ -134,7 +137,7 @@ function sendMessage() {
 }
 
 $(document).ready(function() {
-    let sessionId = getSessionIdFromUrl();
+    let sessionId = sessionStorage.getItem('sessionId'); // Updated line
     if (sessionId) {
         initializeWebSocket(sessionId);
         initializeShoppingList();
@@ -170,7 +173,7 @@ $(document).ready(function() {
     $(document).on('click', '.save-recipe-button', function() {
         var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
-        var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+        var sessionId = sessionStorage.getItem('sessionId'); // Updated line
         if (messageContent.length) {
             var recipeContent = messageContent.text();
             
@@ -270,7 +273,7 @@ function handleVisibilityChange() {
     if (document.visibilityState === 'visible') {
         console.log("Page is now visible");
         // Reconnect WebSocket if needed
-        let sessionId = getSessionIdFromUrl();
+        let sessionId = sessionStorage.getItem('sessionId'); // Updated line
         if (sessionId && (!socket || socket.readyState === WebSocket.CLOSED)) {
             initializeWebSocket(sessionId);
         }
@@ -286,7 +289,7 @@ function displayConnectionMessage(message, type) {
 }
 
 function reconnectWebSocket() {
-    let sessionId = getSessionIdFromUrl();
+    let sessionId = sessionStorage.getItem('sessionId'); // Updated line
     if (sessionId && (!socket || socket.readyState === WebSocket.CLOSED)) {
         initializeWebSocket(sessionId);
     }
