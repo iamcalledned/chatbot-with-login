@@ -21,6 +21,7 @@ from get_recipe_card import get_recipe_card
 
 import spacy
 import re
+from starlette.websockets import WebSocket
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -86,6 +87,9 @@ async def clear_session_data_after_timeout(session_id, username):
 @app.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    cookies = websocket.cookies
+    session_id_from_cookies = cookies.get('session_id')
+    print("session ID from cookies", session_id_from_cookies)
     username = None
     
     async def ping_client():
