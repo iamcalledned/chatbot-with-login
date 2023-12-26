@@ -208,7 +208,8 @@ async def callback(request: Request, code: str, state: str):
         
         # Prepare the URL with query parameters
         chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
-        redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
+        #redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
+        redirect_url = chat_html_url
 
         response = RedirectResponse(url=redirect_url)
         response.set_cookie(key='session_id', value=request.session['session_id'], httponly=True, secure=True)
