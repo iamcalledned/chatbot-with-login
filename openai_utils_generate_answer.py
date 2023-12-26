@@ -46,7 +46,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
         recipe_id = None
         
         userID = await get_user_id(pool, username)
-        print("userID", userID, "username", username)
+        print("Generating an answer for userID", userID, "username", username)
     
     
         active_thread = await get_active_thread_for_user(pool, userID)

@@ -12,10 +12,6 @@ function hideTypingIndicator() {
     $('#typing-container').hide();
 }
 
-function getSessionIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('sessionId');
-}
 
 function initializeShoppingList() {
     $('#shopping-list-button').click(function() {
@@ -27,15 +23,14 @@ function initializeShoppingList() {
     });
 }
 
-function initializeWebSocket(sessionId) {
+function initializeWebSocket() {
     if (!socket || socket.readyState === WebSocket.CLOSED) {
         socket = new WebSocket('wss://www.whattogrill.com:8055');
 
         socket.onopen = function() {
             displayConnectionMessage('Connected to the server.', 'success');
             reconnectInterval = 1000; // Reset reconnect interval on successful connection
-            socket.send(JSON.stringify({ session_id: sessionId }));
-            localStorage.setItem('session_id', sessionId);
+            
             console.log('WebSocket connected!');
         };
 
@@ -53,10 +48,10 @@ function initializeWebSocket(sessionId) {
             if (msg.action === 'ping') {
                 console.log('Received ping message');
                 
-                var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+                
                 var pongMessage = {
-                    action: 'pong',
-                    session_id: sessionId  // Include the session ID in the pong message
+                    action: 'pong'
+                    
                 };
             
                 socket.send(JSON.stringify(pongMessage));
@@ -115,10 +110,10 @@ function sendMessage() {
     var message = $('#message-input').val();
     if (message.trim().length > 0) {
          if (socket.readyState === WebSocket.OPEN) {
-            var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+            
             var messageObject = {
-                message: message,
-                session_id: sessionId  // Include session ID in the message object
+                message: message
+                
             };
 
             socket.send(JSON.stringify(messageObject));
@@ -134,13 +129,9 @@ function sendMessage() {
 }
 
 $(document).ready(function() {
-    let sessionId = getSessionIdFromUrl();
-    if (sessionId) {
-        initializeWebSocket(sessionId);
-        initializeShoppingList();
-    } else {
-        window.location.href = '/'; // Redirect to login if no session ID
-    }
+         initializeWebSocket();
+         initializeShoppingList();
+    
 
     $('#send-button').click(sendMessage);
     $('#message-input').keypress(function(e) {
@@ -170,7 +161,7 @@ $(document).ready(function() {
     $(document).on('click', '.save-recipe-button', function() {
         var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
-        var sessionId = getSessionIdFromUrl(); // Retrieve session ID
+        
         if (messageContent.length) {
             var recipeContent = messageContent.text();
             
@@ -178,8 +169,8 @@ $(document).ready(function() {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 var saveCommand = {
                     action: 'save_recipe',
-                    content: recipeId,
-                    session_id: sessionId,
+                    content: recipeId
+                    
                 };
                 socket.send(JSON.stringify(saveCommand));
                 
@@ -270,9 +261,8 @@ function handleVisibilityChange() {
     if (document.visibilityState === 'visible') {
         console.log("Page is now visible");
         // Reconnect WebSocket if needed
-        let sessionId = getSessionIdFromUrl();
-        if (sessionId && (!socket || socket.readyState === WebSocket.CLOSED)) {
-            initializeWebSocket(sessionId);
+        if (!socket || socket.readyState === WebSocket.CLOSED) {
+            initializeWebSocket();
         }
     } else if (document.visibilityState === 'hidden') {
         console.log("Page is now hidden");
@@ -286,8 +276,7 @@ function displayConnectionMessage(message, type) {
 }
 
 function reconnectWebSocket() {
-    let sessionId = getSessionIdFromUrl();
-    if (sessionId && (!socket || socket.readyState === WebSocket.CLOSED)) {
-        initializeWebSocket(sessionId);
+    if (!socket || socket.readyState === WebSocket.CLOSED) {
+        initializeWebSocket();
     }
 }
