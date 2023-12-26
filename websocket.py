@@ -50,6 +50,7 @@ async def create_pool():
 
 @router.post("/logout")
 async def logout(request: Request):
+    print("session_id passed in logout", session_id)
     session_id = request.json().get('session_id', '')
     if session_id:
         # Remove session data from Redis
