@@ -106,7 +106,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         initial_data = await websocket.receive_text()
         initial_data = json.loads(initial_data)
-        session_id = initial_data.get('session_id', '')
+        #session_id = initial_data.get('session_id', '')
+        session_id = session_id_from_cookies
         print("initial data", initial_data)
         print("got a live one, welcome")
 
@@ -131,7 +132,8 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             data_dict = json.loads(data)
             message = data_dict.get('message', '')
-            session_id = data_dict.get('session_id', '')
+            #session_id = data_dict.get('session_id', '')
+            session_id = session_id_from_cookies
             print("session ID from receive text", session_id)
                 # Validate session_id
             if not session_id or not redis_client.exists(session_id):
