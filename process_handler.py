@@ -2,6 +2,9 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import RedirectResponse
+from starlette.requests import Request
+
 
 import os
 import base64
@@ -21,7 +24,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import logging
 import asyncio
-from flask import make_response, redirect
+
 
 import redis
 
@@ -207,8 +210,8 @@ async def callback(request: Request, code: str, state: str):
         chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
         redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
 
-        response = make_response(redirect(redirect_url))
-        response.set_cookie('session_id', session['session_id'], httponly=True, secure=True)
+        response = RedirectResponse(url=redirect_url)
+        response.set_cookie(key='session_id', value=request.session['session_id'], httponly=True, secure=True)
         return response
 
         # Redirect the user to the chatbot interface with query parameters
