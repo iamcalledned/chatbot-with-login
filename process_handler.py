@@ -21,6 +21,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import logging
 import asyncio
+from flask import make_response, redirect
 
 import redis
 
@@ -206,8 +207,12 @@ async def callback(request: Request, code: str, state: str):
         chat_html_url = '/chat.html'  # Replace with the actual URL of your chat.html
         redirect_url = f"{chat_html_url}?sessionId={session['session_id']}"
 
+        response = make_response(redirect(redirect_url))
+        response.set_cookie('session_id', session['session_id'], httponly=True, secure=True)
+        return response
+
         # Redirect the user to the chatbot interface with query parameters
-        return RedirectResponse(url=redirect_url, status_code=302)
+        #return RedirectResponse(url=redirect_url, status_code=302)
     else:
         return 'Error during token exchange.', 400
     
