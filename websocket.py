@@ -135,7 +135,7 @@ async def websocket_endpoint(websocket: WebSocket):
             message = data_dict.get('message', '')
             #session_id = data_dict.get('session_id', '')
             session_id = session_id_from_cookies
-            print("session ID from receive text", session_id)
+            
                 # Validate session_id
             if not session_id or not redis_client.exists(session_id):
                 await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid or expired session'}))
@@ -183,7 +183,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     'type': content_type,
                     'recipe_id': recipe_id
                 }
-                print("response to websocket:", response)
+                
                 await websocket.send_text(json.dumps(response))
 
     except WebSocketDisconnect:
