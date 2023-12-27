@@ -66,7 +66,7 @@ async def process_recipe(pool, message_content, userID):
                 ingredients = []  # or handle the error appropriately
 
             # Instruction extraction
-            instructions_section_match = re.search(r"(Instructions|Directions):\n", recipe_text, re.IGNORECASE)
+            instructions_section_match = re.search(r"(Instructions|Directions):\n", recipe_text)
             if instructions_section_match:
                 # Find the start index of instructions
                 start_index = instructions_section_match.end()
