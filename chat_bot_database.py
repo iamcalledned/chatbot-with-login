@@ -205,10 +205,13 @@ def format_recipe_for_printing(details, ingredients, instructions):
     formatted_html += f"<p><strong>Cook Time:</strong> {details['cook_time']}</p>"
     formatted_html += f"<p><strong>Total Time:</strong> {details['total_time']}</p>"
 
-    # Add ingredients in an HTML list
+   # Add ingredients in an HTML list
     formatted_html += "<h2>Ingredients</h2><ul>"
     for ingredient in ingredients:
-        formatted_html += f"<li>{ingredient['item']} ({ingredient['category']})</li>"
+        if ingredient['category'] is not None:
+            formatted_html += f"<li>{ingredient['item']} ({ingredient['category']})</li>"
+        else:
+            formatted_html += f"<li>{ingredient['item']}</li>"
     formatted_html += "</ul>"
 
     # Add instructions in an ordered list

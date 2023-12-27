@@ -95,7 +95,7 @@ function initializeWebSocket() {
                 printWindow.document.write(recipeHtml);  // Insert the HTML-formatted recipe
                 printWindow.document.write('</body></html>');
             
-                printWindow.document.close(); // Necessary for some browsers
+                //printWindow.document.close(); // Necessary for some browsers
             
                 // Wait for the content to fully load
                 printWindow.onload = function() {
