@@ -170,7 +170,7 @@ async def websocket_endpoint(websocket: WebSocket):
                    print("save result:", save_result)
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
             
-            elif 'action' in data_dict and data_dict['action'] == 'print_recipe':
+            if 'action' in data_dict and data_dict['action'] == 'print_recipe':
                 # Handle the print_recipe recipe action
                 
                 # Initialize save_result with a default value
