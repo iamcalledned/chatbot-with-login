@@ -175,3 +175,48 @@ async def un_favorite_recipe(pool, userID, recipe_id):
             return save_result
         
 
+async def get_recipe_for_printing(pool, recipe_id):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # Query the recipe details
+            query_recipe = "SELECT title, servings, prep_time, cook_time, total_time FROM recipes WHERE recipe_id = %s"
+            await cur.execute(query_recipe, (recipe_id,))
+            recipe_details = await cur.fetchone()
+
+            # Query the ingredients
+            query_ingredients = "SELECT item, category FROM ingredients WHERE recipe_id = %s"
+            await cur.execute(query_ingredients, (recipe_id,))
+            ingredients = await cur.fetchall()
+
+            # Query the instructions
+            query_instructions = "SELECT step_number, description FROM instructions WHERE recipe_id = %s ORDER BY step_number"
+            await cur.execute(query_instructions, (recipe_id,))
+            instructions = await cur.fetchall()
+
+    # Format the data into a printer-friendly format
+    formatted_recipe = format_recipe_for_printing(recipe_details, ingredients, instructions)
+    return formatted_recipe
+
+def format_recipe_for_printing(details, ingredients, instructions):
+    # Start with the HTML structure for the recipe
+    formatted_html = f"<h1>{details['title']}</h1>"
+    formatted_html += f"<p><strong>Servings:</strong> {details['servings']}</p>"
+    formatted_html += f"<p><strong>Prep Time:</strong> {details['prep_time']}</p>"
+    formatted_html += f"<p><strong>Cook Time:</strong> {details['cook_time']}</p>"
+    formatted_html += f"<p><strong>Total Time:</strong> {details['total_time']}</p>"
+
+    # Add ingredients in an HTML list
+    formatted_html += "<h2>Ingredients</h2><ul>"
+    for ingredient in ingredients:
+        formatted_html += f"<li>{ingredient['item']} ({ingredient['category']})</li>"
+    formatted_html += "</ul>"
+
+    # Add instructions in an ordered list
+    formatted_html += "<h2>Instructions</h2><ol>"
+    for step in instructions:
+        formatted_html += f"<li>{step['description']}</li>"
+    formatted_html += "</ol>"
+
+    return formatted_html
+
+

@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing
 from process_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -169,6 +169,18 @@ async def websocket_endpoint(websocket: WebSocket):
                    
                    print("save result:", save_result)
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
+            
+            elif 'action' in data_dict and data_dict['action'] == 'print_recipe':
+                # Handle the print_recipe recipe action
+                
+                # Initialize save_result with a default value
+                
+                recipe_id = data_dict.get('content')
+                print("recipe _ID for printing", recipe_id)
+                print_result = await get_recipe_for_printing(app.state.pool, recipe_id)
+                print("print result from websocket:", print_result)
+
+                await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
             else:
                 # Handle regular messages
                 message = data_dict.get('message', '')

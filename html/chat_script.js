@@ -82,14 +82,47 @@ function initializeWebSocket() {
                     // Handle other statuses, like errors
                     showNotificationBubble('Failed to save recipe');
                 }
+            } else if (msg.action === 'recipe_printed') {
+                // Extract the HTML-formatted recipe data
+                var recipeHtml = msg.data;
+            
+                // Create a new window or an invisible iframe for printing
+                var printWindow = window.open('', '_blank');
+            
+                // Set the document content for printing
+                printWindow.document.write('<html><head><title>Print Recipe</title></head><body>');
+                printWindow.document.write(recipeHtml);  // Insert the HTML-formatted recipe
+                printWindow.document.write('</body></html>');
+            
+                printWindow.document.close(); // Necessary for some browsers
+            
+                // Wait for the content to fully load
+                printWindow.onload = function() {
+                    // Open the print dialog
+                    printWindow.print();
+                    // Close the print window after printing (optional)
+                    printWindow.close();
+                };
+                        
+            
             } else {
                 hideTypingIndicator();
                 var messageElement;
                 if (msg.type === 'recipe') {
                     messageElement = $('<div class="message-bubble recipe-message">'); // Add 'recipe-message' class
                     var messageContent = $('<div class="message-content">').html(msg.response);
+                    // Create a Print button
+                    var printButton = $('<button class="print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
+                     // Add click event for Print button
+                
+                     printButton.on('click', function() {
+                    // Send a message to the WebSocket server to request formatted recipe data
+                    var recipeId = $(this).data('recipe-id');
+                    socket.send(JSON.stringify({ type: 'print_recipe', recipe_id: recipeId }));
+                });
+                
                     var saveButton = $('<button class="save-recipe-button" data-recipe-id="' + msg.recipe_id + '">Save Recipe</button>');
-                    messageElement.append(messageContent, saveButton);
+                    messageElement.append(messageContent, saveButton, printButton);
                 } else {
                     messageElement = $('<div class="message bot">').html(msg.response);
                 }
@@ -173,6 +206,33 @@ $(document).ready(function() {
                     
                 };
                 socket.send(JSON.stringify(saveCommand));
+                
+                
+            } else {
+                console.error('WebSocket is not open.');
+            
+            }
+        } else {
+            console.error("No .message-content found alongside the Save Recipe button.");
+        }
+    
+    
+    });
+    $(document).on('click', 'print-recipe-button', function() {
+        var recipeId = $(this).data('recipe-id')
+        var messageContent = $(this).siblings('.message-content');
+        
+        if (messageContent.length) {
+            var recipeContent = messageContent.text();
+            
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                var PrintCommand = {
+                    action: 'print_recipe',
+                    content: recipeId
+                    
+                };
+                socket.send(JSON.stringify(PrintCommand));
                 
                 
             } else {
