@@ -143,6 +143,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # Renew the session expiry time
             redis_client.expire(session_id, 3600)
+            print("data dict", data_dict)
+            print("data", data)
             #print("data_dict from receive_text:", data_dict)
             
             if data_dict.get('action') == 'pong':
