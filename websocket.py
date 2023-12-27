@@ -171,6 +171,7 @@ async def websocket_endpoint(websocket: WebSocket):
                    
                    print("save result:", save_result)
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
+                continue
             
             if 'action' in data_dict and data_dict['action'] == 'print_recipe':
                 # Handle the print_recipe recipe action
@@ -183,6 +184,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("print result from websocket:", print_result)
 
                 await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
+                continue
             else:
                 # Handle regular messages
                 message = data_dict.get('message', '')

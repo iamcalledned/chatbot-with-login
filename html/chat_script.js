@@ -44,6 +44,7 @@ function initializeWebSocket() {
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
+            console.log('Received message:', msg);
         
             if (msg.action === 'ping') {
                 console.log('Received ping message');
@@ -112,14 +113,8 @@ function initializeWebSocket() {
                     messageElement = $('<div class="message-bubble recipe-message">'); // Add 'recipe-message' class
                     var messageContent = $('<div class="message-content">').html(msg.response);
                     // Create a Print button
-                    var printButton = $('<button class="print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
-                     // Add click event for Print button
-                
-                     printButton.on('click', function() {
-                    // Send a message to the WebSocket server to request formatted recipe data
-                    var recipeId = $(this).data('recipe-id');
-                    socket.send(JSON.stringify({ type: 'print_recipe', recipe_id: recipeId }));
-                });
+                    var printButton = $('<button class=".print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
+                   
                 
                     var saveButton = $('<button class="save-recipe-button" data-recipe-id="' + msg.recipe_id + '">Save Recipe</button>');
                     messageElement.append(messageContent, saveButton, printButton);
@@ -218,7 +213,8 @@ $(document).ready(function() {
     
     
     });
-    $(document).on('click', 'print-recipe-button', function() {
+    $(document).on('click', '.print-recipe-button', function() {
+        console.log("print recipe clicked")
         var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
         

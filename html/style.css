@@ -329,6 +329,25 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
     transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
+.print-recipe-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    float: left; 
+    margin-right: 10px; /* Add some right margin if needed */
+    /* Or, if you're using flexbox: */
+    /* margin-left: auto; */
+    background-color: #40ff70; /* A bright, modern color */
+    color: white; /* White text */
+    border: none; /* No border */
+    border-radius: 20px; /* Rounded corners */
+    padding: 10px 20px; /* Top/bottom and left/right padding */
+    text-transform: uppercase; /* Makes the text uppercase */
+    font-weight: bold; /* Makes the text bold */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
 .srecipe-saved-button {
     display: inline-block;
     margin-top: 10px;
