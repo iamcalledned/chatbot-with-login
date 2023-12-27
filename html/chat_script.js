@@ -113,7 +113,7 @@ function initializeWebSocket() {
                     messageElement = $('<div class="message-bubble recipe-message">'); // Add 'recipe-message' class
                     var messageContent = $('<div class="message-content">').html(msg.response);
                     // Create a Print button
-                    var printButton = $('<button class=".print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
+                    var printButton = $('<button class="print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
                    
                 
                     var saveButton = $('<button class="save-recipe-button" data-recipe-id="' + msg.recipe_id + '">Save Recipe</button>');
@@ -210,8 +210,7 @@ $(document).ready(function() {
         } else {
             console.error("No .message-content found alongside the Save Recipe button.");
         }
-    
-    
+       
     });
     $(document).on('click', '.print-recipe-button', function() {
         console.log("print recipe clicked")
@@ -241,6 +240,7 @@ $(document).ready(function() {
     
     
     });
+    
     
     window.addEventListener('load', () => {
         function updateOnlineStatus() {

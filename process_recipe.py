@@ -42,13 +42,13 @@ async def process_recipe(pool, message_content, userID):
             # Regular expression for extracting title, servings, and times
             title_match = re.search(r"[Aa] recipe for:? (.+?)\n", recipe_text)
 
-            servings_match = re.search(r"Servings: (.+?)\n", recipe_text)
-            prep_time_match = re.search(r"Prep time: (.+?)\n", recipe_text)
-            cook_time_match = re.search(r"Cook time: (.+?)\n", recipe_text)
-            total_time_match = re.search(r"Total time: (.+?)\n", recipe_text)
+            servings_match = re.search(r"Servings: (.+?)\n", recipe_text, re.IGNORECASE)
+            prep_time_match = re.search(r"Prep time: (.+?)\n", recipe_text, re.IGNORECASE)
+            cook_time_match = re.search(r"Cook time: (.+?)\n", recipe_text, re.IGNORECASE)
+            total_time_match = re.search(r"Total time: (.+?)\n", recipe_text, re.IGNORECASE)
 
             # Ingredient extraction
-            ingredients_match = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL)
+            ingredients_match = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL, re.IGNORECASE)
             if ingredients_match:
                 ingredients_text = ingredients_match.group(1)
                 ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
@@ -66,7 +66,7 @@ async def process_recipe(pool, message_content, userID):
                 ingredients = []  # or handle the error appropriately
 
             # Instruction extraction
-            instructions_section_match = re.search(r"(Instructions|Directions):\n", recipe_text)
+            instructions_section_match = re.search(r"(Instructions|Directions):\n", recipe_text, re.IGNORECASE)
             if instructions_section_match:
                 # Find the start index of instructions
                 start_index = instructions_section_match.end()
