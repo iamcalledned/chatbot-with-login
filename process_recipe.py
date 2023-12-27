@@ -48,7 +48,7 @@ async def process_recipe(pool, message_content, userID):
             total_time_match = re.search(r"Total time: (.+?)\n", recipe_text, re.IGNORECASE)
 
             # Ingredient extraction
-            ingredients_match = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL, re.IGNORECASE)
+            ingredients_match = re.search(r"Ingredients:\n(.*?)\n\nInstructions:", recipe_text, re.DOTALL)
             if ingredients_match:
                 ingredients_text = ingredients_match.group(1)
                 ingredients_lines = [line.strip() for line in ingredients_text.split('\n') if line.strip()]
