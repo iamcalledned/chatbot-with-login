@@ -91,6 +91,7 @@ async def process_recipe(pool, message_content, userID):
                 "ingredients": ingredients,
                 "instructions": instructions
             }
+            print("recipe data", recipe_data)
             for ingredient_dict in recipe_data['ingredients']:
                 ingredient_text = ingredient_dict['item']
                 
