@@ -311,24 +311,23 @@ function updateShoppingListUI(shoppingList) {
 }
 
 function displayUserRecipes(recipes) {
-    const recipeBox = $('#recipe-box-overlay');
+    const recipeBox = $('#recipe-box');
     recipeBox.empty(); // Clear the existing recipes if any
 
     recipes.forEach(function(recipe) {
-        // Create elements for each recipe title
-        var recipeElement = $('<div></div>').addClass('recipe-title').text(recipe.title);
-        recipeElement.click(function() {
+        // Create list item elements for each recipe title
+        var recipeItem = $('<li></li>').addClass('recipe-title').text(recipe.title);
+        recipeItem.click(function() {
             // When a recipe is clicked, request to print it
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ action: 'print_recipe', recipeId: recipe.id }));
             }
         });
-        recipeBox.append(recipeElement);
+        recipeBox.append(recipeItem);
     });
 
-    recipeBox.removeClass('hidden'); // Show the recipe box overlay
+    $('#recipe-box-overlay').removeClass('hidden'); // Show the recipe box overlay
 }
-
 
 function showOverlay(title, content) {
     const overlay = $('<div class="overlay"></div>');
