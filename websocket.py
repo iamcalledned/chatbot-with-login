@@ -175,15 +175,13 @@ async def websocket_endpoint(websocket: WebSocket):
             
             if 'action' in data_dict and data_dict['action'] == 'get_user_recipes':
                 user_id = await get_user_id(app.state.pool, username)
+                print("user id for get recipe", user_id)
                 if user_id:
                     saved_recipes = await get_saved_recipes_for_user(app.state.pool, user_id)
                     await websocket.send_text(json.dumps({
                         'action': 'user_recipes_list',
                         'recipes': saved_recipes
                     }))
-                else:
-                    # Handle the case where the user ID could not be found
-                    pass
                 continue
 
             if 'action' in data_dict and data_dict['action'] == 'print_recipe':
