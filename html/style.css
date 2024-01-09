@@ -264,7 +264,7 @@ body {
 
   .options-menu.show {
     display: block; /* This makes the menu visible when the 'show' class is added */
-    background-color: rgb(104, 102, 102); /* This is just for testing, you can remove it later */
+    background-color: rgb(255, 255, 255); /* This is just for testing, you can remove it later */
 }
 
 /* Add styles for the shopping list overlay */
@@ -286,6 +286,13 @@ body {
 }
 
 .shopping-list-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 90%;
+    max-width: 400px;
+}
+.recipe-box-content {
     background: white;
     padding: 20px;
     border-radius: 5px;

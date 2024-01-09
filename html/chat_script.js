@@ -23,6 +23,17 @@ function initializeShoppingList() {
     });
 }
 
+function initializeRecipeBox() {
+    $('#recipe-box-button').click(function() {
+        $('#recipe-box-overlay').removeClass('hidden');
+    });
+
+    $('#close-recipe-box').click(function() {
+        $('#recipe-box-overlay').addClass('hidden');
+    });
+}
+
+
 function initializeWebSocket() {
     if (!socket || socket.readyState === WebSocket.CLOSED) {
         socket = new WebSocket('wss://www.whattogrill.com:8055');
@@ -159,6 +170,7 @@ function sendMessage() {
 $(document).ready(function() {
          initializeWebSocket();
          initializeShoppingList();
+         initializeRecipeBox();
     
 
     $('#send-button').click(sendMessage);

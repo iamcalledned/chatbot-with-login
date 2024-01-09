@@ -20,6 +20,7 @@
             <div class="options-menu">
                 <ul class="menu-items">
                     <li class="menu-item" id="shopping-list-button">Shopping List</li>
+                    <li class="menu-item" id="recipe-box-button">Recipe Box</li>
                     <li class="menu-item" id="logout">Logout</li>
                 </ul>
             </div>
@@ -53,6 +54,17 @@
             <button id="close-shopping-list">Close</button>
         </div>
     </div>
+        <!-- Recipe Box Overlay -->
+        <div id="recipe-box-overlay" class="overlay hidden">
+            <div class="recipe-box-content">
+                <h2>Recipe Box</h2>
+                <ul id="recipe-box">
+                    <!-- recipes will go here-->
+                </ul>
+                <button id="close-recipe-box">Close</button>
+            </div>
+        </div>
+    
 
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
