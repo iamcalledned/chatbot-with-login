@@ -180,7 +180,7 @@ async def get_saved_recipes_for_user(pool, username):
             # First, fetch the userID from the user_data table using the username
             await cur.execute("SELECT userID FROM user_data WHERE username = %s", (username,))
             user = await cur.fetchone()
-            
+            print("userID:", username, user)
             if user is None:
                 return []  # Or handle the absence of user in an appropriate way for your application
             
