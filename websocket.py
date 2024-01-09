@@ -179,6 +179,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("user id for get recipe", user_id)
                 if user_id:
                     saved_recipes = await get_saved_recipes_for_user(app.state.pool, user_id)
+                    print("saved recipes:", saved_recipes)
                     await websocket.send_text(json.dumps({
                         'action': 'user_recipes_list',
                         'recipes': saved_recipes

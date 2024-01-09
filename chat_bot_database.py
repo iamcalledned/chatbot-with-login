@@ -174,22 +174,18 @@ async def un_favorite_recipe(pool, userID, recipe_id):
             await conn.commit()
             return save_result
         
-async def get_saved_recipes_for_user(pool, username):
+async def get_saved_recipes_for_user(pool, user_id):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # First, fetch the userID from the user_data table using the username
-            await cur.execute("SELECT userID FROM user_data WHERE username = %s", (username,))
-            user = await cur.fetchone()
-            print("userID:", username, user)
-            if user is None:
-                return []  # Or handle the absence of user in an appropriate way for your application
-            
-            user_id = user['userID']
-            
-            # Then, fetch the user's saved recipes using the userID
-            await cur.execute("SELECT recipe_id, title FROM recipes WHERE userID = %s", (user_id,))
+            # SQL query to fetch the user's saved recipes by joining with the recipes table
+            sql = """
+                SELECT r.recipe_id, r.title 
+                FROM recipes r
+                INNER JOIN favorite_recipes f ON r.recipe_id = f.recipe_id
+                WHERE f.userID = %s
+            """
+            await cur.execute(sql, (user_id,))
             saved_recipes = await cur.fetchall()
-            
             return saved_recipes
 
 
