@@ -174,6 +174,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 continue
             
             if 'action' in data_dict and data_dict['action'] == 'get_user_recipes':
+                print("user name from get recipe action:", username)
                 user_id = await get_user_id(app.state.pool, username)
                 print("user id for get recipe", user_id)
                 if user_id:
