@@ -25,14 +25,16 @@ function initializeShoppingList() {
 
 function initializeRecipeBox() {
     $('#recipe-box-button').click(function() {
-        $('#recipe-box-overlay').removeClass('hidden');
+        // Request the user's recipes when they click the Recipe Box button
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ action: 'get_user_recipes' }));
+        }
     });
 
     $('#close-recipe-box').click(function() {
         $('#recipe-box-overlay').addClass('hidden');
     });
 }
-
 
 function initializeWebSocket() {
     if (!socket || socket.readyState === WebSocket.CLOSED) {
@@ -70,7 +72,10 @@ function initializeWebSocket() {
             
             } else if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
-            
+                
+            } else if (msg.action === 'user_recipes_list') {
+                    displayUserRecipes(msg.recipes); // Function to handle displaying the recipes
+                            
             } else if (msg.action === 'force_logout') {
                 // Redirect to login page
                 window.location.href = '/login'; // Adjust URL as needed
@@ -304,6 +309,26 @@ function updateShoppingListUI(shoppingList) {
         $('#shopping-list').append(listItem);
     });
 }
+
+function displayUserRecipes(recipes) {
+    const recipeBox = $('#recipe-box-overlay');
+    recipeBox.empty(); // Clear the existing recipes if any
+
+    recipes.forEach(function(recipe) {
+        // Create elements for each recipe title
+        var recipeElement = $('<div></div>').addClass('recipe-title').text(recipe.title);
+        recipeElement.click(function() {
+            // When a recipe is clicked, request to print it
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ action: 'print_recipe', recipeId: recipe.id }));
+            }
+        });
+        recipeBox.append(recipeElement);
+    });
+
+    recipeBox.removeClass('hidden'); // Show the recipe box overlay
+}
+
 
 function showOverlay(title, content) {
     const overlay = $('<div class="overlay"></div>');

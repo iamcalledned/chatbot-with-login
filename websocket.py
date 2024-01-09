@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user
 from process_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -145,7 +145,7 @@ async def websocket_endpoint(websocket: WebSocket):
             redis_client.expire(session_id, 3600)
             print("data dict", data_dict)
             print("data", data)
-            #print("data_dict from receive_text:", data_dict)
+            
             
             if data_dict.get('action') == 'pong':
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
@@ -173,6 +173,19 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
                 continue
             
+            if 'action' in data_dict and data_dict['action'] == 'get_user_recipes':
+                user_id = await get_user_id(app.state.pool, username)
+                if user_id:
+                    saved_recipes = await get_saved_recipes_for_user(app.state.pool, user_id)
+                    await websocket.send_text(json.dumps({
+                        'action': 'user_recipes_list',
+                        'recipes': saved_recipes
+                    }))
+                else:
+                    # Handle the case where the user ID could not be found
+                    pass
+                continue
+
             if 'action' in data_dict and data_dict['action'] == 'print_recipe':
                 # Handle the print_recipe recipe action
                 
