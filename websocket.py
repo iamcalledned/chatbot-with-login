@@ -202,14 +202,13 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'remove_recipe':
                 # Handle removing favorite_recipe
                 
-                
-                
                 recipe_id = data_dict.get('content')
                 print("recipe _ID to remove", recipe_id)
                 user_id = await get_user_id(app.state.pool, username)
                 print("user id for remove", user_id, username)
-                #remove_result = await get_recipe_for_printing(app.state.pool, recipe_id)
-                #print("print result from websocket:", print_result)
+                remove_result = await get_recipe_for_printing(app.state.pool, user_id, recipe_id)
+                print("remove result from websocket:", remove_result)
+                
 
                 #await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
                 continue
