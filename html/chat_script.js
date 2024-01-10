@@ -41,17 +41,54 @@ function displayRecentMessages(messages) {
 
         // Check the 'MessageType' to determine if it's from the user or the bot
         if (message.MessageType === 'user') {
-            messageElement = $('<div class="message user">').text(message.Message);
+            messageElement = $('<div class="message user">').text('You: ' + message.Message);
         } else if (message.MessageType === 'bot') {
-            messageElement = $('<div class="message bot">').text(message.Message);
+            messageElement = $('<div class="message bot">').text('Ned: ' + message.Message);
         } else {
             messageElement = $('<div class="message">').text(message.Message); // Fallback for undefined MessageType
         }
+        // Add the timestamp as a data attribute
+        messageElement.attr('data-timestamp', message.Timestamp);
 
         $('#messages').append(messageElement);
     });
 
     $('#messages').scrollTop($('#messages')[0].scrollHeight); // Auto-scroll to the latest message
+}
+
+function displayMoreMessages(messages) {
+    messages.forEach(function(message) {
+        var messageElement;
+
+        // Check the 'MessageType' to determine if it's from the user or the bot
+        if (message.MessageType === 'user') {
+            messageElement = $('<div class="message user">').text('You: ' + message.Message);
+        } else if (message.MessageType === 'bot') {
+            messageElement = $('<div class="message bot">').text('Ned: ' + message.Message);
+        } else {
+            messageElement = $('<div class="message">').text(message.Message); // Fallback for undefined MessageType
+        }
+
+        // Add the timestamp as a data attribute
+        messageElement.attr('data-timestamp', message.Timestamp);
+
+        // Prepend the message at the beginning of the messages container
+        $('#messages').prepend(messageElement);
+    });
+
+    // Optional: Adjust scroll position if necessary
+    if(messages.length > 0) {
+        adjustScrollAfterPrepending(messages.length);
+    }
+}
+
+
+function getOldestMessageTimestamp() {
+    // Get the first message in the container (which is the oldest due to reverse order)
+    var oldestMessage = $('#messages .message:first');
+
+    // Return its timestamp
+    return oldestMessage.data('timestamp');
 }
 
 
@@ -100,6 +137,10 @@ function initializeWebSocket() {
 
             } else if (msg.action === 'recent_messages') {
                     displayRecentMessages(msg.messages);
+     
+            } else if (msg.action === 'older_messages') {
+                    displayMoreMessages(msg.messages);
+    
             
             } else if (msg.action === 'user_recipes_list') {
                     displayUserRecipes(msg.recipes); // Function to handle displaying the recipes
@@ -338,6 +379,7 @@ $(document).ready(function() {
     
     
     document.addEventListener("visibilitychange", handleVisibilityChange);
+
     
     document.querySelector('.hamburger-menu').addEventListener('click', function() {
         document.querySelector('.options-menu').classList.toggle('show');
@@ -346,6 +388,13 @@ $(document).ready(function() {
     document.getElementById('logout').addEventListener('click', function() {
         sessionStorage.clear();
         window.location.href = '/login'; // Adjust the URL as needed
+    });
+
+    document.getElementById('messages').addEventListener('scroll', function() {
+        if (this.scrollTop === 0) {
+            console.log('Reached top of messages');
+            loadMoreMessages();
+        }
     });
 });
 
@@ -373,6 +422,18 @@ function updateShoppingListUI(shoppingList) {
         $('#shopping-list').append(listItem);
     });
 }
+
+function loadMoreMessages() {
+    var lastMessageTimestamp = getOldestMessageTimestamp();
+    if (lastMessageTimestamp) {
+        socket.send(JSON.stringify({
+            action: 'load_more_messages',
+            last_loaded_timestamp: lastMessageTimestamp
+        }));
+    }
+}
+
+
 
 function displayUserRecipes(recipes) {
     const recipeBox = $('#recipe-box');

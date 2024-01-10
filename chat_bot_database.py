@@ -112,7 +112,7 @@ async def get_messages_before(pool, user_id, last_loaded_timestamp, limit=3):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             sql = '''
-            SELECT * FROM conversations
+            SELECT Message, MessageType, Timestamp  FROM conversations
             WHERE userID = %s AND Timestamp < %s
             ORDER BY Timestamp DESC
             LIMIT %s;
