@@ -93,14 +93,16 @@ async def get_conversations_by_run(pool, run_id):
             return await cur.fetchall()
 
 async def get_recent_messages(pool, user_id, limit=10):
-    async with pool.acquire() as connection:
-        query = """
-        SELECT * FROM conversations
-        WHERE userID = $1
-        ORDER BY Timestamp DESC
-        LIMIT $2;
-        """
-        return await connection.fetch(query, user_id, limit)
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            sql = '''
+            SELECT * FROM conversations
+            WHERE userID = %s
+            ORDER BY Timestamp DESC
+            LIMIT %s;
+            '''
+            await cur.execute(sql, user_id, limit)
+            return await cur.fetchall()
 
 
 async def update_conversation_status(pool, conversation_id, new_status):
