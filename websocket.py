@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user, un_favorite_recipe
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user, un_favorite_recipe, get_recent_messages
 from process_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -120,6 +120,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 username = session_data['username']
                 # Renew the session expiry time upon successful connection
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
+                #get and send recent messages
+                userID = await get_user_id(app.state.pool, username)
+                recent_messages = await get_recent_messages(app.state.pool, userID)
+                await websocket.send_text(json.dumps({
+                        'action': 'recent_messages',
+                        'messages': recent_messages
+                        }))
             else:
                 await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid session'}))
                 #await websocket.send_text(json.dumps({'error': 'Invalid session'}))
@@ -151,10 +158,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
                 continue
 
-            # Renew the session expiry time after receiving each message
-            redis_client.expire(session_id, 3600)  # Reset expiry to another hour
-            print("extended redis")
-            
             if 'action' in data_dict and data_dict['action'] == 'save_recipe':
                 # Handle the save recipe action
                 
