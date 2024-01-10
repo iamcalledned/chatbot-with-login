@@ -198,7 +198,21 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
                 continue
-            else:
+            
+            if 'action' in data_dict and data_dict['action'] == 'reove_recipe':
+                # Handle removing favorite_recipe
+                
+                # Initialize save_result with a default value
+                
+                recipe_id = data_dict.get('content')
+                print("recipe _ID for printing", recipe_id)
+                print_result = await get_recipe_for_printing(app.state.pool, recipe_id)
+                print("print result from websocket:", print_result)
+
+                await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
+                continue
+            
+            if 'action' in data_dict and data_dict['action'] == 'chat_message':
                 # Handle regular messages
                 message = data_dict.get('message', '')
                 user_ip = "User IP"  # Placeholder for user IP
@@ -214,6 +228,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 }
                 
                 await websocket.send_text(json.dumps(response))
+                continue
+            else:
+                print("Invalid action:", data_dict)
 
     except WebSocketDisconnect:
         print(f"WebSocket disconnected for user {username}")

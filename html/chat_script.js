@@ -156,6 +156,7 @@ function sendMessage() {
          if (socket.readyState === WebSocket.OPEN) {
             
             var messageObject = {
+                action: 'chat_message',
                 message: message
                 
             };
@@ -315,14 +316,37 @@ function displayUserRecipes(recipes) {
     recipeBox.empty(); // Clear the existing recipes if any
 
     recipes.forEach(function(recipe) {
-        // Create list item elements for each recipe title
-        var recipeItem = $('<li></li>').addClass('recipe-title').text(recipe.title);
-        recipeItem.click(function() {
-            // When a recipe is clicked, request to print it
+        // Create list item container
+        var recipeItem = $('<li></li>').addClass('recipe-item');
+        
+        // Create the recipe title span
+        var recipeTitle = $('<span></span>').addClass('recipe-title').text(recipe.title);
+        
+        // Create the remove button
+        var removeButton = $('<button></button>').addClass('remove-recipe-button').text('Remove');
+        
+        // Attach click event to the recipe title
+        recipeTitle.click(function() {
+            console.log("Recipe clicked:", recipe.recipe_id);
             if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ action: 'print_recipe', recipeId: recipe.recipe_id }));
+                socket.send(JSON.stringify({ action: 'print_recipe', content: recipe.recipe_id }));
             }
         });
+        
+        // Attach click event to the remove button
+        removeButton.click(function() {
+            console.log("Remove clicked for recipe:", recipe.recipe_id);
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ action: 'remove_recipe', content: recipe.recipe_id }));
+            }
+            recipeItem.remove(); // Remove the item from the DOM
+        });
+        
+        // Append the title and button to the list item container
+        recipeItem.append(recipeTitle);
+        recipeItem.append(removeButton);
+        
+        // Append the item container to the list
         recipeBox.append(recipeItem);
     });
 

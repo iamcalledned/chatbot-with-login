@@ -297,7 +297,7 @@ body {
     max-width: 400px;
 }
 /* Recipe Box Overlay - covers the entire screen with a semi-transparent background */
-#recipe-box-overlay {
+.recipe-box-overlay {
     position: fixed; /* Stay in the same place even when the window is scrolled */
     top: 0;
     left: 0;
@@ -311,12 +311,13 @@ body {
 }
 
 /* Hidden class for toggling display */
-#recipe-box-overlay.hidden {
+.recipe-box-overlay.hidden {
     display: none;
 }
 
 /* Recipe Box Content - the white box that contains the recipes */
 .recipe-box-content {
+    position: relative; /* Keep this the same */
     background: white;
     padding: 20px;
     border-radius: 5px;
@@ -326,36 +327,59 @@ body {
     overflow-y: auto; /* Add a scrollbar if the content overflows */
 }
 
+
+.recipe-list-container {
+    max-height: calc(80vh - 60px); /* Adjust the value as needed, 60px is the height of the header */
+    overflow-y: auto;
+}
+
 /* Individual Recipe Titles within the Recipe Box */
 .recipe-title {
     background: #f0f0f0; /* Light grey background */
-    margin: 5px 0; /* Add some space between titles */
-    padding: 10px; /* Padding inside the recipe titles */
+    margin: 2px 0; /* Add some space between titles */
+    padding: 5px; /* Padding inside the recipe titles */
     border-radius: 4px; /* Rounded corners */
     cursor: pointer; /* Change cursor to indicate it's clickable */
     white-space: normal; /* Allow text to wrap */
     word-wrap: break-word; /* If the word is too long, break and move to the next line */
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Show ellipsis if text is too long */
+    max-width: 100%; /* Ensure it does not exceed the container width */
+    flex-grow: 1; /* Allows the title to grow and fill available space */
+    margin-right: 10px; /* Spacing between the title and the button */
+}
+.remove-recipe-button {
+    padding: 5px 10px; /* Smaller padding for a smaller button */
+    background-color: #d9534f; /* Or any color you wish */
+    color: white;
+    border: none;
+    border-radius: 4px; /* Rounded corners for the button */
+    cursor: pointer;
+    /* Add any additional styles to match your design */
 }
 
+
+
+/* Button to Close the Recipe Box Overlay */
 /* Button to Close the Recipe Box Overlay */
 #close-recipe-box {
-    display: block; /* Make the button a block element */
-    margin: 10px auto; /* Center the button horizontally */
-    padding: 10px 20px; /* Padding inside the button */
-    background-color: #d9534f; /* Bootstrap’s btn-danger background color */
-    color: white; /* Text color */
-    border: none; /* No border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Change cursor to indicate it's clickable */
+    position: absolute; /* Position absolute to the overlay */
+    right: 20px; /* Align to the right side of the overlay */
+    top: 20px; /* Align to the top of the overlay */
+    padding: 10px 20px;
+    background-color: #644fd9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1001; /* Ensure it's above the overlay content */
 }
 
 /* Scrollable Recipe List */
 #recipe-box {
     list-style-type: none; /* Remove default list bullets */
-    padding: 0; /* Remove default padding */
-    margin: 0; /* Remove default margin */
+    padding: 5px; /* Remove default padding */
+    margin: 20px 0; /* Remove default margin */
 }
 
 .menu-items {
@@ -466,4 +490,39 @@ body {
     box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
     display: none;
     z-index: 1000; /* Ensure it appears above other elements */
+}
+
+/* Style for individual recipe items */
+.recipe-item {
+    display: flex; /* Aligns title and button in a row */
+    justify-content: space-between; /* Puts space between title and button */
+    align-items: center; /* Vertically centers items in the row */
+    background: #f0f0f0; /* Light grey background */
+    margin: 5px 0; /* Space between recipe items */
+    padding: 5px; /* Padding inside each recipe item */
+    border-radius: 4px; /* Rounded corners for the recipe item */
+}
+
+/* Style for the recipe title within each item */
+.recipe-title {
+    flex-grow: 1; /* Allows the title to take up available space */
+    margin-right: 10px; /* Ensures spacing between title and remove button */
+    /* Inherits other styles from your existing .recipe-title */
+}
+
+/* Style for the remove button within each item */
+.remove-recipe-button {
+    padding: 5px 10px; /* Smaller padding for a smaller button */
+    background-color: #d9534f; /* Or any color you wish */
+    color: white; /* Text color */
+    border: none; /* No border for the button */
+    border-radius: 4px; /* Rounded corners for the button */
+    cursor: pointer; /* Cursor indicates the button is clickable */
+    /* You may want to adjust the font size if the button text is too large or small */
+    font-size: 0.8em; /* Example: setting a smaller font size for the button */
+}
+
+/* You might want to add a hover effect for the button */
+.remove-recipe-button:hover {
+    background-color: #b23c35; /* Darker shade on hover for feedback */
 }
