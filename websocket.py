@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user, un_favorite_recipe
 from process_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -206,7 +206,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("recipe _ID to remove", recipe_id)
                 user_id = await get_user_id(app.state.pool, username)
                 print("user id for remove", user_id, username)
-                remove_result = await get_recipe_for_printing(app.state.pool, user_id, recipe_id)
+                remove_result = await un_favorite_recipe(app.state.pool, user_id, recipe_id)
                 print("remove result from websocket:", remove_result)
                 
 
