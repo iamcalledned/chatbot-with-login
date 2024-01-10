@@ -101,7 +101,7 @@ async def get_recent_messages(pool, user_id, limit=10):
             ORDER BY Timestamp DESC
             LIMIT %s;
             '''
-            await cur.execute(sql, user_id, limit)
+            await cur.execute(sql, (user_id, limit))
             return await cur.fetchall()
 
 
