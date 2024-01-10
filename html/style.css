@@ -311,7 +311,7 @@ body {
 }
 
 /* Hidden class for toggling display */
-.hidden {
+#recipe-box-overlay.hidden {
     display: none;
 }
 
