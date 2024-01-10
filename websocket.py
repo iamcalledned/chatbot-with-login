@@ -10,7 +10,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from openai_utils_generate_answer import generate_answer
 from config import Config
-from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user, un_favorite_recipe, get_recent_messages
+from chat_bot_database import create_db_pool, get_user_info_by_session_id, save_recipe_to_db, clear_user_session_id, get_user_id, favorite_recipe, get_recipe_for_printing, get_saved_recipes_for_user, un_favorite_recipe, get_recent_messages, get_messages_before
 from process_recipe import process_recipe
 from fastapi import APIRouter
 from fastapi import Request
@@ -123,8 +123,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
                 #get and send recent messages
                 userID = await get_user_id(app.state.pool, username)
-                last_loaded_timestamp = datetime.datetime.now()
-                recent_messages = await get_recent_messages(app.state.pool, userID, last_loaded_timestamp)
+                
+                recent_messages = await get_recent_messages(app.state.pool, userID)
                 await websocket.send_text(json.dumps({
                         'action': 'recent_messages',
                         'messages': recent_messages
@@ -191,6 +191,17 @@ async def websocket_endpoint(websocket: WebSocket):
                         'recipes': saved_recipes
                     }))
                 continue
+
+
+            if 'action' in data_dict and data_dict['action'] == 'load_more_messages': 
+                userID = await get_user_id(app.state.pool, username)
+                last_loaded_timestamp = data_dict.get('last_loaded_timestamp')
+                recent_messages = await get_messages_before(app.state.pool, userID, last_loaded_timestamp)
+                await websocket.send_text(json.dumps({
+                        'action': 'recent_messages',
+                        'messages': recent_messages
+                        }))
+
 
             if 'action' in data_dict and data_dict['action'] == 'print_recipe':
                 # Handle the print_recipe recipe action
