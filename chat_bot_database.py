@@ -162,17 +162,19 @@ async def favorite_recipe(pool, userID, recipe_id):
             return save_result
         
 async def un_favorite_recipe(pool, userID, recipe_id):
-    print("hit the pool")
-    current_time = datetime.datetime.now().isoformat()
-    save_result = None
+    print("removing favorite")
+    remove_result = None
     async with pool.acquire() as conn:
-   
         async with conn.cursor() as cur:
-            sql = '''INSERT INTO favorite_recipes (userID, recipe_id, saved_time)
-                     VALUES(%s, %s, %s)'''
-            await cur.execute(sql, (userID, recipe_id, current_time))
+            # Use DELETE statement to remove the recipe from favorites
+            sql = '''DELETE FROM favorite_recipes 
+                     WHERE userID = %s AND recipe_id = %s'''
+            await cur.execute(sql, (userID, recipe_id))
             await conn.commit()
-            return save_result
+            # You might want to return the number of affected rows to check if the delete was successful
+            remove_result = cur.rowcount
+            return remove_result
+        
         
 async def get_saved_recipes_for_user(pool, user_id):
     async with pool.acquire() as conn:

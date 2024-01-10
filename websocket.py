@@ -204,9 +204,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 recipe_id = data_dict.get('content')
                 print("recipe _ID to remove", recipe_id)
-                user_id = await get_user_id(app.state.pool, username)
-                print("user id for remove", user_id, username)
-                remove_result = await un_favorite_recipe(app.state.pool, user_id, recipe_id)
+                userID = await get_user_id(app.state.pool, username)
+                print("user id for remove", userID, username)
+                remove_result = await un_favorite_recipe(app.state.pool, userID, recipe_id)
                 print("remove result from websocket:", remove_result)
                 
 
