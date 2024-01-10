@@ -94,19 +94,21 @@ async def get_conversations_by_run(pool, run_id):
             await cur.execute(sql, (run_id,))
             return await cur.fetchall()
 
-async def get_recent_messages(pool, user_id, limit=10):
+async def get_messages_before(pool, user_id, last_loaded_timestamp, limit=10):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             sql = '''
             SELECT * FROM conversations
-            WHERE userID = %s
+            WHERE userID = %s AND Timestamp < %s
             ORDER BY Timestamp DESC
             LIMIT %s;
             '''
-            await cur.execute(sql, (user_id, limit))
+            await cur.execute(sql, (user_id, last_loaded_timestamp, limit))
             rows = await cur.fetchall()
-            # Convert each row to a dict and format datetime objects
+            # Convert rows to dictionaries and format datetime
             return [dict(row, Timestamp=row['Timestamp'].isoformat()) for row in rows]
+
+
 
 async def update_conversation_status(pool, conversation_id, new_status):
     """Update the status of a conversation"""

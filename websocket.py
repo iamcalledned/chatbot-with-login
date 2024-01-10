@@ -22,6 +22,7 @@ from get_recipe_card import get_recipe_card
 import spacy
 import re
 from starlette.websockets import WebSocket
+from datetime import datetime
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -122,7 +123,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 redis_client.expire(session_id, 3600)  # Reset expiry to another hour
                 #get and send recent messages
                 userID = await get_user_id(app.state.pool, username)
-                recent_messages = await get_recent_messages(app.state.pool, userID)
+                last_loaded_timestamp = datetime.datetime.now()
+                recent_messages = await get_recent_messages(app.state.pool, userID, last_loaded_timestamp)
                 await websocket.send_text(json.dumps({
                         'action': 'recent_messages',
                         'messages': recent_messages
