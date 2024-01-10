@@ -76,10 +76,6 @@ function displayMoreMessages(messages) {
         $('#messages').prepend(messageElement);
     });
 
-    // Optional: Adjust scroll position if necessary
-    if(messages.length > 0) {
-        adjustScrollAfterPrepending(messages.length);
-    }
 }
 
 

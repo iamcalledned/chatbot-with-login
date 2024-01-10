@@ -96,8 +96,14 @@ body {
     border-radius: 20px; /* Rounded corners for bot messages */
     padding: 10px 15px; /* Padding for bot messages */
 }
+/* Show recipe message differently */
 .message-bubble.recipe-message {
     border-color: #4CAF50; /* Example: Green border for recipe messages */
+    background-color: #ebf8f2; /* Light green background */
+    /* Other styling specific to recipe messages */
+}
+.message-bubble.shopping-list-message {
+    border-color: #99af4c; /* Example: Green border for recipe messages */
     background-color: #ebf8f2; /* Light green background */
     /* Other styling specific to recipe messages */
 }
@@ -418,6 +424,26 @@ body {
     transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 .print-recipe-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    float: left; 
+    margin-right: 10px; /* Add some right margin if needed */
+    /* Or, if you're using flexbox: */
+    /* margin-left: auto; */
+    background-color: #04611b; /* A bright, modern color */
+    color: white; /* White text */
+    border: none; /* No border */
+    border-radius: 20px; /* Rounded corners */
+    padding: 10px 20px; /* Top/bottom and left/right padding */
+    text-transform: uppercase; /* Makes the text uppercase */
+    font-weight: bold; /* Makes the text bold */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+.save-shopping-list-button {
     display: inline-block;
     margin-top: 10px;
     padding: 5px 10px;
