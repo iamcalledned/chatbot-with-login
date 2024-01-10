@@ -12,6 +12,8 @@ from jwt.algorithms import RSAAlgorithm
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+import json
+from datetime import datetime
 
 # Define the DB_CONFIG directly here or use a separate configuration file
 DB_CONFIG = {
@@ -102,8 +104,9 @@ async def get_recent_messages(pool, user_id, limit=10):
             LIMIT %s;
             '''
             await cur.execute(sql, (user_id, limit))
-            return await cur.fetchall()
-
+            rows = await cur.fetchall()
+            # Convert each row to a dict and format datetime objects
+            return [dict(row, Timestamp=row['Timestamp'].isoformat()) for row in rows]
 
 async def update_conversation_status(pool, conversation_id, new_status):
     """Update the status of a conversation"""

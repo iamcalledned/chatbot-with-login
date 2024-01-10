@@ -35,6 +35,25 @@ function initializeRecipeBox() {
         $('#recipe-box-overlay').addClass('hidden');
     });
 }
+function displayRecentMessages(messages) {
+    messages.reverse().forEach(function(message) {
+        var messageElement;
+
+        // Check the 'MessageType' to determine if it's from the user or the bot
+        if (message.MessageType === 'user') {
+            messageElement = $('<div class="message user">').text(message.Message);
+        } else if (message.MessageType === 'bot') {
+            messageElement = $('<div class="message bot">').text(message.Message);
+        } else {
+            messageElement = $('<div class="message">').text(message.Message); // Fallback for undefined MessageType
+        }
+
+        $('#messages').append(messageElement);
+    });
+
+    $('#messages').scrollTop($('#messages')[0].scrollHeight); // Auto-scroll to the latest message
+}
+
 
 function initializeWebSocket() {
     if (!socket || socket.readyState === WebSocket.CLOSED) {
@@ -42,6 +61,12 @@ function initializeWebSocket() {
 
         socket.onopen = function() {
             displayConnectionMessage('Connected to the server.', 'success');
+            var messageObject = {
+                action: 'load_messages'
+                
+            };
+
+            socket.send(JSON.stringify(messageObject));
             reconnectInterval = 1000; // Reset reconnect interval on successful connection
             
             console.log('WebSocket connected!');
@@ -72,7 +97,10 @@ function initializeWebSocket() {
             
             } else if (msg.action === 'shopping_list_update') {
                 updateShoppingListUI(msg.shoppingList);
-                
+
+            } else if (msg.action === 'recent_messages') {
+                    displayRecentMessages(msg.messages);
+            
             } else if (msg.action === 'user_recipes_list') {
                     displayUserRecipes(msg.recipes); // Function to handle displaying the recipes
                             
@@ -131,10 +159,18 @@ function initializeWebSocket() {
                     // Create a Print button
                     var printButton = $('<button class="print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
                    
-                
+                    // create a Save button
                     var saveButton = $('<button class="save-recipe-button" data-recipe-id="' + msg.recipe_id + '">Save Recipe</button>');
                     messageElement.append(messageContent, saveButton, printButton);
-                } else {
+
+                } else if (msg.type === 'shopping_list') { // Check if message type is shopping list
+                    messageElement = $('<div class="message-bubble shopping-list-message">'); // Use a different class for shopping list messages
+                    var messageContent = $('<div class="message-content">').html(msg.response);
+                    // You could add buttons or other elements specific to a shopping list here
+                    var saveButton = $('<button class="save-shopping-list-button">Save Shopping List</button>');
+                    messageElement.append(messageContent, saveButton);
+
+               } else {
                     messageElement = $('<div class="message bot">').html(msg.response);
                 }
                 $('#messages').append(messageElement);
@@ -205,6 +241,33 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.save-recipe-button', function() {
+        var recipeId = $(this).data('recipe-id')
+        var messageContent = $(this).siblings('.message-content');
+        
+        if (messageContent.length) {
+            var recipeContent = messageContent.text();
+            
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                var saveCommand = {
+                    action: 'save_recipe',
+                    content: recipeId
+                    
+                };
+                socket.send(JSON.stringify(saveCommand));
+                
+                
+            } else {
+                console.error('WebSocket is not open.');
+            
+            }
+        } else {
+            console.error("No .message-content found alongside the Save Recipe button.");
+        }
+       
+    });
+
+    $(document).on('click', '.save-shopping-list-button', function() {
         var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
         
