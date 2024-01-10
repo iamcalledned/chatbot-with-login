@@ -320,7 +320,7 @@ function displayUserRecipes(recipes) {
         recipeItem.click(function() {
             // When a recipe is clicked, request to print it
             if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ action: 'print_recipe', recipeId: recipe.id }));
+                socket.send(JSON.stringify({ action: 'print_recipe', recipeId: recipe.recipe_id }));
             }
         });
         recipeBox.append(recipeItem);
