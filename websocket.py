@@ -127,6 +127,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         'action': 'recent_messages',
                         'messages': recent_messages
                         }))
+                print("recent messages sent", recent_messages)
             else:
                 await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid session'}))
                 #await websocket.send_text(json.dumps({'error': 'Invalid session'}))
