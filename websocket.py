@@ -206,8 +206,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 recipe_id = data_dict.get('content')
                 print("recipe _ID to remove", recipe_id)
-                #print_result = await get_recipe_for_printing(app.state.pool, recipe_id)
-                print("print result from websocket:", print_result)
+                user_id = await get_user_id(app.state.pool, username)
+                print("user id for remove", user_id, username)
+                #remove_result = await get_recipe_for_printing(app.state.pool, recipe_id)
+                #print("print result from websocket:", print_result)
 
                 #await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
                 continue
