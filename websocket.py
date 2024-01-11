@@ -98,6 +98,7 @@ async def websocket_endpoint(websocket: WebSocket):
     client_host, client_port = websocket.client
     client_ip = client_host
     print(f"Client IP: {client_ip}")
+    print("connections at websocket_endpoint:", connections)
     
     
     username = None
