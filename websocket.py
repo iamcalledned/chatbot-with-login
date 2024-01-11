@@ -70,6 +70,8 @@ async def startup_event():
     app.state.pool = await create_pool()
     print("Database pool created")
 
+    print("connections at startup:", connections)
+
 # Function to schedule session data cleanup
 async def clear_session_data_after_timeout(session_id, username):
     try:
