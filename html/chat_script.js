@@ -93,7 +93,7 @@ function initializeWebSocket() {
         socket = new WebSocket('wss://www.whattogrill.com:8055');
 
         socket.onopen = function() {
-            displayConnectionMessage('Connected to the server.', 'success');
+            
             var messageObject = {
                 action: 'load_messages'
                 
@@ -106,7 +106,7 @@ function initializeWebSocket() {
         };
 
         socket.onclose = function(event) {
-            displayConnectionMessage('Connection lost. Reconnecting...', 'warning');
+            
             setTimeout(reconnectWebSocket, reconnectInterval);
             reconnectInterval = Math.min(reconnectInterval * 2, MAX_RECONNECT_INTERVAL); // Exponential backoff
             // console.log('WebSocket closed:', event);
@@ -364,9 +364,7 @@ $(document).ready(function() {
         function updateOnlineStatus() {
             if (navigator.onLine) {
                 reconnectWebSocket(); // Attempt to reconnect WebSocket if not connected
-            } else {
-                displayConnectionMessage('You are offline. Trying to reconnect...', 'warning');
-            }
+            } 
         }
     
         window.addEventListener('online', updateOnlineStatus);
@@ -504,11 +502,6 @@ function handleVisibilityChange() {
         // console.log("Page is now hidden");
         // Additional actions when the page is not visible (if needed)
     }
-}
-function displayConnectionMessage(message, type) {
-    // Display a connection message to the user
-    // Implement this function to show messages using a banner or similar UI element
-    // console.log(`${type.toUpperCase()}: ${message}`);
 }
 
 function reconnectWebSocket() {
