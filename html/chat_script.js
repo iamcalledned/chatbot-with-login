@@ -102,23 +102,23 @@ function initializeWebSocket() {
             socket.send(JSON.stringify(messageObject));
             reconnectInterval = 1000; // Reset reconnect interval on successful connection
             
-            console.log('WebSocket connected!');
+            // console.log('WebSocket connected!');
         };
 
         socket.onclose = function(event) {
             displayConnectionMessage('Connection lost. Reconnecting...', 'warning');
             setTimeout(reconnectWebSocket, reconnectInterval);
             reconnectInterval = Math.min(reconnectInterval * 2, MAX_RECONNECT_INTERVAL); // Exponential backoff
-            console.log('WebSocket closed:', event);
+            // console.log('WebSocket closed:', event);
         };
 
 
         socket.onmessage = function(event) {
             var msg = JSON.parse(event.data);
-            console.log('Received message:', msg);
+            // console.log('Received message:', msg);
         
             if (msg.action === 'ping') {
-                console.log('Received ping message');
+                // console.log('Received ping message');
                 
                 
                 var pongMessage = {
@@ -331,7 +331,7 @@ $(document).ready(function() {
        
     });
     $(document).on('click', '.print-recipe-button', function() {
-        console.log("print recipe clicked")
+        // console.log("print recipe clicked")
         var recipeId = $(this).data('recipe-id')
         var messageContent = $(this).siblings('.message-content');
         
@@ -388,7 +388,7 @@ $(document).ready(function() {
 
     document.getElementById('messages').addEventListener('scroll', function() {
         if (this.scrollTop === 0) {
-            console.log('Reached top of messages');
+            // console.log('Reached top of messages');
             loadMoreMessages();
         }
     });
@@ -447,7 +447,7 @@ function displayUserRecipes(recipes) {
         
         // Attach click event to the recipe title
         recipeTitle.click(function() {
-            console.log("Recipe clicked:", recipe.recipe_id);
+            // console.log("Recipe clicked:", recipe.recipe_id);
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ action: 'print_recipe', content: recipe.recipe_id }));
             }
@@ -455,7 +455,7 @@ function displayUserRecipes(recipes) {
         
         // Attach click event to the remove button
         removeButton.click(function() {
-            console.log("Remove clicked for recipe:", recipe.recipe_id);
+            // console.log("Remove clicked for recipe:", recipe.recipe_id);
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ action: 'remove_recipe', content: recipe.recipe_id }));
             }
@@ -495,20 +495,20 @@ function showNotificationBubble(message) {
 }
 function handleVisibilityChange() {
     if (document.visibilityState === 'visible') {
-        console.log("Page is now visible");
+        // console.log("Page is now visible");
         // Reconnect WebSocket if needed
         if (!socket || socket.readyState === WebSocket.CLOSED) {
             initializeWebSocket();
         }
     } else if (document.visibilityState === 'hidden') {
-        console.log("Page is now hidden");
+        // console.log("Page is now hidden");
         // Additional actions when the page is not visible (if needed)
     }
 }
 function displayConnectionMessage(message, type) {
     // Display a connection message to the user
     // Implement this function to show messages using a banner or similar UI element
-    console.log(`${type.toUpperCase()}: ${message}`);
+    // console.log(`${type.toUpperCase()}: ${message}`);
 }
 
 function reconnectWebSocket() {
