@@ -95,6 +95,7 @@ async def websocket_endpoint(websocket: WebSocket):
         # Obtain client IP address
     client_host, client_port = websocket.client
     client_ip = client_host
+    print(f"Client IP: {client_ip}")
     
     
     username = None
