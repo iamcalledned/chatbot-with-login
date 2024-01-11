@@ -23,6 +23,7 @@ import spacy
 import re
 from starlette.websockets import WebSocket
 from datetime import datetime
+import httpx
 
 # Initialize Redis client
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -51,7 +52,7 @@ async def create_pool():
 
 @router.post("/logout")
 async def logout(request: Request):
-    print("session_id passed in logout", session_id)
+    
     session_id = request.json().get('session_id', '')
     if session_id:
         # Remove session data from Redis
@@ -91,7 +92,11 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     cookies = websocket.cookies
     session_id_from_cookies = cookies.get('session_id')
-    print("session ID from cookies", session_id_from_cookies)
+        # Obtain client IP address
+    client_host, client_port = websocket.client
+    client_ip = client_host
+    
+    
     username = None
     
     async def ping_client():
@@ -110,8 +115,7 @@ async def websocket_endpoint(websocket: WebSocket):
         initial_data = json.loads(initial_data)
         #session_id = initial_data.get('session_id', '')
         session_id = session_id_from_cookies
-        print("initial data", initial_data)
-        print("got a live one, welcome")
+    
 
         if session_id:
             session_data = redis_client.get(session_id)
@@ -129,7 +133,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         'action': 'recent_messages',
                         'messages': recent_messages
                         }))
-                print("recent messages sent", recent_messages)
+    
             else:
                 await websocket.send_text(json.dumps({'action': 'redirect_login', 'error': 'Invalid session'}))
                 #await websocket.send_text(json.dumps({'error': 'Invalid session'}))
@@ -153,8 +157,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # Renew the session expiry time
             redis_client.expire(session_id, 3600)
-            print("data dict", data_dict)
-            print("data", data)
             
             
             if data_dict.get('action') == 'pong':
@@ -168,24 +170,24 @@ async def websocket_endpoint(websocket: WebSocket):
                 save_result = 'not processed'  # You can set a default value that makes sense for your application  
                 userID = await get_user_id(app.state.pool, username)
                 recipe_id = data_dict.get('content')
-                print("recipe _ID", recipe_id)
+    
                 save_result = await favorite_recipe(app.state.pool, userID, recipe_id)
-                print("save result from websocket:", save_result)
+    
 
                 if save_result == 'Success':
                    save_result = 'success'
                    
-                   print("save result:", save_result)
+    
                 await websocket.send_text(json.dumps({'action': 'recipe_saved', 'status': save_result}))
                 continue
             
             if 'action' in data_dict and data_dict['action'] == 'get_user_recipes':
-                print("user name from get recipe action:", username)
+    
                 user_id = await get_user_id(app.state.pool, username)
-                print("user id for get recipe", user_id)
+    
                 if user_id:
                     saved_recipes = await get_saved_recipes_for_user(app.state.pool, user_id)
-                    print("saved recipes:", saved_recipes)
+    
                     await websocket.send_text(json.dumps({
                         'action': 'user_recipes_list',
                         'recipes': saved_recipes
@@ -209,9 +211,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Initialize save_result with a default value
                 
                 recipe_id = data_dict.get('content')
-                print("recipe _ID for printing", recipe_id)
+    
                 print_result = await get_recipe_for_printing(app.state.pool, recipe_id)
-                print("print result from websocket:", print_result)
+    
 
                 await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
                 continue
@@ -220,11 +222,11 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Handle removing favorite_recipe
                 
                 recipe_id = data_dict.get('content')
-                print("recipe _ID to remove", recipe_id)
+                
                 userID = await get_user_id(app.state.pool, username)
-                print("user id for remove", userID, username)
+                
                 remove_result = await un_favorite_recipe(app.state.pool, userID, recipe_id)
-                print("remove result from websocket:", remove_result)
+                
                 
 
                 #await websocket.send_text(json.dumps({'action': 'recipe_printed', 'data': print_result}))
@@ -233,11 +235,11 @@ async def websocket_endpoint(websocket: WebSocket):
             if 'action' in data_dict and data_dict['action'] == 'chat_message':
                 # Handle regular messages
                 message = data_dict.get('message', '')
-                user_ip = "User IP"  # Placeholder for user IP
+                
                 uuid = str(uuid4())
-                print("session ID", session_id)
                 
                 
+                user_ip = client_ip
                 response_text, content_type, recipe_id = await generate_answer(app.state.pool, username, message, user_ip, uuid)
                 response = {
                     'response': response_text,
