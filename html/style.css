@@ -1,16 +1,21 @@
 /* Include Roboto font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 /* Reset default margin and padding for the entire document */
-body {
+html, body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
+    padding-top: 20px; /* Adjust this value to create the desired space */
     background-color: #f5f5f5;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 95vh;
-}
+    height: calc(100% - 20px); /* Subtract the padding from the total height */
+    box-sizing: border-box;
+
+}*, *:before, *:after {
+    box-sizing: inherit;
+  }
 
 /* Chat container styles */
 #chat-container {
@@ -23,7 +28,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    height: 100vh;
+    height: 95%;
 }
 
 /* Message container styles */
