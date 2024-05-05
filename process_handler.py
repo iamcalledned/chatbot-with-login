@@ -286,7 +286,7 @@ async def exchange_code_for_token(code, code_verifier):
     else:
         return None
 
-# validate token
+# validate token info
 async def validate_token(id_token):
     COGNITO_USER_POOL_ID = Config.COGNITO_USER_POOL_ID
     COGNITO_APP_CLIENT_ID = Config.COGNITO_APP_CLIENT_ID
