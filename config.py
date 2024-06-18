@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 # Specify the path to your .env file
-dotenv_path = '/home/ubuntu/chatbot-with-login/.evn/.env'
+dotenv_path = '/home/ned/projects/whattogrill/chatbot-with-login/.evn/.env'
 
 # Load environment variables from the specified .env file
 load_dotenv(dotenv_path)
