@@ -9,7 +9,7 @@ app = FastAPI()
 
 # Load the spaCy model
 #nlp = spacy.load("en_core_web_sm")
-model_path = os.path.expanduser("~/chatbot-with-login/model")
+model_path = os.path.expanduser("/home/ned/projects/whattogrill/chatbot-with-login/model")
 
 nlp = spacy.load(model_path)
 print("loaded nlp from", model_path)
