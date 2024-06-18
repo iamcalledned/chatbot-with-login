@@ -246,3 +246,4 @@ async def validate_session(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+#uvicorn websocket:app --host 0.0.0.0 --port 8055 --reload --log-level debug
