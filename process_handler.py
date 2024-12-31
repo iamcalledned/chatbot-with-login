@@ -44,7 +44,7 @@ logging.info(f"redis-client created at port")
 print(f"redis-client created at port")
 
 
-app = FastAPI()
+app = FastAPI(strict_slashes=False)
 
 
 
