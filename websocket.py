@@ -49,6 +49,7 @@ async def create_pool():
     return await create_db_pool()
 
 
+
 @router.post("/logout")
 async def logout(request: Request):
     session_id = request.json().get('session_id', '')
