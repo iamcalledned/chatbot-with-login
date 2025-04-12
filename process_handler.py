@@ -258,6 +258,15 @@ async def get_session_data(request: Request):
         "userInfo": username  # or db_data if you have merged them
     })
 
+@app.get("/api/status2")
+async def server_status2():
+    try:
+        # Perform a lightweight check (e.g., return a success message)
+        return JSONResponse(content={"status": "ok"}, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
+
+
 
 ##################################################################
 ######!!!!     end get ssession endpoint  !!######################
