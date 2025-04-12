@@ -83,7 +83,7 @@ async def schedule_verifier_cleanup(pool, redis_client):
 ######!!!!     Start login endpoint    !!!!!######################
 ##################################################################
 
-@app.get("/login")
+@app.get("/api/login")
 async def login(request: Request):
     #set login timestemp
     login_timestamp  = datetime.datetime.now()
