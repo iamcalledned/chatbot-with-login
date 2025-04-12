@@ -90,7 +90,7 @@ function getOldestMessageTimestamp() {
 
 function initializeWebSocket() {
     if (!socket || socket.readyState === WebSocket.CLOSED) {
-        socket = new WebSocket('wss://www.whattogrill.com/ws');
+        socket = new WebSocket('wss://www.iamcalledned.ai/ws');
 
         socket.onopen = function() {
             
