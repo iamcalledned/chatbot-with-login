@@ -76,7 +76,7 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
             # Create the run on OpenAI
             run = client.beta.threads.runs.create(
                 thread_id=thread_id_n,
-                assistant_id="asst_ODqZJkwekTSZwZT554Sabqm2"
+                assistant_id="asst_cN5EMfahI1Xs9LwaAGxGR7a1"
             )
             
             print('run create')
