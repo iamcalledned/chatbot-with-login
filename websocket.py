@@ -208,10 +208,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 uuid = str(uuid4())
                 user_ip = client_ip
                 print(f"User IP: {user_ip}")
-                response_text, content_type, recipe_id = await generate_answer(app.state.pool, username, message, user_ip, uuid)
+                response_text, recipe_id = await generate_answer(app.state.pool, username, message, user_ip, uuid)
                 response = {
                     'response': response_text,
-                    'type': content_type,
                     'recipe_id': recipe_id
                 }
                 await websocket.send_text(json.dumps(response))
