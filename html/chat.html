@@ -4,96 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot</title>
-    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daisyui@4.0.0/dist/full.css"></script>
     <link rel="manifest" href="/manifest.json">
 </head>
-<body>
-    <div id="chat-container">
-        <header class="chat-header">
+<body class="bg-neutral text-neutral-content">
+    <div id="chat-container" class="max-w-4xl mx-auto p-4 bg-base-200 rounded-lg shadow-lg">
+        <header class="flex items-center justify-between p-4 bg-base-300 rounded-t-lg">
             <!-- Hamburger Menu Button -->
-            <button class="hamburger-menu">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button class="btn btn-square btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
             </button>
-
-            <div class="options-menu">
-                <ul class="menu-items">
-                    <li class="menu-item" id="shopping-list-button">Shopping List</li>
-                    <li class="menu-item" id="recipe-box-button">Recipe Box</li>
-                    <li class="menu-item" id="about-button">About Ned</li>
-                    <li class="menu-item" id="logout">Logout</li>
-                </ul>
-            </div>
+            <h1 class="text-xl font-bold">Chat with Ned</h1>
         </header>
-        <div id="messages">
+        <div id="messages" class="overflow-y-auto h-96 p-4 space-y-4">
             <!-- Chat messages will be dynamically added here -->
         </div>
         <!-- Typing indicator -->
-        <div id="typing-container">
-            <span id="typing-text">Ned is typing</span>
-            <div class="typing-indicator">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+        <div id="typing-container" class="hidden flex items-center space-x-2 p-4">
+            <span id="typing-text" class="text-sm">Ned is typing</span>
+            <div class="flex space-x-1">
+                <div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <div class="w-2 h-2 bg-primary rounded-full animate-pulse delay-150"></div>
+                <div class="w-2 h-2 bg-primary rounded-full animate-pulse delay-300"></div>
             </div>
         </div>
         <!-- Input fields -->
-        <div class="input-group">
-            <textarea id="message-input" placeholder="Type your message..."></textarea>
-            <button id="send-button">Send</button>
+        <div class="flex items-center p-4 space-x-2 bg-base-300 rounded-b-lg">
+            <textarea id="message-input" class="textarea textarea-bordered flex-grow" placeholder="Type your message..."></textarea>
+            <button id="send-button" class="btn btn-primary">Send</button>
         </div>
     </div>
+
     <!-- Shopping List Overlay -->
-    <div id="shopping-list-overlay" class="overlay hidden">
-        <div class="shopping-list-content">
-            <h2>Shopping List</h2>
-            <ul id="shopping-list">
+    <div id="shopping-list-overlay" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-base-100 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Shopping List</h2>
+            <ul id="shopping-list" class="list-disc list-inside space-y-2">
                 <!-- Shopping list items will go here -->
             </ul>
-            <button id="close-shopping-list">Close</button>
+            <button id="close-shopping-list" class="btn btn-outline mt-4">Close</button>
         </div>
     </div>
-        <!-- Recipe Box Overlay -->
-        <div id="recipe-box-overlay" class="overlay hidden">
-            <div class="recipe-box-content">
-                <h2>Recipe Box</h2>
-                <button id="close-recipe-box">Close</button>
-                <div class="recipe-list-container">
-                    <ul id="recipe-box">
-                        <!-- recipes will go here-->
-                    </ul>
-                </div>
-        </div>
-            <!-- About Overlay -->
-            <div id="about-overlay" class="overlay hidden">
-                <div class="about-content">
-                    <h2>Recipe Box</h2>
-                    <button id="close-about">Close</button>
-                    <div class="about-container">
-                        <ul id="about">
-                            <!-- recipes will go here-->
-                        </ul>
-                    </div>
-            </div>
-        
 
+    <!-- Recipe Box Overlay -->
+    <div id="recipe-box-overlay" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-base-100 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Recipe Box</h2>
+            <ul id="recipe-box" class="list-disc list-inside space-y-2">
+                <!-- Recipes will go here -->
+            </ul>
+            <button id="close-recipe-box" class="btn btn-outline mt-4">Close</button>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-                    console.log('Service Worker registered with scope: ', registration.scope);
-                }, function(err) {
-                    console.log('Service Worker registration failed: ', err);
-                });
-            });
-        }
-    </script>
-    <script type="text/javascript">
-        var sessionId = "{{ sessionId }}";
-    </script>
     <script src="chat_script.js"></script>
 </body>
 </html>
