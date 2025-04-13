@@ -116,6 +116,6 @@ async def generate_answer(pool,username, message, user_ip, uuid):  # Add db_pool
                 print("Failed to create a run object in OpenAI.")
                 return "Error: Failed to create a run object."
 
-            return message_content, content_type, recipe_id
+            return message_content, recipe_id
         else:
             return "Error: Failed to create a new thread in OpenAI."
