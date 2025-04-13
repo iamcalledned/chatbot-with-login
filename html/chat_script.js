@@ -118,67 +118,53 @@ function initializeWebSocket() {
             } else if (msg.action === 'older_messages') {
                 displayMoreMessages(msg.messages);
             } else if (msg.action === 'user_recipes_list') {
-                displayUserRecipes(msg.recipes); // Function to handle displaying the recipes
+                displayUserRecipes(msg.recipes);
             } else if (msg.action === 'force_logout') {
-                // Redirect to login page
-                window.location.href = '/login'; // Adjust URL as needed
+                window.location.href = '/login';
             } else if (msg.action === 'redirect_login') {
-                // Optionally display an alert or notification to the user
                 alert('Your session is invalid. Please log in again.');
-
-                // Redirect to the login page
-                window.location.href = '/login'; // Adjust this URL as needed
+                window.location.href = '/login';
             } else if (msg.action === 'recipe_saved') {
-                // Check if the recipe was successfully saved and show a notification
                 if (msg.status === 'success') {
-                    $('.save-recipe-button').text('Recipe Saved'); // Change button text
-                    $('.save-recipe-button').addClass('recipe-saved-button'); // Add a new class for styling (optional)
-                    $('.save-recipe-button').prop('disabled', true); // Disable the button
+                    $('.save-recipe-button').text('Recipe Saved');
+                    $('.save-recipe-button').addClass('recipe-saved-button');
+                    $('.save-recipe-button').prop('disabled', true);
                     showNotificationBubble('Recipe saved');
                 } else {
-                    // Handle other statuses, like errors
                     showNotificationBubble('Failed to save recipe');
                 }
             } else if (msg.action === 'recipe_printed') {
-                // Extract the HTML-formatted recipe data
                 var recipeHtml = msg.data;
-
-                // Create a new window or an invisible iframe for printing
                 var printWindow = window.open('', '_blank');
-
-                // Set the document content for printing
                 printWindow.document.write('<html><head><title>Print Recipe</title></head><body>');
-                printWindow.document.write(recipeHtml); // Insert the HTML-formatted recipe
+                printWindow.document.write(recipeHtml);
                 printWindow.document.write('</body></html>');
-
-                // Wait for the content to fully load
                 printWindow.onload = function() {
-                    // Open the print dialog
                     printWindow.print();
-                    // Close the print window after printing (optional)
                     printWindow.close();
                 };
             } else {
                 hideTypingIndicator();
                 var messageElement;
-                if (msg.type === 'recipe') {
-                    messageElement = $('<div class="message-bubble recipe-message">'); // Add 'recipe-message' class
-                    var messageContent = $('<div class="message-content">').html(msg.response);
-                    // Create a Print button
-                    var printButton = $('<button class="print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
 
-                    // create a Save button
+                // Properly format bot messages
+                if (msg.type === 'message') {
+                    messageElement = $('<div class="message bot">').text(msg.message);
+                } else if (msg.type === 'recipe') {
+                    messageElement = $('<div class="message-bubble recipe-message">');
+                    var messageContent = $('<div class="message-content">').html(msg.response);
+                    var printButton = $('<button class="print-recipe-button" data-recipe-id="' + msg.recipe_id + '">Print Recipe</button>');
                     var saveButton = $('<button class="save-recipe-button" data-recipe-id="' + msg.recipe_id + '">Save Recipe</button>');
                     messageElement.append(messageContent, saveButton, printButton);
-                } else if (msg.type === 'shopping_list') { // Check if message type is shopping list
-                    messageElement = $('<div class="message-bubble shopping-list-message">'); // Use a different class for shopping list messages
+                } else if (msg.type === 'shopping_list') {
+                    messageElement = $('<div class="message-bubble shopping-list-message">');
                     var messageContent = $('<div class="message-content">').html(msg.response);
-                    // You could add buttons or other elements specific to a shopping list here
                     var saveButton = $('<button class="save-shopping-list-button">Save Shopping List</button>');
                     messageElement.append(messageContent, saveButton);
                 } else {
                     messageElement = $('<div class="message bot">').html(msg.response);
                 }
+
                 $('#messages').append(messageElement);
                 $('#messages').scrollTop($('#messages')[0].scrollHeight);
             }
