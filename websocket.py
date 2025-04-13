@@ -89,6 +89,7 @@ async def clear_session_data_after_timeout(session_id, username):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    session_id_from_cookies = websocket.cookies.get('session_id')
     
     cookies = websocket.cookies
     session_id = cookies.get("session_id")
