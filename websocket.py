@@ -208,6 +208,18 @@ async def websocket_endpoint(websocket: WebSocket):
                 uuid = str(uuid4())
                 user_ip = client_ip
                 print(f"User IP: {user_ip}")
+
+                # Retrieve userID and validate it
+                userID = await get_user_id(app.state.pool, username)
+                if not userID:
+                    print(f"Error: userID is None for username {username}")
+                    await websocket.send_text(json.dumps({
+                        'action': 'error',
+                        'message': 'Unable to process your request. Please try again later.'
+                    }))
+                    continue
+
+                # Generate response
                 response_text, recipe_id = await generate_answer(app.state.pool, username, message, user_ip, uuid)
                 response = {
                     'response': response_text,
