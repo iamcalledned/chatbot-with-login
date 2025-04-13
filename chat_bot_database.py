@@ -156,13 +156,12 @@ async def get_user_id(pool, username):
             
             # If user does not exist, create a new userID and insert into the table
             new_user_id = str(uuid.uuid4())  # Generate a unique userID
-            current_time = datetime.datetime.now().isoformat()
             try:
                 sql = '''
-                INSERT INTO user_data (userID, username, created_at)
-                VALUES (%s, %s, %s)
+                INSERT INTO user_data (userID, username)
+                VALUES (%s, %s)
                 '''
-                await cur.execute(sql, (new_user_id, username, current_time))
+                await cur.execute(sql, (new_user_id, username))
                 await conn.commit()
                 print(f"Created new user with userID: {new_user_id} for username: {username}")
                 return new_user_id
@@ -289,5 +288,3 @@ def format_recipe_for_printing(details, ingredients, instructions):
     formatted_html += "</ol>"
 
     return formatted_html
-
-
