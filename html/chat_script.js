@@ -149,7 +149,7 @@ function initializeWebSocket() {
 
                 // Properly format bot messages
                 if (msg.type === 'message') {
-                    messageElement = $('<div class="message bot">').text(msg.message);
+                    messageElement = $('<div class="message bot prose max-w-none">').html(msg.response);
                 } else if (msg.type === 'recipe') {
                     messageElement = $('<div class="message-bubble recipe-message">');
                     var messageContent = $('<div class="message-content">').html(msg.response);
