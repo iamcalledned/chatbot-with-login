@@ -155,14 +155,14 @@ async def get_user_id(pool, username):
                 return result['userID']
             
             # If user does not exist, create a new userID and insert into the table
-            new_user_id = str(uuid.uuid4())  # Generate a unique userID
             try:
                 sql = '''
-                INSERT INTO user_data (userID, username)
-                VALUES (%s, %s)
+                INSERT INTO user_data (username)
+                VALUES (%s)
                 '''
-                await cur.execute(sql, (new_user_id, username))
+                await cur.execute(sql, (username,))
                 await conn.commit()
+                new_user_id = cur.lastrowid  # Get the auto-incremented ID
                 print(f"Created new user with userID: {new_user_id} for username: {username}")
                 return new_user_id
             except Exception as e:
