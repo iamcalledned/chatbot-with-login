@@ -12,12 +12,12 @@ body, button {
 
 /* Body Styles */
 body {
-    background-color: #333; /* Set the background color as seen in the image */
-    color: white; /* Set the text color to white for better readability */
+    background-color: var(--b2); /* Match dashboard background */
+    color: var(--bc); /* Match dashboard text color */
+    font-family: 'Inter', sans-serif; /* Match dashboard font */
     text-align: center; /* Center align the text for the main content */
 }
 
-/* Main Content Styles */
 /* Main Content Styles */
 main {
     display: flex;
@@ -35,8 +35,45 @@ main {
     margin-bottom: 20px; /* Space below the logo */
 }
 
+/* Chat header styles */
+.chat-header {
+    background-color: var(--b3); /* Match dashboard header background */
+    color: var(--bc); /* Match dashboard header text color */
+    padding: 1rem;
+    border-bottom: 1px solid var(--b1);
+}
 
-/* Other styles... */
+/* Hamburger menu styles */
+.hamburger-menu span {
+    background-color: var(--bc); /* Match dashboard text color */
+}
+
+/* Options menu styles */
+.options-menu {
+    background-color: var(--b1); /* Match base color */
+    color: var(--bc); /* Match base text color */
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Menu item styles */
+.menu-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--b2);
+}
+
+.menu-item:hover {
+    background-color: var(--b3); /* Slightly darker base color */
+}
+
+/* Notification bubble styles */
+.notification-bubble {
+    background-color: var(--p); /* Match primary color */
+    color: var(--pc); /* Match primary text color */
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
 /* Main Button Style */
 /* Login Button Styles */
@@ -61,7 +98,6 @@ main {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Increased shadow on hover */
 }
 
-
 #login:focus {
     box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.5); /* Orange glow to indicate focus */
 }
@@ -84,8 +120,6 @@ footer {
 }
 
 /* Remove all media queries as they are not necessary for this design */
-
-/* ... (previous styles) ... */
 
 /* Login Button Styles - as before, but now inside a media query for mobile */
 @media (max-width: 600px) {
@@ -123,7 +157,6 @@ footer {
     /* You can also adjust the button's position if necessary */
 }
 
-/* ... (other styles) ... */
 @media (min-width: 601px) {
     .logo img {
         /* Reduce the size of the image by 20% */
@@ -136,6 +169,7 @@ footer {
         margin-top: 20px;
     }
 }
+
 .logo-text {
     /* Example styles for the new text block */
     font-size: 1rem; /* Set the font size */

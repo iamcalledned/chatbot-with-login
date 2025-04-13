@@ -22,9 +22,11 @@ html, body {
     width: 100%;
     max-width: 600px;
     margin: 0; /* Remove margin on mobile */
-    background: #fff;
-    border: 1px solid #ddd;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--b2); /* Match dashboard background */
+    color: var(--bc); /* Match dashboard text color */
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -47,12 +49,13 @@ html, body {
 
 /* User message styles */
 .message.user {
-    background-color:#07777a; /* User message background color */
-    color: white;
-    align-self: flex-end; /* Aligns the user messages to the right */
+    background-color: var(--p); /* Match primary color */
+    color: var(--pc); /* Match primary text color */
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    align-self: flex-end;
     margin-right: 10px; /* Additional margin for better spacing */
-    border-radius: 20px; /* Rounded corners for user messages */
-    padding: 10px 15px; /* Padding for user messages */
 }
 /* Add bubble tail for user messages */
 .message.user::after {
@@ -85,12 +88,13 @@ html, body {
 
 /* Bot message styles */
 .message.bot {
-    background-color: #aaeaec; /* Bot message background color */
-    color: black;
-    align-self: flex-start; /* Aligns the bot messages to the left */
+    background-color: var(--b1); /* Match base color */
+    color: var(--bc); /* Match base text color */
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    align-self: flex-start;
     margin-left: 10px; /* Additional margin for better spacing */
-    border-radius: 20px; /* Rounded corners for bot messages */
-    padding: 10px 15px; /* Padding for bot messages */
 }
 /* Bot message styles */
 .message-bubble {
@@ -138,7 +142,7 @@ html, body {
     width: 8px;
     height: 8px;
     margin: 0 2px;
-    background-color: black;
+    background-color: var(--p); /* Match primary color */
     border-radius: 50%;
     animation: slide 1s infinite alternate;
 }
@@ -150,6 +154,9 @@ html, body {
 
 /* Input group styles */
 .input-group {
+    background-color: var(--b3); /* Match dashboard input background */
+    padding: 0.5rem;
+    border-top: 1px solid var(--b1);
     display: flex;
     padding: 0 10px 10px 10px;
 }
@@ -167,20 +174,21 @@ html, body {
 
 /* Send button styles */
 #send-button {
+    background-color: var(--p); /* Match primary color */
+    color: var(--pc); /* Match primary text color */
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
     padding: 10px 20px;
-   background-color: #007bff;
-    color: white;
     border: none;
-    border-radius: 20px;
     cursor: pointer;
     font-size: 16px;
     line-height: 1.6;
-    transition: background-color 0.3s ease;
 }
 
-/* Send button hover effect */
 #send-button:hover {
-    background-color: #0056b3;
+    background-color: var(--p-hover); /* Slightly darker primary color */
 }
 
 /* Media query for smaller screens (e.g., mobile devices) */
@@ -289,7 +297,7 @@ html, body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.7); /* Match dashboard overlay */
     z-index: 1000;
     display: flex;
     justify-content: center;
@@ -301,9 +309,11 @@ html, body {
 }
 
 .shopping-list-content {
-    background: white;
-    padding: 20px;
-    border-radius: 5px;
+    background-color: var(--b1); /* Match base color */
+    color: var(--bc); /* Match base text color */
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 90%;
     max-width: 400px;
 }
@@ -329,9 +339,11 @@ html, body {
 /* Recipe Box Content - the white box that contains the recipes */
 .recipe-box-content {
     position: relative; /* Keep this the same */
-    background: white;
-    padding: 20px;
-    border-radius: 5px;
+    background-color: var(--b1); /* Match base color */
+    color: var(--bc); /* Match base text color */
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 400px; /* Maximum width of the box */
     width: 90%; /* Make it responsive: it should take up 90% of the screen width */
     max-height: 80vh; /* Maximum height before scrolling */
@@ -373,17 +385,21 @@ html, body {
 
 /* Button to Close the Recipe Box Overlay */
 /* Button to Close the Recipe Box Overlay */
-#close-recipe-box {
+#close-recipe-box, #close-shopping-list {
     position: absolute; /* Position absolute to the overlay */
     right: 20px; /* Align to the right side of the overlay */
     top: 20px; /* Align to the top of the overlay */
-    padding: 10px 20px;
-    background-color: #644fd9;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    background-color: var(--p); /* Match primary color */
+    color: var(--pc); /* Match primary text color */
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
     z-index: 1001; /* Ensure it's above the overlay content */
+}
+
+#close-recipe-box:hover, #close-shopping-list:hover {
+    background-color: var(--p-hover); /* Slightly darker primary color */
 }
 
 /* Scrollable Recipe List */
