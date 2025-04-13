@@ -162,7 +162,15 @@ function initializeWebSocket() {
                     var saveButton = $('<button class="save-shopping-list-button">Save Shopping List</button>');
                     messageElement.append(messageContent, saveButton);
                 } else {
-                    messageElement = $('<div class="message bot">').html(msg.response);
+                    messageElement = $(`
+                        <div class="chat chat-start">
+                          <div class="chat-bubble bg-info text-info-content shadow-md max-w-[75%]">
+                            ${msg.response}
+                          </div>
+                        </div>
+                      `);
+                      
+
                 }
 
                 $('#messages').append(messageElement);
