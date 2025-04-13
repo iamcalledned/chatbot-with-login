@@ -89,8 +89,13 @@ async def clear_session_data_after_timeout(session_id, username):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    
     cookies = websocket.cookies
-    session_id_from_cookies = cookies.get('session_id')
+    session_id = cookies.get("session_id")
+
+    if not session_id:
+        await websocket.close(code=1008)  # Policy violation
+        return
     # Obtain client IP address
     client_host, client_port = websocket.client
     client_ip = client_host
