@@ -1,34 +1,35 @@
-import openai
 import os
+from openai import OpenAI
 from dotenv import load_dotenv
 
-# Optional: use a .env file to store your key
+# Load your API key
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(api_key=api_key)
 
 def run_news_sniffer(query):
     print(f"🔍 Searching for: {query}\n")
 
-    # Step 1: Run a live web search via OpenAI tool
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[
             {
                 "role": "system",
                 "content": (
                     "You are a web intelligence agent named NewsSniffer. "
-                    "You search the internet for the latest news articles or headlines about a given query. "
-                    "Return your results as a list of concise bullet points with title, source, summary, and link. "
-                    "Focus on financial, economic, political, or macro events. Be concise and avoid fluff."
+                    "Search the web for the most relevant recent headlines about the query. "
+                    "Summarize each result in 1–2 sentences. Focus on macro, markets, policy, and global risk. "
+                    "Respond in markdown format: a bulleted list with source, summary, and link."
                 )
             },
             {
                 "role": "user",
-                "content": f"Find the most relevant news headlines about: {query}"
+                "content": f"Find the latest news for: {query}"
             }
         ],
-        tools=[{"type": "web_search"}],  # <-- this uses OpenAI's built-in web access
-        tool_choice="auto",
+        tools=[{"type": "web_search"}],  # OpenAI plugin-style tool call
+        tool_choice="auto"
     )
 
     reply = response.choices[0].message.content
