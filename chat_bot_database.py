@@ -147,9 +147,28 @@ async def end_run(pool, run_id):
 async def get_user_id(pool, username):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
+            # Check if the user already exists
             await cur.execute("SELECT userID FROM user_data WHERE username = %s", (username,))
             result = await cur.fetchone()
-            return result['userID'] if result else None
+            
+            if result:
+                return result['userID']
+            
+            # If user does not exist, create a new userID and insert into the table
+            new_user_id = str(uuid.uuid4())  # Generate a unique userID
+            current_time = datetime.datetime.now().isoformat()
+            try:
+                sql = '''
+                INSERT INTO user_data (userID, username, created_at)
+                VALUES (%s, %s, %s)
+                '''
+                await cur.execute(sql, (new_user_id, username, current_time))
+                await conn.commit()
+                print(f"Created new user with userID: {new_user_id} for username: {username}")
+                return new_user_id
+            except Exception as e:
+                print(f"Error creating new user for username '{username}': {e}")
+                return None
 
 
 async def save_recipe_to_db(pool, userID, recipe_data):
